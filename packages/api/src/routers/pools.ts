@@ -1,11 +1,22 @@
 import { db, pool } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
 
 export const poolsRouter = {
+  list: protectedProcedure.handler(async () => {
+    return db
+      .select({
+        id: pool.id,
+        name: pool.name,
+        createdAt: pool.createdAt,
+        updatedAt: pool.updatedAt,
+      })
+      .from(pool)
+      .orderBy(desc(pool.createdAt));
+  }),
   create: protectedProcedure
     .input(
       z.object({
