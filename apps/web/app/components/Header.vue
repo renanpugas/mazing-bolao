@@ -8,6 +8,9 @@ const route = useRoute();
 const items = computed<NavigationMenuItem[]>(() => [
   { label: "Home", to: "/", active: route.path === "/" },
   { label: "Dashboard", to: "/dashboard", active: route.path.startsWith("/dashboard") },
+  { label: "Predictions", to: "/predictions", active: route.path.startsWith("/predictions") },
+  { label: "Create Pool", to: "/pools/new", active: route.path.startsWith("/pools") },
+  { label: "Pool Results", to: "/pool-results", active: route.path.startsWith("/pool-results") },
 ]);
 </script>
 
