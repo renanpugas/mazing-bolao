@@ -3,6 +3,7 @@ import { env } from "@mazing-bolao/env/server";
 import { drizzle } from "drizzle-orm/libsql";
 
 import * as schema from "./schema";
+export * from "./schema";
 
 export function createDb() {
   const client = createClient({
