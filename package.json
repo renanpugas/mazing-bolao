@@ -12,6 +12,7 @@
     "check-types": "turbo check-types",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
+    "test:e2e:server": "turbo -F server test:e2e",
     "db:push": "turbo -F @mazing-bolao/db db:push",
     "db:studio": "turbo -F @mazing-bolao/db db:studio",
     "db:generate": "turbo -F @mazing-bolao/db db:generate",
