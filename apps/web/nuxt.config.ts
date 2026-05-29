@@ -7,6 +7,14 @@ export default defineNuxtConfig({
   experimental: {
     payloadExtraction: "client",
   },
+  build: {
+    transpile: ["naive-ui", "vueuc", "date-fns", "seemly", "vooks", "@css-render/vue3-ssr"],
+  },
+  vite: {
+    ssr: {
+      noExternal: ["naive-ui", "vueuc", "seemly", "vooks"],
+    },
+  },
   modules: ["@nuxt/ui"],
   css: ["~/assets/css/main.css"],
   devServer: {

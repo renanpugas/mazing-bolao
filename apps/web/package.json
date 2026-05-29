@@ -19,6 +19,7 @@
     "@tanstack/vue-query": "^5.92.9",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
+    "naive-ui": "^2.44.1",
     "nuxt": "^4.4.4",
     "zod": "catalog:"
   },
