@@ -1,0 +1,30 @@
+{
+  "name": "@mazing-bolao/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@mazing-bolao/auth": "workspace:*",
+    "@mazing-bolao/db": "workspace:*",
+    "@mazing-bolao/env": "workspace:*",
+    "@orpc/client": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
+    "@orpc/zod": "catalog:",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@mazing-bolao/config": "workspace:*",
+    "@types/express": "catalog:",
+    "typescript": "catalog:"
+  }
+}

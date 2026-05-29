@@ -1,0 +1,36 @@
+{
+  "name": "mazing-bolao",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:web": "turbo -F web dev",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F @mazing-bolao/db db:push",
+    "db:studio": "turbo -F @mazing-bolao/db db:studio",
+    "db:generate": "turbo -F @mazing-bolao/db db:generate",
+    "db:migrate": "turbo -F @mazing-bolao/db db:migrate",
+    "db:local": "turbo -F @mazing-bolao/db db:local"
+  },
+  "dependencies": {
+    "@mazing-bolao/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@mazing-bolao/config": "workspace:*",
+    "@types/node": "catalog:",
+    "turbo": "^2.8.12",
+    "typescript": "catalog:"
+  },
+  "overrides": {
+    "@vue/devtools-api": "^8.0.7"
+  },
+  "packageManager": "pnpm@10.25.0"
+}

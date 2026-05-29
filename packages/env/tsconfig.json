@@ -1,0 +1,3 @@
+{
+  "extends": "@mazing-bolao/config/tsconfig.base.json"
+}
