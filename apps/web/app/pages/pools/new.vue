@@ -1,15 +1,7 @@
 <script setup lang="ts">
-type Privacidade = "publico" | "privado";
+import { useCreatePoolMutation, usePoolsListQuery } from "~/composables/usePoolsApi";
 
-type CreatedPool = {
-  nome: string;
-  campeonato: string;
-  descricao: string;
-  limitePalpite: string;
-  taxaEntrada: number;
-  maxParticipantes: number;
-  privacidade: Privacidade;
-};
+type Privacidade = "publico" | "privado";
 
 const formulario = reactive({
   nome: "",
@@ -23,7 +15,7 @@ const formulario = reactive({
 
 const erros = reactive<Record<string, string>>({});
 const createdSuccessfully = ref(false);
-const createdPools = ref<CreatedPool[]>([]);
+const requestError = ref<string | null>(null);
 
 const opcoesPrivacidade = [
   { label: "Público", value: "publico" as const },
@@ -54,22 +46,25 @@ const limparFormulario = () => {
   formulario.privacidade = "publico";
 };
 
-const createPool = () => {
+const poolsQuery = usePoolsListQuery();
+const createPoolMutation = useCreatePoolMutation();
+
+const createdPools = computed(() => poolsQuery.data.value ?? []);
+
+const createPool = async () => {
   createdSuccessfully.value = false;
+  requestError.value = null;
   if (!validar()) return;
 
-  createdPools.value.unshift({
-    nome: formulario.nome.trim(),
-    campeonato: formulario.campeonato.trim(),
-    descricao: formulario.descricao.trim(),
-    limitePalpite: formulario.limitePalpite,
-    taxaEntrada: formulario.taxaEntrada,
-    maxParticipantes: formulario.maxParticipantes,
-    privacidade: formulario.privacidade,
-  });
-
-  createdSuccessfully.value = true;
-  limparFormulario();
+  try {
+    await createPoolMutation.mutateAsync({
+      name: formulario.nome.trim(),
+    });
+    createdSuccessfully.value = true;
+    limparFormulario();
+  } catch (error) {
+    requestError.value = error instanceof Error ? error.message : "Erro ao criar bolão.";
+  }
 };
 </script>
 
@@ -135,7 +130,7 @@ const createPool = () => {
           </UFormField>
 
           <div class="flex items-center justify-end pt-1">
-            <UButton type="submit">Criar bolão</UButton>
+            <UButton type="submit" :loading="createPoolMutation.isPending.value">Criar bolão</UButton>
           </div>
         </form>
 
@@ -145,31 +140,54 @@ const createPool = () => {
           color="success"
           icon="i-lucide-check-circle"
           title="Bolão criado com sucesso"
-          description="A criação foi salva localmente nesta sessão. Próximo passo: conectar com a API."
+          description="Bolão criado e salvo na API."
+        />
+
+        <UAlert
+          v-if="requestError"
+          class="mt-4"
+          color="error"
+          icon="i-lucide-alert-circle"
+          title="Erro ao criar bolão"
+          :description="requestError"
         />
       </UCard>
 
       <UCard v-if="createdPools.length" class="border-default/80 bg-default/80 backdrop-blur-sm">
         <template #header>
-          <h2 class="font-semibold">Bolões criados agora</h2>
+          <h2 class="font-semibold">Bolões cadastrados</h2>
         </template>
 
         <div class="space-y-3">
           <div
             v-for="pool in createdPools"
-            :key="`${pool.nome}-${pool.limitePalpite}`"
+            :key="pool.id"
             class="rounded-lg border border-default p-3"
           >
-            <p class="font-medium">{{ pool.nome }}</p>
-            <p class="text-sm text-muted">{{ pool.campeonato }}</p>
+            <p class="font-medium">{{ pool.name }}</p>
             <p class="text-sm text-muted">
-              Limite: {{ pool.limitePalpite }} | Participantes: até {{ pool.maxParticipantes }} | {{
-                pool.privacidade === "publico" ? "Público" : "Privado"
-              }}
+              Criado em:
+              {{ new Date(pool.createdAt).toLocaleString("pt-BR") }}
             </p>
           </div>
         </div>
       </UCard>
+
+      <UAlert
+        v-else-if="poolsQuery.status.value === 'pending'"
+        color="info"
+        icon="i-lucide-loader-2"
+        title="Carregando bolões"
+        description="Buscando bolões cadastrados..."
+      />
+
+      <UAlert
+        v-else-if="poolsQuery.status.value === 'error'"
+        color="error"
+        icon="i-lucide-alert-circle"
+        title="Erro ao carregar bolões"
+        :description="poolsQuery.error.value?.message || 'Não foi possível carregar os bolões.'"
+      />
     </UContainer>
   </div>
 </template>
