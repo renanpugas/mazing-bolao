@@ -1,10 +1,12 @@
 import type { RouterClient } from "@orpc/server";
 import { poolsRouter } from "./pools";
 import { predictionsRouter } from "./predictions";
+import { sessionRouter } from "./session";
 import { systemRouter } from "./system";
 
 export const appRouter = {
   ...systemRouter,
+  session: sessionRouter,
   pools: poolsRouter,
   predictions: predictionsRouter,
 };

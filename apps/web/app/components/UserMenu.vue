@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { $authClient } = useNuxtApp();
-const session = $authClient.useSession();
+const session = useSessionQuery();
 const toast = useToast();
 
 const handleSignOut = async () => {
@@ -30,9 +30,9 @@ const handleSignOut = async () => {
 
 <template>
   <div>
-    <USkeleton v-if="session.isPending" class="h-9 w-24" />
+    <USkeleton v-if="session.status.value === 'pending'" class="h-9 w-24" />
 
-    <UButton v-else-if="!session.data" variant="outline" to="/login"> Sign In </UButton>
+    <UButton v-else-if="!session.data.value" variant="outline" to="/login"> Sign In </UButton>
 
     <UButton
       v-else

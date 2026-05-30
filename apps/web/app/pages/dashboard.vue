@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { useQuery } from "@tanstack/vue-query";
 
-const { $authClient, $orpc } = useNuxtApp();
+const { $orpc } = useNuxtApp();
 
-definePageMeta({
-  middleware: ["auth"],
-});
-
-const session = $authClient.useSession();
+const session = useSessionQuery();
 
 const privateData = useQuery({
   ...$orpc.privateData.queryOptions(),
-  enabled: computed(() => !!session.value?.data?.user),
+  enabled: computed(() => !!session.data.value?.user),
 });
 </script>
 
@@ -19,7 +15,7 @@ const privateData = useQuery({
   <UContainer class="py-8">
     <UPageHeader
       title="Dashboard"
-      :description="session?.data?.user ? `Welcome back, ${session.data.user.name}!` : 'Loading...'"
+      :description="session.data.value?.user ? `Welcome back, ${session.data.value.user.name}!` : 'Loading...'"
     />
 
     <div class="mt-6 space-y-4">
