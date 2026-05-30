@@ -1,8 +1,5 @@
 <script setup lang="ts">
-const form = reactive({
-  email: "",
-  password: "",
-});
+const mode = ref<"signin" | "signup">("signin");
 </script>
 
 <template>
@@ -15,37 +12,33 @@ const form = reactive({
           <p class="inline-block rounded-full bg-amber-300/20 px-3 py-1 text-xs font-bold uppercase tracking-widest text-amber-100">
             Acesse seu bolão
           </p>
-          <h2 class="mt-3 text-3xl font-extrabold text-emerald-50">Entrar na conta</h2>
-          <p class="mt-2 text-sm text-emerald-100/80">Continue de onde parou e acompanhe seus palpites em tempo real.</p>
+          <h2 class="mt-3 text-3xl font-extrabold text-emerald-50">
+            {{ mode === "signin" ? "Entrar na conta" : "Criar conta" }}
+          </h2>
+          <p class="mt-2 text-sm text-emerald-100/80">
+            {{ mode === "signin" ? "Continue de onde parou e acompanhe seus palpites em tempo real." : "Cadastre-se para começar a participar do bolão." }}
+          </p>
 
-          <form class="mt-6 space-y-4" @submit.prevent>
-            <label class="block">
-              <span class="mb-1 block text-sm font-semibold text-emerald-50">E-mail</span>
-              <input
-                v-model="form.email"
-                type="email"
-                placeholder="voce@email.com"
-                class="w-full rounded-lg border border-emerald-200/25 bg-emerald-900/55 px-3 py-2 text-emerald-50 placeholder:text-emerald-200/60 outline-none ring-0 focus:border-amber-300/70"
-              />
-            </label>
-
-            <label class="block">
-              <span class="mb-1 block text-sm font-semibold text-emerald-50">Senha</span>
-              <input
-                v-model="form.password"
-                type="password"
-                placeholder="Digite sua senha"
-                class="w-full rounded-lg border border-emerald-200/25 bg-emerald-900/55 px-3 py-2 text-emerald-50 placeholder:text-emerald-200/60 outline-none ring-0 focus:border-amber-300/70"
-              />
-            </label>
-
-            <n-button class="!mt-2" type="primary" attr-type="submit" block>
-              Entrar
-            </n-button>
-          </form>
+          <SignInForm
+            v-if="mode === 'signin'"
+            class="mt-4"
+            @switch-to-sign-up="mode = 'signup'"
+          />
+          <SignUpForm
+            v-else
+            class="mt-4"
+            @switch-to-sign-in="mode = 'signin'"
+          />
 
           <p class="mt-4 text-sm text-emerald-100/80">
-            Ainda não participa? <a href="#" class="font-semibold text-amber-200">Criar conta</a>
+            {{ mode === "signin" ? "Ainda não participa?" : "Já possui conta?" }}
+            <button
+              type="button"
+              class="font-semibold text-amber-200"
+              @click="mode = mode === 'signin' ? 'signup' : 'signin'"
+            >
+              {{ mode === "signin" ? "Criar conta" : "Entrar" }}
+            </button>
           </p>
         </n-card>
       </div>
