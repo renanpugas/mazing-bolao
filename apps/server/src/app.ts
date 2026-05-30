@@ -10,13 +10,6 @@ import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
-import { z } from "zod";
-
-const registerUserBodySchema = z.object({
-  name: z.string().min(1),
-  email: z.email(),
-  password: z.string().min(8),
-});
 
 export function createApp() {
   const app = express();
@@ -67,32 +60,6 @@ export function createApp() {
     if (apiResult.matched) return;
 
     next();
-  });
-
-  app.use(express.json());
-
-  app.post("/api/users/register", async (req, res) => {
-    const parsedBody = registerUserBodySchema.safeParse(req.body);
-    if (!parsedBody.success) {
-      return res.status(400).json({
-        error: "Invalid request body",
-        issues: parsedBody.error.issues,
-      });
-    }
-
-    try {
-      const result = await auth.api.signUpEmail({
-        body: parsedBody.data,
-      });
-
-      return res.status(201).json(result);
-    } catch (error) {
-      console.error(error);
-
-      return res.status(400).json({
-        error: "Unable to register user",
-      });
-    }
   });
 
   app.get("/", (_req, res) => {

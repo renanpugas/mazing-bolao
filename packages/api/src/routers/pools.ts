@@ -1,6 +1,6 @@
-import { db, pool } from "@mazing-bolao/db";
+import { db, pool, poolUser } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
@@ -23,13 +23,20 @@ export const poolsRouter = {
         name: z.string().trim().min(1, "Nome é obrigatório").max(120),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ context, input }) => {
+      const userId = context.session.user.id;
+      const poolId = crypto.randomUUID();
       const newPool = {
-        id: crypto.randomUUID(),
+        id: poolId,
         name: input.name,
       };
 
       await db.insert(pool).values(newPool);
+      await db.insert(poolUser).values({
+        id: crypto.randomUUID(),
+        poolId,
+        userId,
+      });
 
       return newPool;
     }),
@@ -55,5 +62,44 @@ export const poolsRouter = {
       }
 
       return updatedPool;
+    }),
+  join: protectedProcedure
+    .input(
+      z.object({
+        poolId: z.string().trim().min(1, "Bolão é obrigatório"),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      const userId = context.session.user.id;
+
+      const poolExists = await db.query.pool.findFirst({
+        where: eq(pool.id, input.poolId),
+        columns: { id: true },
+      });
+
+      if (!poolExists) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Bolão não encontrado",
+        });
+      }
+
+      const participant = await db.query.poolUser.findFirst({
+        where: and(eq(poolUser.poolId, input.poolId), eq(poolUser.userId, userId)),
+        columns: { id: true },
+      });
+
+      if (participant) {
+        throw new ORPCError("CONFLICT", {
+          message: "Você já participa desse bolão",
+        });
+      }
+
+      await db.insert(poolUser).values({
+        id: crypto.randomUUID(),
+        poolId: input.poolId,
+        userId,
+      });
+
+      return { success: true };
     }),
 };

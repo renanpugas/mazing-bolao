@@ -21,18 +21,13 @@ describe("Auth routes E2E", () => {
     expect(response.body).toBeNull();
   });
 
-  it("POST /api/users/register should register a new user", async () => {
-    const response = await agent.post("/api/users/register").send({
+  it("POST /api/auth/sign-up/email should return 404 (disabled in Google-only auth)", async () => {
+    const response = await agent.post("/api/auth/sign-up/email").send({
       name: "E2E Register User",
       email: `register-${crypto.randomUUID()}@example.com`,
       password: "TestPassword123!",
     });
 
-    expect(response.status).toBe(201);
-    expect(response.body.user).toMatchObject({
-      emailVerified: false,
-      name: "E2E Register User",
-    });
-    expect(response.body.user.email).toContain("@example.com");
+    expect(response.status).toBe(404);
   });
 });

@@ -1,4 +1,4 @@
-import { db, match, prediction } from "@mazing-bolao/db";
+import { db, match, poolUser, prediction } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -17,6 +17,16 @@ export const predictionsRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
+      const participant = await db.query.poolUser.findFirst({
+        where: and(eq(poolUser.poolId, input.poolId), eq(poolUser.userId, userId)),
+        columns: { id: true },
+      });
+
+      if (!participant) {
+        throw new ORPCError("FORBIDDEN", {
+          message: "Você não participa desse bolão",
+        });
+      }
 
       const existingPrediction = await db.query.prediction.findFirst({
         where: and(
@@ -38,6 +48,7 @@ export const predictionsRouter = {
         poolId: input.poolId,
         matchId: input.matchId,
         userId,
+        poolUserId: participant.id,
         homeGoals: input.homeGoals,
         awayGoals: input.awayGoals,
       };
@@ -60,6 +71,7 @@ export const predictionsRouter = {
           id: prediction.id,
           poolId: prediction.poolId,
           matchId: prediction.matchId,
+          poolUserId: prediction.poolUserId,
           homeGoals: prediction.homeGoals,
           awayGoals: prediction.awayGoals,
           createdAt: prediction.createdAt,
@@ -99,6 +111,7 @@ export const predictionsRouter = {
           id: prediction.id,
           poolId: prediction.poolId,
           matchId: prediction.matchId,
+          poolUserId: prediction.poolUserId,
           homeGoals: prediction.homeGoals,
           awayGoals: prediction.awayGoals,
           updatedAt: prediction.updatedAt,

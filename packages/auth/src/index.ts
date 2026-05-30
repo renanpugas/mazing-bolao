@@ -7,6 +7,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 export function createAuth() {
   const db = createDb();
   const isTestEnv = process.env.NODE_ENV === "test";
+  const authBaseUrl = env.BETTER_AUTH_URL.replace(/\/api\/auth\/?$/, "");
+  const googleRedirectURI = `${authBaseUrl}/api/auth/callback/google`;
 
   return betterAuth({
     database: drizzleAdapter(db, {
@@ -16,7 +18,14 @@ export function createAuth() {
     }),
     trustedOrigins: [env.CORS_ORIGIN],
     emailAndPassword: {
-      enabled: true,
+      enabled: false,
+    },
+    socialProviders: {
+      google: {
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+        redirectURI: googleRedirectURI,
+      },
     },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
