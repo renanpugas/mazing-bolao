@@ -1,24 +1,22 @@
 <script setup lang="ts">
-const { $authClient } = useNuxtApp();
+const { signOut } = useAuthApi();
 const session = useSessionQuery();
 const toast = useToast();
 
 const handleSignOut = async () => {
   try {
-    await $authClient.signOut({
-      fetchOptions: {
-        onSuccess: async () => {
-          toast.add({ title: "Signed out successfully" });
-          await navigateTo("/", { replace: true, external: true });
-        },
-        onError: (error) => {
-          toast.add({
-            title: "Sign out failed",
-            description: error?.error?.message || "Unknown error",
-          });
-        },
+    await signOut(
+      async () => {
+        toast.add({ title: "Signed out successfully" });
+        await navigateTo("/", { replace: true, external: true });
       },
-    });
+      (error) => {
+        toast.add({
+          title: "Sign out failed",
+          description: error?.error?.message || "Unknown error",
+        });
+      },
+    );
   } catch (error: any) {
     toast.add({
       title: "An unexpected error occurred during sign out",

@@ -1,5 +1,26 @@
 <script setup lang="ts">
-const mode = ref<"signin" | "signup">("signin");
+const { signInWithGoogle: signInWithGoogleApi } = useAuthApi();
+const toast = useToast();
+const loading = ref(false);
+
+async function signInWithGoogle() {
+  loading.value = true;
+  try {
+    await signInWithGoogleApi("/dashboard", (error) => {
+      toast.add({
+        title: "Falha ao entrar com Google",
+        description: error.error.message,
+      });
+    });
+  } catch (error: any) {
+    toast.add({
+      title: "Erro inesperado",
+      description: error.message || "Tente novamente.",
+    });
+  } finally {
+    loading.value = false;
+  }
+}
 </script>
 
 <template>
@@ -13,33 +34,25 @@ const mode = ref<"signin" | "signup">("signin");
             Acesse seu bolão
           </p>
           <h2 class="mt-3 text-3xl font-extrabold text-emerald-50">
-            {{ mode === "signin" ? "Entrar na conta" : "Criar conta" }}
+            Entrar na conta
           </h2>
           <p class="mt-2 text-sm text-emerald-100/80">
-            {{ mode === "signin" ? "Continue de onde parou e acompanhe seus palpites em tempo real." : "Cadastre-se para começar a participar do bolão." }}
+            Continue de onde parou e acompanhe seus palpites em tempo real.
           </p>
 
-          <SignInForm
-            v-if="mode === 'signin'"
-            class="mt-4"
-            @switch-to-sign-up="mode = 'signup'"
-          />
-          <SignUpForm
-            v-else
-            class="mt-4"
-            @switch-to-sign-in="mode = 'signin'"
-          />
-
-          <p class="mt-4 text-sm text-emerald-100/80">
-            {{ mode === "signin" ? "Ainda não participa?" : "Já possui conta?" }}
-            <button
-              type="button"
-              class="font-semibold text-amber-200"
-              @click="mode = mode === 'signin' ? 'signup' : 'signin'"
+          <div class="mt-6">
+            <UButton
+              block
+              size="xl"
+              color="neutral"
+              variant="soft"
+              icon="i-simple-icons-google"
+              :loading="loading"
+              @click="signInWithGoogle"
             >
-              {{ mode === "signin" ? "Criar conta" : "Entrar" }}
-            </button>
-          </p>
+              Entrar com Google
+            </UButton>
+          </div>
         </n-card>
       </div>
     </section>

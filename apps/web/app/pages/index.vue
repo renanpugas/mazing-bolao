@@ -1,7 +1,4 @@
 <script setup lang="ts">
-const { $orpc } = useNuxtApp();
-import { useQuery } from "@tanstack/vue-query";
-
 const TITLE_TEXT = `
  ██████╗ ███████╗████████╗████████╗███████╗██████╗
  ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
@@ -18,13 +15,7 @@ const TITLE_TEXT = `
     ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
  `;
 
-const healthCheck = useQuery($orpc.healthCheck.queryOptions());
-
-onServerPrefetch(async () => {
-  try {
-    await healthCheck.suspense();
-  } catch {}
-});
+const healthCheck = useHealthCheckQuery();
 </script>
 
 <template>

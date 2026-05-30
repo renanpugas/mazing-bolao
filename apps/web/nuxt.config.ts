@@ -18,7 +18,7 @@ export default defineNuxtConfig({
   modules: ["@nuxt/ui"],
   css: ["~/assets/css/main.css"],
   devServer: {
-    port: 3001,
+    port: 5173,
   },
   runtimeConfig: {
     public: {

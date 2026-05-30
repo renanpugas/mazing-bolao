@@ -6,8 +6,8 @@ export default defineNuxtRouteMiddleware((to) => {
     return;
   }
 
-  const { $authClient } = useNuxtApp();
-  const session = $authClient.useSession();
+  const { useSession } = useAuthApi();
+  const session = useSession();
 
   if (session.value.isPending) {
     return;

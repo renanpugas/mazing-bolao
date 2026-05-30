@@ -9,7 +9,8 @@ const items = computed<NavigationMenuItem[]>(() => [
   { label: "Home", to: "/", active: route.path === "/" },
   { label: "Dashboard", to: "/dashboard", active: route.path.startsWith("/dashboard") },
   { label: "Predictions", to: "/predictions", active: route.path.startsWith("/predictions") },
-  { label: "Create Pool", to: "/pools/new", active: route.path.startsWith("/pools") },
+  { label: "Pools", to: "/pools", active: route.path === "/pools" },
+  { label: "Create Pool", to: "/pools/new", active: route.path.startsWith("/pools/new") },
   { label: "Pool Results", to: "/pool-results", active: route.path.startsWith("/pool-results") },
 ]);
 </script>
