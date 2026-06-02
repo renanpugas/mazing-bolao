@@ -3,24 +3,30 @@ const { signOut } = useAuthApi();
 const session = useSessionQuery();
 const toast = useToast();
 
-const handleSignOut = async () => {
+const userName = computed(() => {
+  const user = session.data.value?.user;
+  return user?.name || user?.email || "Usuario";
+});
+
+const handleSignOut = async (close?: () => void) => {
   try {
     await signOut(
       async () => {
-        toast.add({ title: "Signed out successfully" });
+        close?.();
+        toast.add({ title: "Sessao encerrada" });
         await navigateTo("/", { replace: true, external: true });
       },
       (error) => {
         toast.add({
-          title: "Sign out failed",
-          description: error?.error?.message || "Unknown error",
+          title: "Nao foi possivel sair",
+          description: error?.error?.message || "Erro desconhecido",
         });
       },
     );
   } catch (error: any) {
     toast.add({
-      title: "An unexpected error occurred during sign out",
-      description: error.message || "Please try again.",
+      title: "Nao foi possivel sair",
+      description: error.message || "Tente novamente.",
     });
   }
 };
@@ -30,14 +36,39 @@ const handleSignOut = async () => {
   <div>
     <USkeleton v-if="session.status.value === 'pending'" class="h-9 w-24" />
 
-    <UButton v-else-if="!session.data.value" variant="outline" to="/login"> Sign In </UButton>
+    <UButton v-else-if="!session.data.value" variant="outline" to="/login"> Entrar </UButton>
 
-    <UButton
+    <UPopover
       v-else
-      variant="solid"
-      icon="i-lucide-log-out"
-      label="Sign out"
-      @click="handleSignOut()"
-    />
+      :content="{ align: 'end', side: 'bottom', sideOffset: 8 }"
+      :ui="{ content: 'w-72 p-0 rounded-lg shadow-xl ring ring-default bg-default' }"
+    >
+      <UButton
+        color="neutral"
+        variant="soft"
+        :label="userName"
+        trailing-icon="i-lucide-chevron-down"
+        class="max-w-52 justify-between"
+        :ui="{ label: 'truncate' }"
+      />
+
+      <template #content="{ close }">
+        <div class="space-y-4 p-4">
+          <div>
+            <p class="text-sm text-muted">Conectado como</p>
+            <p class="mt-1 truncate font-semibold text-highlighted">{{ userName }}</p>
+          </div>
+
+          <UButton
+            color="error"
+            block
+            size="lg"
+            label="Sair"
+            :loading="session.isFetching.value"
+            @click="handleSignOut(close)"
+          />
+        </div>
+      </template>
+    </UPopover>
   </div>
 </template>
