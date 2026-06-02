@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cleanupDatabase, createAgent, rpc } from "./helpers";
 
 describe("Predictions routes E2E", () => {
-  let agent: request.SuperAgentTest;
+  let agent: request.Agent;
 
   beforeEach(() => {
     agent = createAgent();

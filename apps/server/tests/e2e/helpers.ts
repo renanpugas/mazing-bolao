@@ -5,7 +5,7 @@ import { createApp } from "../../src/app";
 
 const app = createApp();
 
-export function createAgent() {
+export function createAgent(): request.Agent {
   return request.agent(app);
 }
 
@@ -20,11 +20,11 @@ export async function cleanupDatabase() {
   await db.delete(user);
 }
 
-export async function rpc<TBody>(agent: request.SuperAgentTest, path: string, body?: TBody) {
+export async function rpc<TBody>(agent: request.Agent, path: string, body?: TBody): Promise<request.Response> {
   const payload = body === undefined ? {} : { json: body };
   return agent.post(`/rpc/${path}`).send(payload);
 }
 
-export async function httpGet(path: string) {
+export async function httpGet(path: string): Promise<request.Response> {
   return request(app).get(path);
 }

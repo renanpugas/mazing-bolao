@@ -4,7 +4,7 @@ import request from "supertest";
 import { cleanupDatabase, createAgent, httpGet } from "./helpers";
 
 describe("Auth routes E2E", () => {
-  let agent: request.SuperAgentTest;
+  let agent: request.Agent;
 
   beforeEach(() => {
     agent = createAgent();
