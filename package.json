@@ -17,6 +17,8 @@
     "db:studio": "turbo -F @mazing-bolao/db db:studio",
     "db:generate": "turbo -F @mazing-bolao/db db:generate",
     "db:migrate": "turbo -F @mazing-bolao/db db:migrate",
+    "db:seed": "turbo -F @mazing-bolao/db db:seed",
+    "db:setup": "turbo -F @mazing-bolao/db db:setup",
     "db:local": "turbo -F @mazing-bolao/db db:local"
   },
   "dependencies": {

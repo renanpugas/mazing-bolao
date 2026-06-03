@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreatePoolMutation, usePoolsListQuery } from "@/hooks/use-pools-api";
-import { useSyncWorldCupMutation, useTournamentsListQuery } from "@/hooks/use-tournaments-api";
+import { useTournamentsListQuery } from "@/hooks/use-tournaments-api";
 
 type Privacidade = "publico" | "privado";
 type FormState = { nome: string; tournamentId: string; descricao: string; limitePalpite: string; taxaEntrada: number; maxParticipantes: number; privacidade: Privacidade };
@@ -27,7 +27,6 @@ function NewPoolPage() {
   const poolsQuery = usePoolsListQuery();
   const tournamentsQuery = useTournamentsListQuery();
   const createPoolMutation = useCreatePoolMutation();
-  const syncWorldCupMutation = useSyncWorldCupMutation();
   const createdPools = poolsQuery.data ?? [];
   const tournaments = tournamentsQuery.data ?? [];
 
@@ -70,7 +69,6 @@ function NewPoolPage() {
                     <option value="">Selecione um torneio</option>
                     {tournaments.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
                   </select>
-                  {!tournaments.length ? <Button className="mt-2" type="button" variant="soft" disabled={syncWorldCupMutation.isPending} onClick={() => void syncWorldCupMutation.mutateAsync({})}>{syncWorldCupMutation.isPending ? "Sincronizando..." : "Importar Copa do Mundo 2026"}</Button> : null}
                 </Field>
               </div>
               <Field label="Descrição (opcional)"><Textarea value={formulario.descricao} onChange={(event) => setFormulario({ ...formulario, descricao: event.target.value })} rows={3} placeholder="Escreva um resumo com regras, prêmios e critérios de desempate." /></Field>
