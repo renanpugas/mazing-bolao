@@ -24,7 +24,7 @@ describe("System routes E2E", () => {
     const response = await rpc(agent, "healthCheck");
 
     expect(response.status).toBe(200);
-    expect(response.body.json).toBe("OK");
+    expect(response.body).toBe("OK");
   });
 
   it("POST /rpc/privateData should return 401 without auth", async () => {
@@ -32,5 +32,4 @@ describe("System routes E2E", () => {
 
     expect(response.status).toBe(401);
   });
-
 });

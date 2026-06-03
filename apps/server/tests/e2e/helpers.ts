@@ -1,4 +1,5 @@
 import request from "supertest";
+import { createHmac } from "node:crypto";
 import {
   account,
   db,
@@ -20,6 +21,12 @@ import {
 import { createApp } from "../../src/app";
 
 const app = createApp();
+const authSecret = process.env.BETTER_AUTH_SECRET ?? "test-secret-with-at-least-32-characters";
+
+function signCookieValue(value: string) {
+  const signature = createHmac("sha256", authSecret).update(value).digest("base64");
+  return encodeURIComponent(`${value}.${signature}`);
+}
 
 export function createAgent(): request.Agent {
   return request.agent(app);
@@ -45,7 +52,9 @@ export async function signInTestUser(agent: request.Agent, userOverrides: Partia
     updatedAt: new Date(),
   });
 
-  (agent as request.Agent & { jar: { setCookie: (cookie: string) => void } }).jar.setCookie(`better-auth.session_token=${token}`);
+  (agent as request.Agent & { jar: { setCookie: (cookie: string) => void } }).jar.setCookie(
+    `better-auth.session_token=${signCookieValue(token)}`,
+  );
 
   return testUser;
 }
@@ -69,7 +78,13 @@ export async function cleanupDatabase() {
 
 export async function rpc<TBody>(agent: request.Agent, path: string, body?: TBody): Promise<request.Response> {
   const payload = body === undefined ? {} : { json: body };
-  return agent.post(`/rpc/${path}`).send(payload);
+  const response = await agent.post(`/rpc/${path}`).send(payload);
+
+  if (response.status < 400 && response.body && typeof response.body === "object" && "json" in response.body) {
+    (response as request.Response & { body: unknown }).body = response.body.json;
+  }
+
+  return response;
 }
 
 export async function httpGet(path: string): Promise<request.Response> {
