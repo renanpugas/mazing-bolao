@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QuestionsRouteImport } from './routes/questions'
 import { Route as PredictionsRouteImport } from './routes/predictions'
 import { Route as PoolResultsRouteImport } from './routes/pool-results'
 import { Route as LoginRouteImport } from './routes/login'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PoolsIndexRouteImport } from './routes/pools/index'
 import { Route as PoolsNewRouteImport } from './routes/pools/new'
 
+const QuestionsRoute = QuestionsRouteImport.update({
+  id: '/questions',
+  path: '/questions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PredictionsRoute = PredictionsRouteImport.update({
   id: '/predictions',
   path: '/predictions',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/pool-results': typeof PoolResultsRoute
   '/predictions': typeof PredictionsRoute
+  '/questions': typeof QuestionsRoute
   '/pools/new': typeof PoolsNewRoute
   '/pools/': typeof PoolsIndexRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pool-results': typeof PoolResultsRoute
   '/predictions': typeof PredictionsRoute
+  '/questions': typeof QuestionsRoute
   '/pools/new': typeof PoolsNewRoute
   '/pools': typeof PoolsIndexRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/pool-results': typeof PoolResultsRoute
   '/predictions': typeof PredictionsRoute
+  '/questions': typeof QuestionsRoute
   '/pools/new': typeof PoolsNewRoute
   '/pools/': typeof PoolsIndexRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pool-results'
     | '/predictions'
+    | '/questions'
     | '/pools/new'
     | '/pools/'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pool-results'
     | '/predictions'
+    | '/questions'
     | '/pools/new'
     | '/pools'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pool-results'
     | '/predictions'
+    | '/questions'
     | '/pools/new'
     | '/pools/'
   fileRoutesById: FileRoutesById
@@ -117,12 +129,20 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PoolResultsRoute: typeof PoolResultsRoute
   PredictionsRoute: typeof PredictionsRoute
+  QuestionsRoute: typeof QuestionsRoute
   PoolsNewRoute: typeof PoolsNewRoute
   PoolsIndexRoute: typeof PoolsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/questions': {
+      id: '/questions'
+      path: '/questions'
+      fullPath: '/questions'
+      preLoaderRoute: typeof QuestionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/predictions': {
       id: '/predictions'
       path: '/predictions'
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PoolResultsRoute: PoolResultsRoute,
   PredictionsRoute: PredictionsRoute,
+  QuestionsRoute: QuestionsRoute,
   PoolsNewRoute: PoolsNewRoute,
   PoolsIndexRoute: PoolsIndexRoute,
 }

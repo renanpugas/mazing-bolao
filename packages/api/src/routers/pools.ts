@@ -11,6 +11,7 @@ export const poolsRouter = {
       .select({
         id: pool.id,
         name: pool.name,
+        createdByUserId: pool.createdByUserId,
         tournamentId: pool.tournamentId,
         tournamentName: tournament.name,
         createdAt: pool.createdAt,
@@ -33,6 +34,7 @@ export const poolsRouter = {
       const newPool = {
         id: poolId,
         name: input.name,
+        createdByUserId: userId,
         tournamentId: input.tournamentId,
       };
 

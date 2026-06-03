@@ -5,6 +5,8 @@ import {
   groupStanding,
   match,
   pool,
+  poolQuestion,
+  poolQuestionAnswer,
   poolUser,
   prediction,
   session,
@@ -23,7 +25,34 @@ export function createAgent(): request.Agent {
   return request.agent(app);
 }
 
+export async function signInTestUser(agent: request.Agent, userOverrides: Partial<typeof user.$inferInsert> = {}) {
+  const testUser = {
+    id: crypto.randomUUID(),
+    name: "Test User",
+    email: `user-${crypto.randomUUID()}@example.com`,
+    emailVerified: true,
+    ...userOverrides,
+  };
+  const token = crypto.randomUUID();
+
+  await db.insert(user).values(testUser);
+  await db.insert(session).values({
+    id: crypto.randomUUID(),
+    token,
+    userId: testUser.id,
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  (agent as request.Agent & { jar: { setCookie: (cookie: string) => void } }).jar.setCookie(`better-auth.session_token=${token}`);
+
+  return testUser;
+}
+
 export async function cleanupDatabase() {
+  await db.delete(poolQuestionAnswer);
+  await db.delete(poolQuestion);
   await db.delete(prediction);
   await db.delete(match);
   await db.delete(groupStanding);
