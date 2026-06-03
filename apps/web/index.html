@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mazing Bolao</title>
+    <script>
+      const theme = localStorage.getItem("mazing-bolao-theme");
+      const safeTheme = ["light", "dark", "canarinho"].includes(theme) ? theme : "light";
+      document.documentElement.classList.add(safeTheme);
+      document.documentElement.dataset.theme = safeTheme;
+    </script>
   </head>
   <body>
     <div id="root"></div>

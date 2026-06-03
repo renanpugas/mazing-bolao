@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +36,10 @@ export function Header() {
             );
           })}
         </nav>
-        <UserMenu />
+        <div className="flex flex-wrap items-center gap-2">
+          <ThemeToggle />
+          <UserMenu />
+        </div>
       </div>
     </header>
   );

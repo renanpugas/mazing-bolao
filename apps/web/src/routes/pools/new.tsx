@@ -57,7 +57,7 @@ function NewPoolPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-amber-50/60 via-white to-lime-50/40">
+    <div className="min-h-[calc(100vh-64px)] bg-transparent">
       <PageShell className="space-y-6">
         <PageHeader title="Create Pool" description="Configure seu bolão e defina as regras iniciais para os participantes." />
         <Card className="mx-auto w-full max-w-4xl bg-card/80 backdrop-blur-sm">

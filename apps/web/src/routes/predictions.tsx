@@ -95,7 +95,7 @@ function PredictionsPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-emerald-50/70 via-white to-cyan-50/50">
+    <div className="min-h-[calc(100vh-64px)] bg-transparent">
       <PageShell className="space-y-6">
         <PageHeader title="Palpites" description="Escolha os placares dos jogos da Copa do Mundo 2026 no bolão selecionado." />
         {requestError ? <Alert variant="destructive"><AlertTitle>Não foi possível salvar</AlertTitle><AlertDescription>{requestError}</AlertDescription></Alert> : null}

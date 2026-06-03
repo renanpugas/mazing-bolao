@@ -28,7 +28,7 @@ function PoolsPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gradient-to-b from-emerald-50/60 via-white to-cyan-50/40">
+    <div className="min-h-[calc(100vh-64px)] bg-transparent">
       <PageShell className="space-y-6">
         <PageHeader title="Available Pools" description="Veja os bolões disponíveis e entre nos que quiser participar." />
         {successMessage ? <Alert variant="success"><AlertTitle>Entrada confirmada</AlertTitle><AlertDescription>{successMessage}</AlertDescription></Alert> : null}

@@ -17,7 +17,7 @@ function RootLayout() {
   if (isLogin) return <Outlet />;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="app-shell min-h-screen bg-background">
       <Header />
       <Outlet />
     </div>

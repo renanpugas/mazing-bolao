@@ -27,6 +27,76 @@
 }
 
 @layer base {
+  :root,
+  .light {
+    color-scheme: light;
+    --color-background: hsl(0 0% 100%);
+    --color-foreground: hsl(222.2 84% 4.9%);
+    --color-card: hsl(0 0% 100%);
+    --color-card-foreground: hsl(222.2 84% 4.9%);
+    --color-popover: hsl(0 0% 100%);
+    --color-popover-foreground: hsl(222.2 84% 4.9%);
+    --color-primary: hsl(160 84% 32%);
+    --color-primary-foreground: hsl(0 0% 98%);
+    --color-secondary: hsl(210 40% 96.1%);
+    --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
+    --color-muted: hsl(210 40% 96.1%);
+    --color-muted-foreground: hsl(215.4 16.3% 46.9%);
+    --color-accent: hsl(210 40% 96.1%);
+    --color-accent-foreground: hsl(222.2 47.4% 11.2%);
+    --color-destructive: hsl(0 84.2% 60.2%);
+    --color-destructive-foreground: hsl(210 40% 98%);
+    --color-border: hsl(214.3 31.8% 91.4%);
+    --color-input: hsl(214.3 31.8% 91.4%);
+    --color-ring: hsl(160 84% 32%);
+  }
+
+  .dark {
+    color-scheme: dark;
+    --color-background: hsl(160 28% 7%);
+    --color-foreground: hsl(48 35% 94%);
+    --color-card: hsl(160 24% 10%);
+    --color-card-foreground: hsl(48 35% 94%);
+    --color-popover: hsl(160 24% 10%);
+    --color-popover-foreground: hsl(48 35% 94%);
+    --color-primary: hsl(151 70% 48%);
+    --color-primary-foreground: hsl(160 30% 8%);
+    --color-secondary: hsl(161 20% 16%);
+    --color-secondary-foreground: hsl(48 35% 92%);
+    --color-muted: hsl(161 18% 15%);
+    --color-muted-foreground: hsl(155 12% 68%);
+    --color-accent: hsl(156 32% 18%);
+    --color-accent-foreground: hsl(48 35% 94%);
+    --color-destructive: hsl(8 74% 57%);
+    --color-destructive-foreground: hsl(48 35% 96%);
+    --color-border: hsl(158 18% 22%);
+    --color-input: hsl(158 18% 22%);
+    --color-ring: hsl(151 70% 48%);
+  }
+
+  .canarinho {
+    color-scheme: light;
+    --color-background: hsl(54 100% 94%);
+    --color-foreground: hsl(143 70% 13%);
+    --color-card: hsl(52 100% 98%);
+    --color-card-foreground: hsl(143 70% 13%);
+    --color-popover: hsl(52 100% 98%);
+    --color-popover-foreground: hsl(143 70% 13%);
+    --color-primary: hsl(143 79% 28%);
+    --color-primary-foreground: hsl(50 100% 93%);
+    --color-secondary: hsl(50 100% 78%);
+    --color-secondary-foreground: hsl(143 70% 13%);
+    --color-muted: hsl(54 88% 88%);
+    --color-muted-foreground: hsl(143 38% 28%);
+    --color-accent: hsl(50 100% 64%);
+    --color-accent-foreground: hsl(143 72% 16%);
+    --color-destructive: hsl(18 88% 45%);
+    --color-destructive-foreground: hsl(52 100% 96%);
+    --color-border: hsl(143 48% 52%);
+    --color-input: hsl(143 48% 52%);
+    --color-ring: hsl(50 100% 48%);
+  }
+
   * {
     border-color: var(--color-border);
   }
@@ -36,5 +106,49 @@
     background: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+  }
+
+  .dark body {
+    background: var(--color-background);
+  }
+
+  .dark .shadow,
+  .dark .shadow-sm {
+    box-shadow: 0 1px 2px hsl(160 40% 2% / 0.45);
+  }
+
+  .dark .shadow-2xl {
+    box-shadow: 0 25px 50px -12px hsl(160 40% 2% / 0.75);
+  }
+
+  .canarinho body {
+    background: var(--color-background);
+  }
+
+  .canarinho .app-shell {
+    position: relative;
+    background:
+      url("/canarinho_background_02.png") right bottom / min(34vw, 22rem) auto no-repeat fixed,
+      linear-gradient(hsl(54 100% 94% / 0.22), hsl(54 100% 94% / 0.22)),
+      var(--color-background);
+  }
+
+  .canarinho .app-shell::before {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+    width: min(34vw, 22rem);
+    aspect-ratio: 600 / 348;
+    pointer-events: none;
+    background: url("/canarinho_background_01.png") left bottom / contain no-repeat;
+    content: "";
+    transform: scaleX(-1);
+    transform-origin: center;
+  }
+
+  .canarinho .app-shell > * {
+    position: relative;
+    z-index: 1;
   }
 }
