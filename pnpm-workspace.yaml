@@ -14,3 +14,8 @@ catalog:
   better-auth: 1.6.11
   "@types/express": ^5.0.1
   "@orpc/client": ^1.13.14
+  react: ^19.2.3
+  react-dom: ^19.2.3
+  "@types/react": ^19.2.7
+  "@types/react-dom": ^19.2.3
+  vite: ^7.3.3

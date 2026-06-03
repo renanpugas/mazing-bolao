@@ -6,7 +6,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 export function createAuth() {
   const db = createDb();
-  const isTestEnv = process.env.NODE_ENV === "test";
+  const isProduction = env.NODE_ENV === "production";
   const authBaseUrl = env.BETTER_AUTH_URL.replace(/\/api\/auth\/?$/, "");
   const googleRedirectURI = `${authBaseUrl}/api/auth/callback/google`;
 
@@ -16,7 +16,16 @@ export function createAuth() {
 
       schema: schema,
     }),
-    trustedOrigins: ["http://*", "https://*"],
+    trustedOrigins: [
+      "http://localhost:*",
+      "http://127.0.0.1:*",
+      "http://[::1]:*",
+      "http://192.168.15.11:*",
+      "https://localhost:*",
+      "https://127.0.0.1:*",
+      "https://[::1]:*",
+      "https://192.168.15.11:*",
+    ],
     emailAndPassword: {
       enabled: false,
     },
@@ -33,8 +42,8 @@ export function createAuth() {
       disableOriginCheck: true,
       disableCSRFCheck: true,
       defaultCookieAttributes: {
-        sameSite: isTestEnv ? "lax" : "none",
-        secure: !isTestEnv,
+        sameSite: isProduction ? "none" : "lax",
+        secure: isProduction,
         httpOnly: true,
       },
     },

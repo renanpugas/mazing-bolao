@@ -13,7 +13,7 @@ fs.mkdirSync(path.dirname(dbFilePath), { recursive: true });
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL = databaseUrl;
 process.env.BETTER_AUTH_SECRET = "test-secret-with-at-least-32-characters";
-process.env.BETTER_AUTH_URL = "http://localhost:3000";
+process.env.BETTER_AUTH_URL = "http://localhost:3009";
 
 async function runMigrations() {
   const client = createClient({

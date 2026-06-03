@@ -10,17 +10,36 @@ import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
 
+const isAllowedOrigin = (origin: string) => {
+  try {
+    const { protocol, hostname } = new URL(origin);
+    return ["http:", "https:"].includes(protocol) && ["localhost", "127.0.0.1", "::1", "[::1]", "192.168.15.11"].includes(hostname);
+  } catch {
+    return false;
+  }
+};
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => callback(null, origin ? isAllowedOrigin(origin) : true),
+  credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  exposedHeaders: "*",
+};
+
 export function createApp() {
   const app = express();
 
   app.use((req, res, next) => {
     const origin = req.header("origin");
 
-    res.header("Access-Control-Allow-Origin", origin ?? "*");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
-    res.header("Access-Control-Allow-Headers", req.header("access-control-request-headers") ?? "*");
-    res.header("Access-Control-Expose-Headers", "*");
+    if (origin && isAllowedOrigin(origin)) {
+      res.header("Access-Control-Allow-Origin", origin);
+      res.header("Access-Control-Allow-Credentials", "true");
+      res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
+      res.header("Access-Control-Allow-Headers", req.header("access-control-request-headers") ?? "Content-Type, Authorization");
+      res.header("Access-Control-Expose-Headers", "*");
+      res.header("Vary", "Origin");
+    }
 
     if (req.method === "OPTIONS") {
       res.sendStatus(204);
@@ -30,12 +49,8 @@ export function createApp() {
     next();
   });
 
-  app.use(
-    cors({
-      origin: (_origin, callback) => callback(null, true),
-      credentials: true,
-    }),
-  );
+  app.use(cors(corsOptions));
+  app.options("/{*path}", cors(corsOptions));
 
   app.all("/api/auth{/*path}", toNodeHandler(auth));
 

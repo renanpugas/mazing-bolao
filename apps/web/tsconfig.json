@@ -1,18 +1,15 @@
 {
-  // https://nuxt.com/docs/guide/concepts/typescript
-  "files": [],
-  "references": [
-    {
-      "path": "./.nuxt/tsconfig.app.json"
+  "extends": "@mazing-bolao/config/tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "ignoreDeprecations": "6.0",
+    "noEmit": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
     },
-    {
-      "path": "./.nuxt/tsconfig.server.json"
-    },
-    {
-      "path": "./.nuxt/tsconfig.shared.json"
-    },
-    {
-      "path": "./.nuxt/tsconfig.node.json"
-    }
-  ]
+    "types": ["vite/client"]
+  },
+  "include": ["src", "vite.config.ts"]
 }

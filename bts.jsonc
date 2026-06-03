@@ -18,7 +18,7 @@
   "orm": "drizzle",
   "backend": "express",
   "runtime": "node",
-  "frontend": ["nuxt"],
+  "frontend": ["react"],
   "addons": ["turborepo"],
   "examples": [],
   "auth": "better-auth",
