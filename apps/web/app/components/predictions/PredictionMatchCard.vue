@@ -1,11 +1,16 @@
 <script setup lang="ts">
 type Jogo = {
-  id: number;
+  id: string;
   rodada: string;
   horario: string;
-  estadio: string;
+  estadio: string | null;
+  cidade: string | null;
   mandante: string;
   visitante: string;
+  mandanteEmoji: string | null;
+  visitanteEmoji: string | null;
+  encerrado: boolean;
+  bloqueado: boolean;
 };
 
 type Palpite = {
@@ -14,7 +19,7 @@ type Palpite = {
 };
 
 type PalpiteUpdate = {
-  jogoId: number;
+  jogoId: string;
   lado: "mandante" | "visitante";
   gols: number | null;
 };
@@ -48,13 +53,17 @@ const parseGols = (value: string | number | null | undefined) => {
     </template>
 
     <div class="flex items-center justify-between gap-3">
-      <div class="min-w-0 flex-1 text-right font-medium truncate">{{ jogo.mandante }}</div>
+      <div class="min-w-0 flex-1 text-right font-medium truncate">
+        <span v-if="jogo.mandanteEmoji" class="mr-1">{{ jogo.mandanteEmoji }}</span>
+        {{ jogo.mandante }}
+      </div>
       <UInput
         :model-value="palpite.golsMandante ?? ''"
         type="number"
         min="0"
         inputmode="numeric"
         class="w-16"
+        :disabled="jogo.bloqueado"
         @update:model-value="
           emit('update-palpite', {
             jogoId: jogo.id,
@@ -70,6 +79,7 @@ const parseGols = (value: string | number | null | undefined) => {
         min="0"
         inputmode="numeric"
         class="w-16"
+        :disabled="jogo.bloqueado"
         @update:model-value="
           emit('update-palpite', {
             jogoId: jogo.id,
@@ -78,11 +88,19 @@ const parseGols = (value: string | number | null | undefined) => {
           })
         "
       />
-      <div class="min-w-0 flex-1 font-medium truncate">{{ jogo.visitante }}</div>
+      <div class="min-w-0 flex-1 font-medium truncate">
+        {{ jogo.visitante }}
+        <span v-if="jogo.visitanteEmoji" class="ml-1">{{ jogo.visitanteEmoji }}</span>
+      </div>
     </div>
 
     <template #footer>
-      <div class="text-xs text-muted">{{ jogo.estadio }}</div>
+      <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+        <span>{{ [jogo.estadio, jogo.cidade].filter(Boolean).join(' · ') || 'Local a definir' }}</span>
+        <UBadge v-if="jogo.encerrado" color="neutral" variant="subtle">Encerrado</UBadge>
+        <UBadge v-else-if="jogo.bloqueado" color="warning" variant="subtle">Bloqueado</UBadge>
+        <UBadge v-else color="success" variant="subtle">Aberto</UBadge>
+      </div>
     </template>
   </UCard>
 </template>

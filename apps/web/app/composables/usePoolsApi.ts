@@ -2,12 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 
 export const usePoolsListQuery = () => {
   const { $orpc } = useNuxtApp();
-  const session = useSessionQuery();
 
-  return useQuery({
-    ...$orpc.pools.list.queryOptions(),
-    enabled: computed(() => !!session.data.value?.user),
-  });
+  return useQuery($orpc.pools.list.queryOptions());
 };
 
 export const useCreatePoolMutation = () => {
@@ -16,8 +12,8 @@ export const useCreatePoolMutation = () => {
 
   return useMutation(
     $orpc.pools.create.mutationOptions({
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({
           queryKey: $orpc.pools.list.queryOptions().queryKey,
         });
       },
@@ -31,8 +27,8 @@ export const useJoinPoolMutation = () => {
 
   return useMutation(
     $orpc.pools.join.mutationOptions({
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({
           queryKey: $orpc.pools.list.queryOptions().queryKey,
         });
       },

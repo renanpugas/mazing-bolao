@@ -9,7 +9,9 @@ export default defineNuxtPlugin((nuxt) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 5_000,
+        staleTime: 60_000,
+        refetchOnReconnect: false,
+        refetchOnWindowFocus: false,
       },
     },
     queryCache: new QueryCache({

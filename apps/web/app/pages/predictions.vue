@@ -1,158 +1,170 @@
 <script setup lang="ts">
 import PredictionMatchList from "~/components/predictions/PredictionMatchList.vue";
 import PredictionSummary from "~/components/predictions/PredictionSummary.vue";
+import { usePoolsListQuery } from "~/composables/usePoolsApi";
+import {
+  useCreatePredictionMutation,
+  usePredictionsListQuery,
+  useUpdatePredictionMutation,
+} from "~/composables/usePredictionsApi";
 
 type Jogo = {
-  id: number;
+  id: string;
   rodada: string;
   horario: string;
-  estadio: string;
+  estadio: string | null;
+  cidade: string | null;
   mandante: string;
   visitante: string;
+  mandanteEmoji: string | null;
+  visitanteEmoji: string | null;
+  encerrado: boolean;
+  bloqueado: boolean;
 };
 
 type Palpite = {
+  id: string | null;
   golsMandante: number | null;
   golsVisitante: number | null;
 };
 
 type PalpiteUpdate = {
-  jogoId: number;
+  jogoId: string;
   lado: "mandante" | "visitante";
   gols: number | null;
 };
 
-type Bolao = {
-  id: number;
-  nome: string;
+const poolsQuery = usePoolsListQuery();
+const boloes = computed(() => poolsQuery.data.value ?? []);
+const bolaoSelecionadoId = ref<string | null>(null);
+const predictionsQuery = usePredictionsListQuery(bolaoSelecionadoId);
+const createPredictionMutation = useCreatePredictionMutation();
+const updatePredictionMutation = useUpdatePredictionMutation();
+const salvandoPalpites = computed(() => createPredictionMutation.isPending.value || updatePredictionMutation.isPending.value);
+const palpitesLocais = ref<Record<string, Palpite>>({});
+const palpitesAlterados = ref(new Set<string>());
+const mensagemEnvio = ref("");
+const requestError = ref<string | null>(null);
+
+watch(
+  boloes,
+  (items) => {
+    if (!bolaoSelecionadoId.value && items[0]) {
+      bolaoSelecionadoId.value = items[0].id;
+    }
+  },
+  { immediate: true },
+);
+
+watch(
+  () => predictionsQuery.data.value,
+  (items) => {
+    palpitesLocais.value = (items ?? []).reduce(
+      (acc, item) => ({
+        ...acc,
+        [item.match.id]: {
+          id: item.id,
+          golsMandante: item.homeGoals,
+          golsVisitante: item.awayGoals,
+        },
+      }),
+      {} as Record<string, Palpite>,
+    );
+    palpitesAlterados.value = new Set();
+  },
+  { immediate: true },
+);
+
+const formatarRodada = (item: NonNullable<typeof predictionsQuery.data.value>[number]) => {
+  if (item.match.stage === "group") return `Grupo ${item.match.groupName ?? ""} · Rodada ${item.match.matchday ?? ""}`;
+  return `${(item.match.groupName ?? item.match.stage ?? "Fase").toUpperCase()} · Jogo ${item.match.matchday ?? ""}`;
 };
 
-const jogos: Jogo[] = [
-  {
-    id: 1,
-    rodada: "Round 12",
-    horario: "Saturday, 16:00",
-    estadio: "Arena Serra Dourada",
-    mandante: "Flamengo",
-    visitante: "Palmeiras",
-  },
-  {
-    id: 2,
-    rodada: "Round 12",
-    horario: "Saturday, 18:30",
-    estadio: "Neo Quimica Arena",
-    mandante: "Corinthians",
-    visitante: "Sao Paulo",
-  },
-  {
-    id: 3,
-    rodada: "Round 12",
-    horario: "Sunday, 11:00",
-    estadio: "Vila Belmiro",
-    mandante: "Santos",
-    visitante: "Bragantino",
-  },
-  {
-    id: 4,
-    rodada: "Round 12",
-    horario: "Sunday, 16:00",
-    estadio: "Mineirao",
-    mandante: "Cruzeiro",
-    visitante: "Atletico-MG",
-  },
-  {
-    id: 5,
-    rodada: "Round 12",
-    horario: "Sunday, 18:30",
-    estadio: "Beira-Rio",
-    mandante: "Internacional",
-    visitante: "Gremio",
-  },
-  {
-    id: 6,
-    rodada: "Round 12",
-    horario: "Sunday, 20:00",
-    estadio: "Arena Fonte Nova",
-    mandante: "Bahia",
-    visitante: "Fortaleza",
-  },
-  {
-    id: 7,
-    rodada: "Round 12",
-    horario: "Monday, 19:00",
-    estadio: "Arena da Baixada",
-    mandante: "Athletico-PR",
-    visitante: "Fluminense",
-  },
-  {
-    id: 8,
-    rodada: "Round 12",
-    horario: "Monday, 21:30",
-    estadio: "Nilton Santos",
-    mandante: "Botafogo",
-    visitante: "Vasco",
-  },
-];
+const jogos = computed<Jogo[]>(() =>
+  (predictionsQuery.data.value ?? []).map((item) => {
+    const startsAt = new Date(item.match.startsAt);
+    return {
+      id: item.match.id,
+      rodada: formatarRodada(item),
+      horario: startsAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" }),
+      estadio: item.match.stadiumName,
+      cidade: item.match.stadiumCity,
+      mandante: item.match.homeTeamLabel ?? item.match.homeTeam,
+      visitante: item.match.awayTeamLabel ?? item.match.awayTeam,
+      mandanteEmoji: item.match.homeTeamEmoji,
+      visitanteEmoji: item.match.awayTeamEmoji,
+      encerrado: !!item.match.finished,
+      bloqueado: startsAt <= new Date(),
+    };
+  }),
+);
 
-const boloes: Bolao[] = [
-  { id: 1, nome: "Bolao da Firma" },
-  { id: 2, nome: "Familia" },
-  { id: 3, nome: "Amigos do Futebol" },
-];
-
-const bolaoSelecionadoId = ref(boloes[0]?.id ?? 1);
-
-const criarPalpitesIniciais = () =>
-  jogos.reduce(
-    (acc, jogo) => ({
-      ...acc,
-      [jogo.id]: { golsMandante: null, golsVisitante: null },
-    }),
-    {} as Record<number, Palpite>,
-  );
-
-const palpitesPorBolao = ref<Record<number, Record<number, Palpite>>>({});
-
-const garantirPalpitesDoBolao = (bolaoId: number) => {
-  if (!palpitesPorBolao.value[bolaoId]) {
-    palpitesPorBolao.value[bolaoId] = criarPalpitesIniciais();
-  }
-};
-
-const palpiteDoBolaoSelecionado = computed(() => {
-  garantirPalpitesDoBolao(bolaoSelecionadoId.value);
-  return palpitesPorBolao.value[bolaoSelecionadoId.value];
-});
+const palpiteDoBolaoSelecionado = computed(() => palpitesLocais.value);
+const temPalpitesAlterados = computed(() => palpitesAlterados.value.size > 0);
 
 const palpitesPreenchidos = computed(() =>
-  jogos.filter((jogo) => {
+  jogos.value.filter((jogo) => {
     const palpite = palpiteDoBolaoSelecionado.value[jogo.id];
     return palpite?.golsMandante !== null && palpite?.golsVisitante !== null;
   }).length,
 );
 
-const mensagemEnvio = ref("");
-
 const atualizarPalpite = ({ jogoId, lado, gols }: PalpiteUpdate) => {
-  const atual = palpiteDoBolaoSelecionado.value[jogoId];
-  if (!atual) return;
+  const atual = palpiteDoBolaoSelecionado.value[jogoId] ?? {
+    id: null,
+    golsMandante: null,
+    golsVisitante: null,
+  };
 
-  palpiteDoBolaoSelecionado.value[jogoId] = {
+  palpitesLocais.value[jogoId] = {
     ...atual,
     golsMandante: lado === "mandante" ? gols : atual.golsMandante,
     golsVisitante: lado === "visitante" ? gols : atual.golsVisitante,
   };
+  palpitesAlterados.value.add(jogoId);
 };
 
-const selecionarBolao = (bolaoId: number) => {
+const selecionarBolao = (bolaoId: string) => {
   bolaoSelecionadoId.value = bolaoId;
-  garantirPalpitesDoBolao(bolaoId);
   mensagemEnvio.value = "";
+  requestError.value = null;
 };
 
-const enviarPalpites = () => {
-  mensagemEnvio.value =
-    `Você enviou ${palpitesPreenchidos.value} palpite(s) localmente para o bolao selecionado. Depois conectamos com a API quando a fonte de dados estiver definida.`;
+const enviarPalpites = async () => {
+  if (!bolaoSelecionadoId.value) return;
+
+  mensagemEnvio.value = "";
+  requestError.value = null;
+
+  try {
+    const mutations = jogos.value.flatMap((jogo) => {
+      const palpite = palpiteDoBolaoSelecionado.value[jogo.id];
+      if (!palpitesAlterados.value.has(jogo.id)) return [];
+      if (!palpite || palpite.golsMandante === null || palpite.golsVisitante === null || jogo.bloqueado) return [];
+
+      if (palpite.id) {
+        return updatePredictionMutation.mutateAsync({
+          id: palpite.id,
+          homeGoals: palpite.golsMandante,
+          awayGoals: palpite.golsVisitante,
+        });
+      }
+
+      return createPredictionMutation.mutateAsync({
+        poolId: bolaoSelecionadoId.value!,
+        matchId: jogo.id,
+        homeGoals: palpite.golsMandante,
+        awayGoals: palpite.golsVisitante,
+      });
+    });
+
+    await Promise.all(mutations);
+    await predictionsQuery.refetch();
+
+    mensagemEnvio.value = `Você salvou ${mutations.length} palpite(s) alterado(s) para o bolão selecionado.`;
+  } catch (error) {
+    requestError.value = error instanceof Error ? error.message : "Erro ao salvar palpites.";
+  }
 };
 </script>
 
@@ -161,11 +173,19 @@ const enviarPalpites = () => {
     class="min-h-[calc(100vh-64px)] bg-gradient-to-b from-emerald-50/70 via-white to-cyan-50/50 dark:from-emerald-950/20 dark:via-neutral-950 dark:to-cyan-950/20"
   >
     <UContainer class="py-8 space-y-6">
-      <UPageHeader
-        title="Palpites"
-        description="Escolha os placares dos jogos abaixo. Nesta etapa, estamos usando apenas dados de exemplo."
-        class="rounded-2xl border border-default bg-default/70 p-6 backdrop-blur-sm"
-      />
+        <UPageHeader
+          title="Palpites"
+          description="Escolha os placares dos jogos da Copa do Mundo 2026 no bolão selecionado."
+          class="rounded-2xl border border-default bg-default/70 p-6 backdrop-blur-sm"
+        />
+
+        <UAlert
+          v-if="requestError"
+          color="error"
+          icon="i-lucide-alert-circle"
+          title="Não foi possível salvar"
+          :description="requestError"
+        />
 
       <UCard class="border-default/80 bg-default/80 backdrop-blur-sm">
         <div class="space-y-3">
@@ -178,15 +198,40 @@ const enviarPalpites = () => {
               color="primary"
               @click="selecionarBolao(bolao.id)"
             >
-              {{ bolao.nome }}
+              {{ bolao.name }}
             </UButton>
           </div>
         </div>
       </UCard>
 
-      <PredictionSummary :total-jogos="jogos.length" :palpites-preenchidos="palpitesPreenchidos" />
+      <UAlert
+        v-if="poolsQuery.status.value === 'pending' || predictionsQuery.status.value === 'pending'"
+        color="info"
+        icon="i-lucide-loader-2"
+        title="Carregando palpites"
+        description="Buscando bolões, partidas e palpites salvos."
+      />
+
+      <UAlert
+        v-else-if="predictionsQuery.status.value === 'error'"
+        color="error"
+        icon="i-lucide-alert-circle"
+        title="Erro ao carregar partidas"
+        :description="predictionsQuery.error.value?.message || 'Não foi possível carregar os dados.'"
+      />
+
+      <UAlert
+        v-else-if="!jogos.length"
+        color="warning"
+        icon="i-lucide-calendar-x"
+        title="Nenhuma partida importada"
+        description="Sincronize a Copa do Mundo 2026 para este bolão antes de registrar palpites."
+      />
+
+      <PredictionSummary v-else :total-jogos="jogos.length" :palpites-preenchidos="palpitesPreenchidos" />
 
       <PredictionMatchList
+        v-if="jogos.length"
         :jogos="jogos"
         :palpites="palpiteDoBolaoSelecionado"
         @update-palpite="atualizarPalpite"
@@ -195,7 +240,13 @@ const enviarPalpites = () => {
       <UCard class="border-default/80 bg-default/80 backdrop-blur-sm">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <p class="text-sm text-muted">Você pode enviar quantos palpites quiser.</p>
-          <UButton @click="enviarPalpites">Enviar palpites</UButton>
+          <UButton
+            :disabled="!jogos.length || !temPalpitesAlterados"
+            :loading="salvandoPalpites"
+            @click="enviarPalpites"
+          >
+            Salvar palpites
+          </UButton>
         </div>
 
         <UAlert

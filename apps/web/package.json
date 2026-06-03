@@ -19,14 +19,12 @@
     "@tanstack/vue-query": "^5.92.9",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
-    "naive-ui": "^2.44.1",
     "nuxt": "^4.4.4",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.96",
     "@mazing-bolao/config": "workspace:*",
-    "@tanstack/vue-query-devtools": "^6.1.5",
     "tailwindcss": "^4.2.1",
     "typescript": "catalog:"
   }

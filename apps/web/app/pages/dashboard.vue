@@ -5,10 +5,7 @@ const { $orpc } = useNuxtApp();
 
 const session = useSessionQuery();
 
-const privateData = useQuery({
-  ...$orpc.privateData.queryOptions(),
-  enabled: computed(() => !!session.data.value?.user),
-});
+const privateData = useQuery($orpc.privateData.queryOptions());
 </script>
 
 <template>

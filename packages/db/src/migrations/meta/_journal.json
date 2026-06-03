@@ -50,6 +50,13 @@
       "when": 1785673200000,
       "tag": "0006_drop_user_is_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1785673800000,
+      "tag": "0007_world_cup_2026",
+      "breakpoints": true
     }
   ]
 }

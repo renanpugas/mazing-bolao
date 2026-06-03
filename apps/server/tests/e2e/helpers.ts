@@ -1,5 +1,18 @@
 import request from "supertest";
-import { account, db, match, pool, poolUser, prediction, session, user, verification } from "@mazing-bolao/db";
+import {
+  account,
+  db,
+  groupStanding,
+  match,
+  pool,
+  poolUser,
+  prediction,
+  session,
+  stadium,
+  team,
+  user,
+  verification,
+} from "@mazing-bolao/db";
 
 import { createApp } from "../../src/app";
 
@@ -12,6 +25,9 @@ export function createAgent(): request.Agent {
 export async function cleanupDatabase() {
   await db.delete(prediction);
   await db.delete(match);
+  await db.delete(groupStanding);
+  await db.delete(stadium);
+  await db.delete(team);
   await db.delete(poolUser);
   await db.delete(pool);
   await db.delete(session);

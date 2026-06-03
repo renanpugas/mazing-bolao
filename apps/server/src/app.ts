@@ -1,7 +1,6 @@
 import { createContext } from "@mazing-bolao/api/context";
 import { appRouter } from "@mazing-bolao/api/routers/index";
 import { auth } from "@mazing-bolao/auth";
-import { env } from "@mazing-bolao/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/node";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
@@ -14,11 +13,26 @@ import express from "express";
 export function createApp() {
   const app = express();
 
+  app.use((req, res, next) => {
+    const origin = req.header("origin");
+
+    res.header("Access-Control-Allow-Origin", origin ?? "*");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", req.header("access-control-request-headers") ?? "*");
+    res.header("Access-Control-Expose-Headers", "*");
+
+    if (req.method === "OPTIONS") {
+      res.sendStatus(204);
+      return;
+    }
+
+    next();
+  });
+
   app.use(
     cors({
-      origin: env.CORS_ORIGIN,
-      methods: ["GET", "POST", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
+      origin: (_origin, callback) => callback(null, true),
       credentials: true,
     }),
   );

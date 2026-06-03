@@ -28,6 +28,23 @@ export const predictionsRouter = {
         });
       }
 
+      const matchToPredict = await db.query.match.findFirst({
+        where: and(eq(match.id, input.matchId), eq(match.poolId, input.poolId)),
+        columns: { id: true, startsAt: true },
+      });
+
+      if (!matchToPredict) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Partida não encontrada nesse bolão",
+        });
+      }
+
+      if (matchToPredict.startsAt <= new Date()) {
+        throw new ORPCError("FORBIDDEN", {
+          message: "Palpites encerrados para essa partida",
+        });
+      }
+
       const existingPrediction = await db.query.prediction.findFirst({
         where: and(
           eq(prediction.poolId, input.poolId),
@@ -66,6 +83,17 @@ export const predictionsRouter = {
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
 
+      const participant = await db.query.poolUser.findFirst({
+        where: and(eq(poolUser.poolId, input.poolId), eq(poolUser.userId, userId)),
+        columns: { id: true },
+      });
+
+      if (!participant) {
+        throw new ORPCError("FORBIDDEN", {
+          message: "Você não participa desse bolão",
+        });
+      }
+
       return db
         .select({
           id: prediction.id,
@@ -80,12 +108,28 @@ export const predictionsRouter = {
             id: match.id,
             homeTeam: match.homeTeam,
             awayTeam: match.awayTeam,
+            homeTeamLabel: match.homeTeamLabel,
+            awayTeamLabel: match.awayTeamLabel,
+            homeTeamEmoji: match.homeTeamEmoji,
+            awayTeamEmoji: match.awayTeamEmoji,
             startsAt: match.startsAt,
+            stage: match.stage,
+            groupName: match.groupName,
+            matchday: match.matchday,
+            stadiumName: match.stadiumName,
+            stadiumCity: match.stadiumCity,
+            homeScore: match.homeScore,
+            awayScore: match.awayScore,
+            finished: match.finished,
+            timeElapsed: match.timeElapsed,
           },
         })
-        .from(prediction)
-        .innerJoin(match, eq(match.id, prediction.matchId))
-        .where(and(eq(prediction.poolId, input.poolId), eq(prediction.userId, userId)))
+        .from(match)
+        .leftJoin(
+          prediction,
+          and(eq(prediction.matchId, match.id), eq(prediction.poolId, input.poolId), eq(prediction.userId, userId)),
+        )
+        .where(eq(match.poolId, input.poolId))
         .orderBy(asc(match.startsAt));
     }),
   update: protectedProcedure
@@ -98,6 +142,42 @@ export const predictionsRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
+
+      const existingPrediction = await db
+        .select({
+          id: prediction.id,
+          poolId: prediction.poolId,
+          matchId: prediction.matchId,
+          startsAt: match.startsAt,
+        })
+        .from(prediction)
+        .innerJoin(match, eq(match.id, prediction.matchId))
+        .where(and(eq(prediction.id, input.id), eq(prediction.userId, userId)))
+        .limit(1);
+
+      const currentPrediction = existingPrediction[0];
+      if (!currentPrediction) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Palpite não encontrado",
+        });
+      }
+
+      const participant = await db.query.poolUser.findFirst({
+        where: and(eq(poolUser.poolId, currentPrediction.poolId), eq(poolUser.userId, userId)),
+        columns: { id: true },
+      });
+
+      if (!participant) {
+        throw new ORPCError("FORBIDDEN", {
+          message: "Você não participa desse bolão",
+        });
+      }
+
+      if (currentPrediction.startsAt <= new Date()) {
+        throw new ORPCError("FORBIDDEN", {
+          message: "Palpites encerrados para essa partida",
+        });
+      }
 
       const result = await db
         .update(prediction)
@@ -118,12 +198,6 @@ export const predictionsRouter = {
         });
 
       const updatedPrediction = result[0];
-      if (!updatedPrediction) {
-        throw new ORPCError("NOT_FOUND", {
-          message: "Palpite não encontrado",
-        });
-      }
-
       return updatedPrediction;
     }),
 };
