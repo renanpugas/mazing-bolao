@@ -13,7 +13,6 @@ import { Route as QuestionsRouteImport } from './routes/questions'
 import { Route as PredictionsRouteImport } from './routes/predictions'
 import { Route as PoolResultsRouteImport } from './routes/pool-results'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PoolsIndexRouteImport } from './routes/pools/index'
 import { Route as PoolsNewRouteImport } from './routes/pools/new'
@@ -38,11 +37,6 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,7 +55,6 @@ const PoolsNewRoute = PoolsNewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/pool-results': typeof PoolResultsRoute
   '/predictions': typeof PredictionsRoute
@@ -71,7 +64,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/pool-results': typeof PoolResultsRoute
   '/predictions': typeof PredictionsRoute
@@ -82,7 +74,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/pool-results': typeof PoolResultsRoute
   '/predictions': typeof PredictionsRoute
@@ -94,7 +85,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/dashboard'
     | '/login'
     | '/pool-results'
     | '/predictions'
@@ -104,7 +94,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/dashboard'
     | '/login'
     | '/pool-results'
     | '/predictions'
@@ -114,7 +103,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/dashboard'
     | '/login'
     | '/pool-results'
     | '/predictions'
@@ -125,7 +113,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   PoolResultsRoute: typeof PoolResultsRoute
   PredictionsRoute: typeof PredictionsRoute
@@ -164,13 +151,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -197,7 +177,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   PoolResultsRoute: PoolResultsRoute,
   PredictionsRoute: PredictionsRoute,

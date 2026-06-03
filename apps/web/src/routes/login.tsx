@@ -16,7 +16,7 @@ function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      await signInWithGoogle("/dashboard", (apiError) => {
+      await signInWithGoogle("/", (apiError) => {
         setError(apiError.error.message);
       });
     } catch (unknownError) {

@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 
 const items = [
   { label: "Home", to: "/" },
-  { label: "Dashboard", to: "/dashboard" },
   { label: "Predictions", to: "/predictions" },
   { label: "Perguntas", to: "/questions" },
   { label: "Pools", to: "/pools" },

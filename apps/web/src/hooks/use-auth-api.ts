@@ -6,7 +6,7 @@ const resolveCallbackUrl = (callbackURL: string) => {
 };
 
 export const useAuthApi = () => {
-  const signInWithGoogle = (callbackURL = "/dashboard", onError?: (error: any) => void) => {
+  const signInWithGoogle = (callbackURL = "/", onError?: (error: any) => void) => {
     return authClient.signIn.social(
       {
         provider: "google",
