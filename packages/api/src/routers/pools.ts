@@ -1,4 +1,4 @@
-import { db, pool, poolUser } from "@mazing-bolao/db";
+import { db, pool, poolUser, tournament } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -11,16 +11,20 @@ export const poolsRouter = {
       .select({
         id: pool.id,
         name: pool.name,
+        tournamentId: pool.tournamentId,
+        tournamentName: tournament.name,
         createdAt: pool.createdAt,
         updatedAt: pool.updatedAt,
       })
       .from(pool)
+      .leftJoin(tournament, eq(tournament.id, pool.tournamentId))
       .orderBy(desc(pool.createdAt));
   }),
   create: protectedProcedure
     .input(
       z.object({
         name: z.string().trim().min(1, "Nome é obrigatório").max(120),
+        tournamentId: z.string().trim().min(1, "Torneio é obrigatório"),
       }),
     )
     .handler(async ({ context, input }) => {
@@ -29,7 +33,19 @@ export const poolsRouter = {
       const newPool = {
         id: poolId,
         name: input.name,
+        tournamentId: input.tournamentId,
       };
+
+      const tournamentExists = await db.query.tournament.findFirst({
+        where: eq(tournament.id, input.tournamentId),
+        columns: { id: true },
+      });
+
+      if (!tournamentExists) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Torneio não encontrado",
+        });
+      }
 
       await db.insert(pool).values(newPool);
       await db.insert(poolUser).values({

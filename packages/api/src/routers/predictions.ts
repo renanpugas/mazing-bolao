@@ -1,4 +1,4 @@
-import { db, match, poolUser, prediction } from "@mazing-bolao/db";
+import { db, match, pool, poolUser, prediction } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -17,6 +17,17 @@ export const predictionsRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
+      const currentPool = await db.query.pool.findFirst({
+        where: eq(pool.id, input.poolId),
+        columns: { id: true, tournamentId: true },
+      });
+
+      if (!currentPool?.tournamentId) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Bolão não possui torneio vinculado",
+        });
+      }
+
       const participant = await db.query.poolUser.findFirst({
         where: and(eq(poolUser.poolId, input.poolId), eq(poolUser.userId, userId)),
         columns: { id: true },
@@ -29,13 +40,13 @@ export const predictionsRouter = {
       }
 
       const matchToPredict = await db.query.match.findFirst({
-        where: and(eq(match.id, input.matchId), eq(match.poolId, input.poolId)),
+        where: and(eq(match.id, input.matchId), eq(match.tournamentId, currentPool.tournamentId)),
         columns: { id: true, startsAt: true },
       });
 
       if (!matchToPredict) {
         throw new ORPCError("NOT_FOUND", {
-          message: "Partida não encontrada nesse bolão",
+          message: "Partida não encontrada no torneio desse bolão",
         });
       }
 
@@ -83,6 +94,17 @@ export const predictionsRouter = {
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
 
+      const currentPool = await db.query.pool.findFirst({
+        where: eq(pool.id, input.poolId),
+        columns: { id: true, tournamentId: true },
+      });
+
+      if (!currentPool?.tournamentId) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Bolão não possui torneio vinculado",
+        });
+      }
+
       const participant = await db.query.poolUser.findFirst({
         where: and(eq(poolUser.poolId, input.poolId), eq(poolUser.userId, userId)),
         columns: { id: true },
@@ -129,7 +151,7 @@ export const predictionsRouter = {
           prediction,
           and(eq(prediction.matchId, match.id), eq(prediction.poolId, input.poolId), eq(prediction.userId, userId)),
         )
-        .where(eq(match.poolId, input.poolId))
+        .where(eq(match.tournamentId, currentPool.tournamentId))
         .orderBy(asc(match.startsAt));
     }),
   update: protectedProcedure

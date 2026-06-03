@@ -10,6 +10,7 @@ import {
   session,
   stadium,
   team,
+  tournament,
   user,
   verification,
 } from "@mazing-bolao/db";
@@ -30,6 +31,7 @@ export async function cleanupDatabase() {
   await db.delete(team);
   await db.delete(poolUser);
   await db.delete(pool);
+  await db.delete(tournament);
   await db.delete(session);
   await db.delete(account);
   await db.delete(verification);

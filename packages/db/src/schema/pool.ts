@@ -1,9 +1,12 @@
 import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
+import { tournament } from "./tournament";
+
 export const pool = sqliteTable("pool", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  tournamentId: text("tournament_id").references(() => tournament.id, { onDelete: "set null" }),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull(),

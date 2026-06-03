@@ -10,11 +10,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreatePoolMutation, usePoolsListQuery } from "@/hooks/use-pools-api";
+import { useSyncWorldCupMutation, useTournamentsListQuery } from "@/hooks/use-tournaments-api";
 
 type Privacidade = "publico" | "privado";
-type FormState = { nome: string; campeonato: string; descricao: string; limitePalpite: string; taxaEntrada: number; maxParticipantes: number; privacidade: Privacidade };
+type FormState = { nome: string; tournamentId: string; descricao: string; limitePalpite: string; taxaEntrada: number; maxParticipantes: number; privacidade: Privacidade };
 
-const initialForm: FormState = { nome: "", campeonato: "", descricao: "", limitePalpite: "", taxaEntrada: 0, maxParticipantes: 20, privacidade: "publico" };
+const initialForm: FormState = { nome: "", tournamentId: "", descricao: "", limitePalpite: "", taxaEntrada: 0, maxParticipantes: 20, privacidade: "publico" };
 
 export const Route = createFileRoute("/pools/new")({ component: NewPoolPage });
 
@@ -24,13 +25,16 @@ function NewPoolPage() {
   const [createdSuccessfully, setCreatedSuccessfully] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
   const poolsQuery = usePoolsListQuery();
+  const tournamentsQuery = useTournamentsListQuery();
   const createPoolMutation = useCreatePoolMutation();
+  const syncWorldCupMutation = useSyncWorldCupMutation();
   const createdPools = poolsQuery.data ?? [];
+  const tournaments = tournamentsQuery.data ?? [];
 
   const validar = () => {
     const nextErrors: Record<string, string> = {};
     if (!formulario.nome.trim()) nextErrors.nome = "Informe o nome do bolão.";
-    if (!formulario.campeonato.trim()) nextErrors.campeonato = "Informe o campeonato.";
+    if (!formulario.tournamentId) nextErrors.tournamentId = "Selecione o torneio.";
     if (!formulario.limitePalpite) nextErrors.limitePalpite = "Informe a data limite dos palpites.";
     if (formulario.taxaEntrada < 0) nextErrors.taxaEntrada = "A taxa não pode ser negativa.";
     if (formulario.maxParticipantes < 2) nextErrors.maxParticipantes = "O mínimo é 2 participantes.";
@@ -44,7 +48,7 @@ function NewPoolPage() {
     setRequestError(null);
     if (!validar()) return;
     try {
-      await createPoolMutation.mutateAsync({ name: formulario.nome.trim() });
+      await createPoolMutation.mutateAsync({ name: formulario.nome.trim(), tournamentId: formulario.tournamentId });
       setCreatedSuccessfully(true);
       setFormulario(initialForm);
     } catch (error) {
@@ -61,7 +65,13 @@ function NewPoolPage() {
             <form className="space-y-5" onSubmit={createPool}>
               <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
                 <Field label="Nome do bolão" error={erros.nome}><Input value={formulario.nome} onChange={(event) => setFormulario({ ...formulario, nome: event.target.value })} placeholder="Ex.: Bolão da Firma" /></Field>
-                <Field label="Campeonato" error={erros.campeonato}><Input value={formulario.campeonato} onChange={(event) => setFormulario({ ...formulario, campeonato: event.target.value })} placeholder="Ex.: Brasileirão Série A" /></Field>
+                <Field label="Torneio" error={erros.tournamentId}>
+                  <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={formulario.tournamentId} onChange={(event) => setFormulario({ ...formulario, tournamentId: event.target.value })}>
+                    <option value="">Selecione um torneio</option>
+                    {tournaments.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                  </select>
+                  {!tournaments.length ? <Button className="mt-2" type="button" variant="soft" disabled={syncWorldCupMutation.isPending} onClick={() => void syncWorldCupMutation.mutateAsync({})}>{syncWorldCupMutation.isPending ? "Sincronizando..." : "Importar Copa do Mundo 2026"}</Button> : null}
+                </Field>
               </div>
               <Field label="Descrição (opcional)"><Textarea value={formulario.descricao} onChange={(event) => setFormulario({ ...formulario, descricao: event.target.value })} rows={3} placeholder="Escreva um resumo com regras, prêmios e critérios de desempate." /></Field>
               <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
@@ -81,7 +91,7 @@ function NewPoolPage() {
             {requestError ? <Alert className="mt-4" variant="destructive"><AlertTitle>Erro ao criar bolão</AlertTitle><AlertDescription>{requestError}</AlertDescription></Alert> : null}
           </CardContent>
         </Card>
-        {createdPools.length ? <Card><CardHeader><CardTitle>Bolões cadastrados</CardTitle></CardHeader><CardContent className="space-y-3">{createdPools.map((pool) => <div key={pool.id} className="rounded-lg border p-3"><p className="font-medium">{pool.name}</p><p className="text-sm text-muted-foreground">Criado em: {new Date(pool.createdAt).toLocaleString("pt-BR")}</p></div>)}</CardContent></Card> : null}
+        {createdPools.length ? <Card><CardHeader><CardTitle>Bolões cadastrados</CardTitle></CardHeader><CardContent className="space-y-3">{createdPools.map((pool) => <div key={pool.id} className="rounded-lg border p-3"><p className="font-medium">{pool.name}</p><p className="text-sm text-muted-foreground">{pool.tournamentName ?? "Sem torneio"} · Criado em: {new Date(pool.createdAt).toLocaleString("pt-BR")}</p></div>)}</CardContent></Card> : null}
         {!createdPools.length && poolsQuery.status === "pending" ? <Alert variant="info"><AlertTitle>Carregando bolões</AlertTitle><AlertDescription>Buscando bolões cadastrados...</AlertDescription></Alert> : null}
         {!createdPools.length && poolsQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar bolões</AlertTitle><AlertDescription>{poolsQuery.error?.message || "Não foi possível carregar os bolões."}</AlertDescription></Alert> : null}
       </PageShell>

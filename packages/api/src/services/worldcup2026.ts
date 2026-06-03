@@ -1,7 +1,9 @@
-import { db, groupStanding, match, stadium, team } from "@mazing-bolao/db";
+import { db, groupStanding, match, stadium, team, tournament } from "@mazing-bolao/db";
 
 const SOURCE = "worldcup2026";
 const SEASON = "2026";
+const TOURNAMENT_ID = `${SOURCE}:${SEASON}`;
+const TOURNAMENT_SLUG = "copa-do-mundo-2026";
 
 const API_BASE = "https://worldcup26.ir/get";
 const RAW_BASE = "https://raw.githubusercontent.com/rezarahiminia/worldcup2026/main";
@@ -26,7 +28,14 @@ async function fetchJsonWithFallback(urls: string[]) {
       }
 
       const payload = (await response.json()) as AnyRecord | AnyRecord[];
-      return Array.isArray(payload) ? payload : payload.data;
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray(payload.data)) return payload.data;
+
+      for (const value of Object.values(payload)) {
+        if (Array.isArray(value)) return value;
+      }
+
+      throw new Error(`${url} did not return an array payload`);
     } catch (error) {
       lastError = error;
     }
@@ -39,6 +48,21 @@ export const fetchGames = () => fetchJsonWithFallback(endpoints.games) as Promis
 export const fetchTeams = () => fetchJsonWithFallback(endpoints.teams) as Promise<AnyRecord[]>;
 export const fetchGroups = () => fetchJsonWithFallback(endpoints.groups) as Promise<AnyRecord[]>;
 export const fetchStadiums = () => fetchJsonWithFallback(endpoints.stadiums) as Promise<AnyRecord[]>;
+
+export function getWorldCup2026Tournament(syncedAt = new Date()) {
+  return {
+    id: TOURNAMENT_ID,
+    name: "Copa do Mundo 2026",
+    slug: TOURNAMENT_SLUG,
+    externalSource: SOURCE,
+    season: SEASON,
+    startsAt: new Date(2026, 5, 11, 13, 0),
+    endsAt: new Date(2026, 6, 19, 15, 0),
+    rawPayload: { source: API_BASE, season: SEASON },
+    lastSyncedAt: syncedAt,
+    updatedAt: syncedAt,
+  };
+}
 
 export function toNullableString(value: unknown) {
   if (value === null || value === undefined || value === "" || value === "null") return null;
@@ -178,7 +202,7 @@ export function normalizeGame(
   };
 }
 
-export async function syncWorldCup2026(poolId: string) {
+export async function syncWorldCup2026Tournament() {
   const syncedAt = new Date();
   const [teamPayloads, stadiumPayloads, groupPayloads, gamePayloads] = await Promise.all([
     fetchTeams(),
@@ -193,6 +217,12 @@ export async function syncWorldCup2026(poolId: string) {
   const teamsById = new Map(normalizedTeams.map((item) => [item.externalId, item]));
   const stadiumsById = new Map(normalizedStadiums.map((item) => [item.externalId, item]));
   const normalizedGames = gamePayloads.map((payload) => normalizeGame(payload, teamsById, stadiumsById, syncedAt));
+  const tournamentData = getWorldCup2026Tournament(syncedAt);
+
+  await db.insert(tournament).values(tournamentData).onConflictDoUpdate({
+    target: [tournament.externalSource, tournament.season],
+    set: tournamentData,
+  });
 
   for (const item of normalizedTeams) {
     await db.insert(team).values(item).onConflictDoUpdate({
@@ -225,21 +255,23 @@ export async function syncWorldCup2026(poolId: string) {
       .insert(match)
       .values({
         id: crypto.randomUUID(),
-        poolId,
+        tournamentId: tournamentData.id,
         ...item,
       })
       .onConflictDoUpdate({
-        target: [match.poolId, match.externalSource, match.externalId],
+        target: [match.tournamentId, match.externalSource, match.externalId],
         set: item,
       });
   }
 
   return {
+    tournament: tournamentData,
     teams: normalizedTeams.length,
     stadiums: normalizedStadiums.length,
     standings: normalizedStandings.length,
     matches: normalizedGames.length,
-    poolMatches: normalizedGames.length,
     syncedAt,
   };
 }
+
+export const syncWorldCup2026 = syncWorldCup2026Tournament;

@@ -6,4 +6,5 @@ export * from "./pool-user";
 export * from "./prediction";
 export * from "./stadium";
 export * from "./team";
+export * from "./tournament";
 export {};

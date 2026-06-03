@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getFlagEmoji, normalizeGame, normalizeGroup, normalizeStadium, normalizeTeam } from "@mazing-bolao/api/services/worldcup2026";
+import { getFlagEmoji, getWorldCup2026Tournament, normalizeGame, normalizeGroup, normalizeStadium, normalizeTeam } from "@mazing-bolao/api/services/worldcup2026";
 
 describe("World Cup 2026 service", () => {
   it("normalizes teams and converts iso2 to flag emoji", () => {
@@ -74,6 +74,16 @@ describe("World Cup 2026 service", () => {
       goalsFor: 2,
       goalsAgainst: 0,
       goalsDiff: 2,
+    });
+  });
+
+  it("builds the global World Cup tournament", () => {
+    expect(getWorldCup2026Tournament()).toMatchObject({
+      id: "worldcup2026:2026",
+      name: "Copa do Mundo 2026",
+      slug: "copa-do-mundo-2026",
+      externalSource: "worldcup2026",
+      season: "2026",
     });
   });
 });

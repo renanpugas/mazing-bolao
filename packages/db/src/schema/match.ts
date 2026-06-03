@@ -1,15 +1,15 @@
 import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-import { pool } from "./pool";
+import { tournament } from "./tournament";
 
 export const match = sqliteTable(
   "match",
   {
     id: text("id").primaryKey(),
-    poolId: text("pool_id")
+    tournamentId: text("tournament_id")
       .notNull()
-      .references(() => pool.id, { onDelete: "cascade" }),
+      .references(() => tournament.id, { onDelete: "cascade" }),
     homeTeam: text("home_team").notNull(),
     awayTeam: text("away_team").notNull(),
     startsAt: integer("starts_at", { mode: "timestamp_ms" }).notNull(),
@@ -42,5 +42,11 @@ export const match = sqliteTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [uniqueIndex("match_pool_external_unique").on(table.poolId, table.externalSource, table.externalId)],
+  (table) => [
+    uniqueIndex("match_tournament_external_unique").on(
+      table.tournamentId,
+      table.externalSource,
+      table.externalId,
+    ),
+  ],
 );
