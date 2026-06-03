@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useCreatePredictionMutation, usePredictionsListQuery, useUpdatePredictionMutation } from "@/hooks/use-predictions-api";
+import { formatTeamNamePtBr } from "@/lib/team-names";
 
 export const Route = createFileRoute("/predictions")({ component: PredictionsPage });
 
@@ -47,8 +48,8 @@ function PredictionsPage() {
       horario: startsAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" }),
       estadio: item.match.stadiumName,
       cidade: item.match.stadiumCity,
-      mandante: item.match.homeTeamLabel ?? item.match.homeTeam,
-      visitante: item.match.awayTeamLabel ?? item.match.awayTeam,
+      mandante: formatTeamNamePtBr(item.match.homeTeamLabel ?? item.match.homeTeam),
+      visitante: formatTeamNamePtBr(item.match.awayTeamLabel ?? item.match.awayTeam),
       mandanteEmoji: item.match.homeTeamEmoji,
       visitanteEmoji: item.match.awayTeamEmoji,
       encerrado: !!item.match.finished,
