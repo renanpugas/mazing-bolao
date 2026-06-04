@@ -10,6 +10,12 @@ export type Jogo = {
   visitanteEmoji: string | null;
   encerrado: boolean;
   bloqueado: boolean;
+  pontuacao: {
+    placarExato: number;
+    resultado: number;
+    jogoBrasil: boolean;
+    multiplicadorBrasil: number;
+  } | null;
 };
 
 export type Palpite = {
