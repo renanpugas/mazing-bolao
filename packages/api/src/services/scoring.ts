@@ -18,6 +18,11 @@ export type PoolScoringRule = {
   brazilMultiplier: number;
 };
 
+export type PoolOddBonusRule = {
+  oddThreshold: number;
+  bonusPercent: number;
+};
+
 export type ScoreType = "exact" | "outcome" | "none";
 
 const defaultRulesByStage = new Map<string, PoolScoringRule>(DEFAULT_POOL_SCORING_RULES.map((rule) => [rule.stage, rule]));
@@ -74,6 +79,19 @@ function outcome(homeGoals: number, awayGoals: number) {
   return "draw";
 }
 
+function getWinningOdd(input: {
+  matchHomeScore: number;
+  matchAwayScore: number;
+  oddsHomeTeam?: number | null;
+  oddsAwayTeam?: number | null;
+  oddsDraw?: number | null;
+}) {
+  const realOutcome = outcome(input.matchHomeScore, input.matchAwayScore);
+  if (realOutcome === "home") return input.oddsHomeTeam ?? null;
+  if (realOutcome === "away") return input.oddsAwayTeam ?? null;
+  return input.oddsDraw ?? null;
+}
+
 export function calculateMatchPredictionScore(input: {
   predictionHomeGoals: number | null;
   predictionAwayGoals: number | null;
@@ -82,13 +100,23 @@ export function calculateMatchPredictionScore(input: {
   stage: string | null;
   isBrazilMatch: boolean;
   rules: readonly PoolScoringRule[];
+  oddBonusRules?: readonly PoolOddBonusRule[];
+  oddsHomeTeam?: number | null;
+  oddsAwayTeam?: number | null;
+  oddsDraw?: number | null;
 }) {
   const rule = input.rules.find((item) => item.stage === normalizeScoringStage(input.stage)) ?? defaultRulesByStage.get("group")!;
   const hasPrediction = input.predictionHomeGoals !== null && input.predictionAwayGoals !== null;
   const hasResult = input.matchHomeScore !== null && input.matchAwayScore !== null;
+  const emptyOddBonus = {
+    oddBonusPoints: 0,
+    oddBonusPercent: 0,
+    oddUsed: null as number | null,
+    oddBonusApplied: false,
+  };
 
   if (!hasPrediction || !hasResult) {
-    return { points: 0, basePoints: 0, type: "none" as ScoreType, multiplied: false, rule };
+    return { points: 0, basePoints: 0, type: "none" as ScoreType, multiplied: false, rule, ...emptyOddBonus };
   }
 
   const exact = input.predictionHomeGoals === input.matchHomeScore && input.predictionAwayGoals === input.matchAwayScore;
@@ -97,12 +125,44 @@ export function calculateMatchPredictionScore(input: {
   const type: ScoreType = exact ? "exact" : predictedOutcome === realOutcome ? "outcome" : "none";
   const basePoints = type === "exact" ? rule.exactScorePoints : type === "outcome" ? rule.outcomePoints : 0;
   const multiplied = basePoints > 0 && input.isBrazilMatch;
+  const pointsAfterBrazil = multiplied ? basePoints * rule.brazilMultiplier : basePoints;
+
+  if (pointsAfterBrazil <= 0) {
+    return {
+      points: 0,
+      basePoints,
+      type,
+      multiplied,
+      rule,
+      ...emptyOddBonus,
+    };
+  }
+
+  const oddUsed = getWinningOdd({
+    matchHomeScore: input.matchHomeScore!,
+    matchAwayScore: input.matchAwayScore!,
+    oddsHomeTeam: input.oddsHomeTeam,
+    oddsAwayTeam: input.oddsAwayTeam,
+    oddsDraw: input.oddsDraw,
+  });
+  const oddBonusRule =
+    oddUsed === null
+      ? null
+      : (input.oddBonusRules ?? [])
+          .filter((bonusRule) => oddUsed > bonusRule.oddThreshold)
+          .sort((a, b) => b.oddThreshold - a.oddThreshold)[0] ?? null;
+  const oddBonusPercent = oddBonusRule?.bonusPercent ?? 0;
+  const oddBonusPoints = oddBonusRule ? Math.round((pointsAfterBrazil * oddBonusRule.bonusPercent) / 100) : 0;
 
   return {
-    points: multiplied ? basePoints * rule.brazilMultiplier : basePoints,
+    points: pointsAfterBrazil + oddBonusPoints,
     basePoints,
     type,
     multiplied,
     rule,
+    oddBonusPoints,
+    oddBonusPercent,
+    oddUsed,
+    oddBonusApplied: oddBonusRule !== null,
   };
 }

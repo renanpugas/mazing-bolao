@@ -1,4 +1,5 @@
-import { db, pool, poolQuestion, poolUser } from "@mazing-bolao/db";
+import { db, match, pool, poolQuestion, poolUser, prediction, tournament } from "@mazing-bolao/db";
+import { eq } from "drizzle-orm";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -28,6 +29,8 @@ describe("Pool scoring routes E2E", () => {
     await signInTestUser(adminAgent, { name: "Admin", isAdmin: true });
     const poolId = crypto.randomUUID();
     const questionId = crypto.randomUUID();
+    const ownerPoolUserId = crypto.randomUUID();
+    const participantPoolUserId = crypto.randomUUID();
 
     await db.insert(pool).values({
       id: poolId,
@@ -35,8 +38,8 @@ describe("Pool scoring routes E2E", () => {
       createdByUserId: owner.id,
     });
     await db.insert(poolUser).values([
-      { id: crypto.randomUUID(), poolId, userId: owner.id },
-      { id: crypto.randomUUID(), poolId, userId: participant.id },
+      { id: ownerPoolUserId, poolId, userId: owner.id },
+      { id: participantPoolUserId, poolId, userId: participant.id },
     ]);
     await db.insert(poolQuestion).values({
       id: questionId,
@@ -47,7 +50,7 @@ describe("Pool scoring routes E2E", () => {
       closesAt: new Date(Date.now() + 60_000),
     });
 
-    return { poolId, questionId };
+    return { poolId, questionId, owner, participant, ownerPoolUserId, participantPoolUserId };
   }
 
   it("should allow an admin outside the pool to view and update config and question scores", async () => {
@@ -66,12 +69,30 @@ describe("Pool scoring routes E2E", () => {
       outcomePoints: rule.outcomePoints,
       brazilMultiplier: rule.brazilMultiplier,
     }));
-    const updateConfigResponse = await rpc(adminAgent, "poolScoring/updateConfig", { poolId, rules });
+    const updateConfigResponse = await rpc(adminAgent, "poolScoring/updateConfig", {
+      poolId,
+      rules,
+      oddBonusRules: [
+        { oddThreshold: 4, bonusPercent: 80 },
+        { oddThreshold: 2, bonusPercent: 50 },
+      ],
+    });
     expect(updateConfigResponse.status).toBe(200);
     expect(updateConfigResponse.body).toMatchObject({
       canManage: true,
     });
     expect(updateConfigResponse.body.rules[0].exactScorePoints).toBe(configResponse.body.rules[0].exactScorePoints + 1);
+    expect(updateConfigResponse.body.oddBonusRules).toEqual([
+      { oddThreshold: 2, bonusPercent: 50 },
+      { oddThreshold: 4, bonusPercent: 80 },
+    ]);
+
+    const updatedConfigResponse = await rpc(adminAgent, "poolScoring/getConfig", { poolId });
+    expect(updatedConfigResponse.status).toBe(200);
+    expect(updatedConfigResponse.body.oddBonusRules).toEqual([
+      { oddThreshold: 2, bonusPercent: 50 },
+      { oddThreshold: 4, bonusPercent: 80 },
+    ]);
 
     const scoresResponse = await rpc(adminAgent, "poolScoring/listQuestionScores", { poolId });
     expect(scoresResponse.status).toBe(200);
@@ -125,6 +146,7 @@ describe("Pool scoring routes E2E", () => {
         outcomePoints: rule.outcomePoints,
         brazilMultiplier: rule.brazilMultiplier,
       })),
+      oddBonusRules: [{ oddThreshold: 2, bonusPercent: 50 }],
     });
     expect(participantUpdateConfigResponse.status).toBe(403);
 
@@ -142,5 +164,115 @@ describe("Pool scoring routes E2E", () => {
 
     const outsiderResponse = await rpc(outsiderAgent, "poolScoring/getConfig", { poolId });
     expect(outsiderResponse.status).toBe(403);
+  });
+
+  it("should reject invalid odd bonus rules", async () => {
+    const { poolId } = await createFixture();
+    const configResponse = await rpc(adminAgent, "poolScoring/getConfig", { poolId });
+    const rules = configResponse.body.rules.map((rule: { stage: string; exactScorePoints: number; outcomePoints: number; brazilMultiplier: number }) => ({
+      stage: rule.stage,
+      exactScorePoints: rule.exactScorePoints,
+      outcomePoints: rule.outcomePoints,
+      brazilMultiplier: rule.brazilMultiplier,
+    }));
+
+    const duplicatedResponse = await rpc(adminAgent, "poolScoring/updateConfig", {
+      poolId,
+      rules,
+      oddBonusRules: [
+        { oddThreshold: 2, bonusPercent: 50 },
+        { oddThreshold: 2, bonusPercent: 80 },
+      ],
+    });
+    expect(duplicatedResponse.status).toBe(400);
+
+    const invalidValuesResponse = await rpc(adminAgent, "poolScoring/updateConfig", {
+      poolId,
+      rules,
+      oddBonusRules: [{ oddThreshold: 0, bonusPercent: -1 }],
+    });
+    expect(invalidValuesResponse.status).toBe(400);
+  });
+
+  it("should include odd bonus points in ranking and match comparison", async () => {
+    const { poolId, owner, participant, ownerPoolUserId, participantPoolUserId } = await createFixture();
+    const configResponse = await rpc(adminAgent, "poolScoring/getConfig", { poolId });
+    const rules = configResponse.body.rules.map((rule: { stage: string; exactScorePoints: number; outcomePoints: number; brazilMultiplier: number }) => ({
+      stage: rule.stage,
+      exactScorePoints: rule.exactScorePoints,
+      outcomePoints: rule.outcomePoints,
+      brazilMultiplier: rule.brazilMultiplier,
+    }));
+    const tournamentId = crypto.randomUUID();
+    const matchId = crypto.randomUUID();
+
+    await db.insert(tournament).values({
+      id: tournamentId,
+      name: "World Cup 2026",
+      slug: `world-cup-${crypto.randomUUID()}`,
+    });
+    await db.update(pool).set({ tournamentId }).where(eq(pool.id, poolId));
+    await db.insert(match).values({
+      id: matchId,
+      tournamentId,
+      homeTeam: "Brazil",
+      awayTeam: "Argentina",
+      startsAt: new Date(Date.now() - 60_000),
+      stage: "group",
+      homeScore: 2,
+      awayScore: 0,
+      oddsHomeTeam: 2.5,
+      finished: true,
+    });
+    await db.insert(prediction).values([
+      {
+        id: crypto.randomUUID(),
+        poolId,
+        matchId,
+        userId: owner.id,
+        poolUserId: ownerPoolUserId,
+        homeGoals: 2,
+        awayGoals: 0,
+      },
+      {
+        id: crypto.randomUUID(),
+        poolId,
+        matchId,
+        userId: participant.id,
+        poolUserId: participantPoolUserId,
+        homeGoals: 0,
+        awayGoals: 1,
+      },
+    ]);
+
+    const updateConfigResponse = await rpc(adminAgent, "poolScoring/updateConfig", {
+      poolId,
+      rules,
+      oddBonusRules: [{ oddThreshold: 2, bonusPercent: 50 }],
+    });
+    expect(updateConfigResponse.status).toBe(200);
+
+    const rankingResponse = await rpc(participantAgent, "poolScoring/ranking", { poolId });
+    expect(rankingResponse.status).toBe(200);
+    expect(rankingResponse.body.find((entry: { userId: string }) => entry.userId === owner.id)).toMatchObject({
+      points: 30,
+      oddBonuses: 1,
+      oddBonusPoints: 10,
+    });
+    expect(rankingResponse.body.find((entry: { userId: string }) => entry.userId === participant.id)).toMatchObject({
+      points: 0,
+      oddBonuses: 0,
+      oddBonusPoints: 0,
+    });
+
+    const comparisonResponse = await rpc(participantAgent, "predictions/matchComparison", { poolId, matchId });
+    expect(comparisonResponse.status).toBe(200);
+    expect(comparisonResponse.body.participants.find((entry: { userId: string }) => entry.userId === owner.id)).toMatchObject({
+      points: 30,
+      oddBonusPoints: 10,
+      oddBonusPercent: 50,
+      oddUsed: 2.5,
+      oddBonusApplied: true,
+    });
   });
 });

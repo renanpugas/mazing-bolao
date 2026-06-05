@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { RotateCcw, Save } from "lucide-react";
+import { Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { PageHeader, PageShell } from "@/components/page-shell";
@@ -18,6 +18,11 @@ type ScoringRule = {
   exactScorePoints: number;
   outcomePoints: number;
   brazilMultiplier: number;
+};
+
+type OddBonusRule = {
+  oddThreshold: number;
+  bonusPercent: number;
 };
 
 type QuestionScore = {
@@ -39,6 +44,7 @@ function ScoringPage() {
   const updateConfigMutation = useUpdatePoolScoringConfigMutation(selectedPoolId);
   const updateQuestionScoresMutation = useUpdatePoolQuestionScoresMutation(selectedPoolId);
   const [rules, setRules] = useState<ScoringRule[]>([]);
+  const [oddBonusRules, setOddBonusRules] = useState<OddBonusRule[]>([]);
   const [questionScores, setQuestionScores] = useState<QuestionScore[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -50,6 +56,10 @@ function ScoringPage() {
   useEffect(() => {
     if (configQuery.data?.rules) setRules(configQuery.data.rules.map((rule) => ({ ...rule })) as ScoringRule[]);
   }, [configQuery.data?.rules]);
+
+  useEffect(() => {
+    if (configQuery.data?.oddBonusRules) setOddBonusRules(configQuery.data.oddBonusRules.map((rule) => ({ ...rule })) as OddBonusRule[]);
+  }, [configQuery.data?.oddBonusRules]);
 
   useEffect(() => {
     if (questionScoresQuery.data?.questions) setQuestionScores(questionScoresQuery.data.questions.map((question) => ({ ...question })));
@@ -69,8 +79,24 @@ function ScoringPage() {
     setQuestionScores((currentQuestions) => currentQuestions.map((question) => (question.id === questionId ? { ...question, points } : question)));
   };
 
+  const addOddBonusRule = () => {
+    setOddBonusRules((currentRules) => {
+      const highestThreshold = currentRules.reduce((highest, rule) => Math.max(highest, rule.oddThreshold), 1);
+      return [...currentRules, { oddThreshold: highestThreshold + 1, bonusPercent: 50 }];
+    });
+  };
+
+  const updateOddBonusRule = (index: number, field: "oddThreshold" | "bonusPercent", value: number) => {
+    setOddBonusRules((currentRules) => currentRules.map((rule, ruleIndex) => (ruleIndex === index ? { ...rule, [field]: value } : rule)));
+  };
+
+  const removeOddBonusRule = (index: number) => {
+    setOddBonusRules((currentRules) => currentRules.filter((_, ruleIndex) => ruleIndex !== index));
+  };
+
   const restoreDefaults = () => {
     if (configQuery.data?.defaults) setRules(configQuery.data.defaults.map((rule) => ({ ...rule })) as ScoringRule[]);
+    setOddBonusRules([]);
     setSuccessMessage(null);
     setRequestError(null);
   };
@@ -88,6 +114,10 @@ function ScoringPage() {
           exactScorePoints,
           outcomePoints,
           brazilMultiplier,
+        })),
+        oddBonusRules: oddBonusRules.map(({ oddThreshold, bonusPercent }) => ({
+          oddThreshold,
+          bonusPercent,
         })),
       });
       setSuccessMessage("Configuração de pontuação salva.");
@@ -170,6 +200,63 @@ function ScoringPage() {
               ))}
             </TableBody>
           </Table>
+
+          <div className="space-y-3 border-t pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold">Bônus por odd</h3>
+                <p className="mt-1 text-sm text-muted-foreground">A maior faixa compatível soma bônus quando a odd vencedora fica acima do valor configurado.</p>
+              </div>
+              {canManage ? <Button variant="outline" className="gap-2" onClick={addOddBonusRule}><Plus className="size-4" />Adicionar faixa</Button> : null}
+            </div>
+
+            {oddBonusRules.length ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Odd acima de</TableHead>
+                    <TableHead>Bônus (%)</TableHead>
+                    {canManage ? <TableHead className="w-16">Remover</TableHead> : null}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {oddBonusRules.map((rule, index) => (
+                    <TableRow key={`${rule.oddThreshold}-${index}`}>
+                      <TableCell>
+                        <Input
+                          className="w-32"
+                          type="number"
+                          min={0.01}
+                          step={0.01}
+                          disabled={!canManage}
+                          value={rule.oddThreshold}
+                          onChange={(event) => updateOddBonusRule(index, "oddThreshold", Number(event.target.value))}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          className="w-32"
+                          type="number"
+                          min={0}
+                          step={1}
+                          disabled={!canManage}
+                          value={rule.bonusPercent}
+                          onChange={(event) => updateOddBonusRule(index, "bonusPercent", Number(event.target.value))}
+                        />
+                      </TableCell>
+                      {canManage ? (
+                        <TableCell>
+                          <Button variant="ghost" size="sm" className="w-9 px-0" aria-label="Remover faixa" onClick={() => removeOddBonusRule(index)}>
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </TableCell>
+                      ) : null}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : <p className="text-sm text-muted-foreground">Nenhum bônus por odd configurado para este bolão.</p>}
+          </div>
 
           {canManage ? (
             <div className="flex flex-wrap justify-end gap-2">

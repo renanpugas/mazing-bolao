@@ -17,6 +17,116 @@ describe("Scoring service", () => {
     expect(score).toMatchObject({ points: 80, basePoints: 40, type: "exact", multiplied: true });
   });
 
+  it("should keep current score without odd bonus rules", () => {
+    const score = calculateMatchPredictionScore({
+      predictionHomeGoals: 2,
+      predictionAwayGoals: 1,
+      matchHomeScore: 2,
+      matchAwayScore: 1,
+      stage: "group",
+      isBrazilMatch: false,
+      rules: DEFAULT_POOL_SCORING_RULES,
+      oddsHomeTeam: 2.5,
+    });
+
+    expect(score).toMatchObject({ points: 10, oddBonusPoints: 0, oddBonusApplied: false, oddBonusPercent: 0, oddUsed: 2.5 });
+  });
+
+  it("should add odd bonus when the winning odd passes a threshold", () => {
+    const score = calculateMatchPredictionScore({
+      predictionHomeGoals: 2,
+      predictionAwayGoals: 0,
+      matchHomeScore: 3,
+      matchAwayScore: 1,
+      stage: "group",
+      isBrazilMatch: false,
+      rules: DEFAULT_POOL_SCORING_RULES,
+      oddBonusRules: [{ oddThreshold: 2, bonusPercent: 50 }],
+      oddsHomeTeam: 2.5,
+    });
+
+    expect(score).toMatchObject({ points: 8, basePoints: 5, type: "outcome", oddBonusPoints: 3, oddBonusPercent: 50, oddUsed: 2.5, oddBonusApplied: true });
+  });
+
+  it("should use only the highest compatible odd bonus threshold", () => {
+    const score = calculateMatchPredictionScore({
+      predictionHomeGoals: 0,
+      predictionAwayGoals: 1,
+      matchHomeScore: 1,
+      matchAwayScore: 2,
+      stage: "group",
+      isBrazilMatch: false,
+      rules: DEFAULT_POOL_SCORING_RULES,
+      oddBonusRules: [
+        { oddThreshold: 2, bonusPercent: 50 },
+        { oddThreshold: 4, bonusPercent: 80 },
+        { oddThreshold: 10, bonusPercent: 120 },
+      ],
+      oddsAwayTeam: 11,
+    });
+
+    expect(score).toMatchObject({ points: 11, oddBonusPoints: 6, oddBonusPercent: 120, oddUsed: 11, oddBonusApplied: true });
+  });
+
+  it("should round odd bonus points to the nearest integer", () => {
+    const score = calculateMatchPredictionScore({
+      predictionHomeGoals: 1,
+      predictionAwayGoals: 1,
+      matchHomeScore: 1,
+      matchAwayScore: 1,
+      stage: "group",
+      isBrazilMatch: false,
+      rules: DEFAULT_POOL_SCORING_RULES,
+      oddBonusRules: [{ oddThreshold: 2, bonusPercent: 25 }],
+      oddsDraw: 3.1,
+    });
+
+    expect(score).toMatchObject({ points: 13, oddBonusPoints: 3, oddBonusPercent: 25 });
+  });
+
+  it("should apply odd bonus after Brazil multiplier", () => {
+    const score = calculateMatchPredictionScore({
+      predictionHomeGoals: 2,
+      predictionAwayGoals: 0,
+      matchHomeScore: 2,
+      matchAwayScore: 0,
+      stage: "group",
+      isBrazilMatch: true,
+      rules: DEFAULT_POOL_SCORING_RULES,
+      oddBonusRules: [{ oddThreshold: 2, bonusPercent: 50 }],
+      oddsHomeTeam: 2.5,
+    });
+
+    expect(score).toMatchObject({ points: 30, basePoints: 10, multiplied: true, oddBonusPoints: 10, oddBonusPercent: 50 });
+  });
+
+  it("should not add odd bonus for wrong predictions or incomplete odds", () => {
+    const wrongScore = calculateMatchPredictionScore({
+      predictionHomeGoals: 1,
+      predictionAwayGoals: 0,
+      matchHomeScore: 0,
+      matchAwayScore: 1,
+      stage: "group",
+      isBrazilMatch: false,
+      rules: DEFAULT_POOL_SCORING_RULES,
+      oddBonusRules: [{ oddThreshold: 2, bonusPercent: 50 }],
+      oddsAwayTeam: 4,
+    });
+    const missingOddScore = calculateMatchPredictionScore({
+      predictionHomeGoals: 1,
+      predictionAwayGoals: 0,
+      matchHomeScore: 2,
+      matchAwayScore: 0,
+      stage: "group",
+      isBrazilMatch: false,
+      rules: DEFAULT_POOL_SCORING_RULES,
+      oddBonusRules: [{ oddThreshold: 2, bonusPercent: 50 }],
+    });
+
+    expect(wrongScore).toMatchObject({ points: 0, oddBonusPoints: 0, oddBonusApplied: false });
+    expect(missingOddScore).toMatchObject({ points: 5, oddBonusPoints: 0, oddBonusApplied: false, oddUsed: null });
+  });
+
   it("should calculate winner or draw partial points", () => {
     const winnerScore = calculateMatchPredictionScore({
       predictionHomeGoals: 3,

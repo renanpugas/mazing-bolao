@@ -1,4 +1,4 @@
-import { db, match, poolMatchScoringRule, poolQuestion, poolQuestionAnswer, poolUser, prediction, user } from "@mazing-bolao/db";
+import { db, match, poolMatchScoringRule, poolOddBonusRule, poolQuestion, poolQuestionAnswer, poolUser, prediction, user } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -27,6 +27,26 @@ const questionScoreInput = z.object({
   points: z.number().int().positive("Pontuação deve ser um inteiro positivo"),
 });
 
+const oddBonusRuleInput = z.object({
+  oddThreshold: z.number().positive("Odd deve ser maior que zero"),
+  bonusPercent: z.number().int().min(0, "Bônus deve ser um inteiro maior ou igual a zero"),
+});
+
+const oddBonusRulesInput = z.array(oddBonusRuleInput).superRefine((rules, ctx) => {
+  const thresholds = new Set<number>();
+
+  rules.forEach((rule, index) => {
+    if (thresholds.has(rule.oddThreshold)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Não envie faixas de odd duplicadas",
+        path: [index, "oddThreshold"],
+      });
+    }
+    thresholds.add(rule.oddThreshold);
+  });
+});
+
 async function getMergedRules(poolId: string) {
   const customRules = await db
     .select({
@@ -41,6 +61,21 @@ async function getMergedRules(poolId: string) {
   return mergePoolScoringRules(customRules.map((rule) => ({ ...rule, stage: rule.stage as PoolScoringStage })));
 }
 
+async function getOddBonusRules(poolId: string) {
+  return db
+    .select({
+      oddThreshold: poolOddBonusRule.oddThreshold,
+      bonusPercent: poolOddBonusRule.bonusPercent,
+    })
+    .from(poolOddBonusRule)
+    .where(eq(poolOddBonusRule.poolId, poolId))
+    .orderBy(asc(poolOddBonusRule.oddThreshold));
+}
+
+function normalizeOddBonusRules(rules: Array<{ oddThreshold: number; bonusPercent: number }>) {
+  return [...rules].sort((a, b) => a.oddThreshold - b.oddThreshold);
+}
+
 export const poolScoringRouter = {
   getConfig: protectedProcedure
     .input(
@@ -53,10 +88,12 @@ export const poolScoringRouter = {
       const currentPool = await requirePoolParticipantOrAdmin(input.poolId, userId);
 
       const rules = await getMergedRules(input.poolId);
+      const oddBonusRules = await getOddBonusRules(input.poolId);
       return {
         poolId: input.poolId,
         canManage: currentPool.canManage,
         rules,
+        oddBonusRules,
         defaults: DEFAULT_POOL_SCORING_RULES,
       };
     }),
@@ -65,6 +102,7 @@ export const poolScoringRouter = {
       z.object({
         poolId: z.string().trim().min(1, "Bolão é obrigatório"),
         rules: z.array(scoringRuleInput).length(DEFAULT_POOL_SCORING_RULES.length),
+        oddBonusRules: oddBonusRulesInput.default([]),
       }),
     )
     .handler(async ({ context, input }) => {
@@ -100,10 +138,25 @@ export const poolScoringRouter = {
           });
       }
 
+      const oddBonusRules = normalizeOddBonusRules(input.oddBonusRules);
+      await db.delete(poolOddBonusRule).where(eq(poolOddBonusRule.poolId, input.poolId));
+
+      if (oddBonusRules.length) {
+        await db.insert(poolOddBonusRule).values(
+          oddBonusRules.map((rule) => ({
+            id: crypto.randomUUID(),
+            poolId: input.poolId,
+            oddThreshold: rule.oddThreshold,
+            bonusPercent: rule.bonusPercent,
+          })),
+        );
+      }
+
       return {
         poolId: input.poolId,
         canManage: true,
         rules: await getMergedRules(input.poolId),
+        oddBonusRules: await getOddBonusRules(input.poolId),
         defaults: DEFAULT_POOL_SCORING_RULES,
       };
     }),
@@ -202,6 +255,7 @@ export const poolScoringRouter = {
       }
 
       const rules = await getMergedRules(input.poolId);
+      const oddBonusRules = await getOddBonusRules(input.poolId);
       const participants = await db
         .select({
           poolUserId: poolUser.id,
@@ -226,6 +280,8 @@ export const poolScoringRouter = {
             exactScores: 0,
             correctOutcomes: 0,
             brazilBonuses: 0,
+            oddBonuses: 0,
+            oddBonusPoints: 0,
             scoredMatches: 0,
             correctQuestions: 0,
             questionPoints: 0,
@@ -249,6 +305,9 @@ export const poolScoringRouter = {
             awayTeamExternalId: match.awayTeamExternalId,
             homeScore: match.homeScore,
             awayScore: match.awayScore,
+            oddsHomeTeam: match.oddsHomeTeam,
+            oddsAwayTeam: match.oddsAwayTeam,
+            oddsDraw: match.oddsDraw,
             finished: match.finished,
           },
         })
@@ -268,12 +327,18 @@ export const poolScoringRouter = {
           stage: row.match.stage,
           isBrazilMatch: isBrazilMatch(row.match),
           rules,
+          oddBonusRules,
+          oddsHomeTeam: row.match.oddsHomeTeam,
+          oddsAwayTeam: row.match.oddsAwayTeam,
+          oddsDraw: row.match.oddsDraw,
         });
 
         entry.points += score.points;
         if (score.type === "exact") entry.exactScores += 1;
         if (score.type === "outcome") entry.correctOutcomes += 1;
         if (score.multiplied) entry.brazilBonuses += 1;
+        entry.oddBonusPoints += score.oddBonusPoints;
+        if (score.oddBonusApplied) entry.oddBonuses += 1;
         if (score.points > 0) entry.scoredMatches += 1;
       }
 

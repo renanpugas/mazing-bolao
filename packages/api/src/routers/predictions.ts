@@ -1,4 +1,4 @@
-import { db, match, pool, poolMatchScoringRule, poolUser, prediction, user } from "@mazing-bolao/db";
+import { db, match, pool, poolMatchScoringRule, poolOddBonusRule, poolUser, prediction, user } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -243,6 +243,9 @@ export const predictionsRouter = {
           matchday: true,
           homeScore: true,
           awayScore: true,
+          oddsHomeTeam: true,
+          oddsAwayTeam: true,
+          oddsDraw: true,
           finished: true,
         },
       });
@@ -263,6 +266,14 @@ export const predictionsRouter = {
         .from(poolMatchScoringRule)
         .where(eq(poolMatchScoringRule.poolId, input.poolId));
       const scoringRules = mergePoolScoringRules(customRules.map((rule) => ({ ...rule, stage: rule.stage as PoolScoringStage })));
+      const oddBonusRules = await db
+        .select({
+          oddThreshold: poolOddBonusRule.oddThreshold,
+          bonusPercent: poolOddBonusRule.bonusPercent,
+        })
+        .from(poolOddBonusRule)
+        .where(eq(poolOddBonusRule.poolId, input.poolId))
+        .orderBy(asc(poolOddBonusRule.oddThreshold));
       const canCompare = selectedMatch.startsAt <= new Date();
       const brazilMatch = isBrazilMatch(selectedMatch);
 
@@ -296,6 +307,10 @@ export const predictionsRouter = {
           stage: selectedMatch.stage,
           isBrazilMatch: brazilMatch,
           rules: scoringRules,
+          oddBonusRules,
+          oddsHomeTeam: selectedMatch.oddsHomeTeam,
+          oddsAwayTeam: selectedMatch.oddsAwayTeam,
+          oddsDraw: selectedMatch.oddsDraw,
         });
 
         return {
@@ -309,6 +324,10 @@ export const predictionsRouter = {
           hasPrediction: homeGoals !== null && awayGoals !== null,
           points: score.points,
           resultType: score.type,
+          oddBonusPoints: score.oddBonusPoints,
+          oddBonusPercent: score.oddBonusPercent,
+          oddUsed: score.oddUsed,
+          oddBonusApplied: score.oddBonusApplied,
         };
       });
 

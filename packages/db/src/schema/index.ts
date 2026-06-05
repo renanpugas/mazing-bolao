@@ -3,6 +3,7 @@ export * from "./group-standing";
 export * from "./match";
 export * from "./pool";
 export * from "./pool-match-scoring-rule";
+export * from "./pool-odd-bonus-rule";
 export * from "./pool-question";
 export * from "./pool-user";
 export * from "./prediction";
