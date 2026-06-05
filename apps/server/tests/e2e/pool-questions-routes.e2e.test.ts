@@ -8,11 +8,13 @@ describe("Pool questions routes E2E", () => {
   let ownerAgent: request.Agent;
   let participantAgent: request.Agent;
   let outsiderAgent: request.Agent;
+  let adminAgent: request.Agent;
 
   beforeEach(() => {
     ownerAgent = createAgent();
     participantAgent = createAgent();
     outsiderAgent = createAgent();
+    adminAgent = createAgent();
   });
 
   afterEach(async () => {
@@ -23,6 +25,7 @@ describe("Pool questions routes E2E", () => {
     const owner = await signInTestUser(ownerAgent, { name: "Owner" });
     const participant = await signInTestUser(participantAgent, { name: "Participant" });
     const outsider = await signInTestUser(outsiderAgent, { name: "Outsider" });
+    const admin = await signInTestUser(adminAgent, { name: "Admin", isAdmin: true });
     const poolId = crypto.randomUUID();
 
     await db.insert(pool).values({
@@ -35,7 +38,7 @@ describe("Pool questions routes E2E", () => {
       { id: crypto.randomUUID(), poolId, userId: participant.id },
     ]);
 
-    return { owner, participant, outsider, poolId };
+    return { owner, participant, outsider, admin, poolId };
   }
 
   it("should require auth for pool question endpoints", async () => {
@@ -66,7 +69,7 @@ describe("Pool questions routes E2E", () => {
     expect(reviewResponse.status).toBe(401);
   });
 
-  it("should allow only the pool creator to create questions", async () => {
+  it("should allow only admins to create questions", async () => {
     const { poolId } = await createPoolFixture();
 
     const forbiddenResponse = await rpc(participantAgent, "poolQuestions/create", {
@@ -77,7 +80,15 @@ describe("Pool questions routes E2E", () => {
     });
     expect(forbiddenResponse.status).toBe(403);
 
-    const response = await rpc(ownerAgent, "poolQuestions/create", {
+    const ownerResponse = await rpc(ownerAgent, "poolQuestions/create", {
+      poolId,
+      question: "Artilheiro?",
+      points: 5,
+      closesAt: new Date(Date.now() + 60_000).toISOString(),
+    });
+    expect(ownerResponse.status).toBe(403);
+
+    const response = await rpc(adminAgent, "poolQuestions/create", {
       poolId,
       question: "Artilheiro?",
       points: 5,
@@ -91,7 +102,7 @@ describe("Pool questions routes E2E", () => {
   it("should validate positive integer points and future closesAt", async () => {
     const { poolId } = await createPoolFixture();
 
-    const invalidPointsResponse = await rpc(ownerAgent, "poolQuestions/create", {
+    const invalidPointsResponse = await rpc(adminAgent, "poolQuestions/create", {
       poolId,
       question: "Pergunta",
       points: 0,
@@ -99,7 +110,7 @@ describe("Pool questions routes E2E", () => {
     });
     expect(invalidPointsResponse.status).toBe(400);
 
-    const pastDeadlineResponse = await rpc(ownerAgent, "poolQuestions/create", {
+    const pastDeadlineResponse = await rpc(adminAgent, "poolQuestions/create", {
       poolId,
       question: "Pergunta",
       points: 1,
@@ -208,8 +219,8 @@ describe("Pool questions routes E2E", () => {
     expect(reviewedResponse.status).toBe(403);
   });
 
-  it("should allow only the owner to list and review answers", async () => {
-    const { owner, participant, poolId } = await createPoolFixture();
+  it("should allow only admins to list and review answers", async () => {
+    const { owner, participant, admin, poolId } = await createPoolFixture();
     const questionId = crypto.randomUUID();
     const answerId = crypto.randomUUID();
     const participantPoolUser = await db.query.poolUser.findFirst({
@@ -237,9 +248,12 @@ describe("Pool questions routes E2E", () => {
     expect(participantListResponse.status).toBe(403);
 
     const ownerListResponse = await rpc(ownerAgent, "poolQuestions/listAnswers", { questionId });
-    expect(ownerListResponse.status).toBe(200);
-    expect(ownerListResponse.body).toHaveLength(1);
-    expect(ownerListResponse.body[0].answer).toBe("Japão");
+    expect(ownerListResponse.status).toBe(403);
+
+    const adminListResponse = await rpc(adminAgent, "poolQuestions/listAnswers", { questionId });
+    expect(adminListResponse.status).toBe(200);
+    expect(adminListResponse.body).toHaveLength(1);
+    expect(adminListResponse.body[0].answer).toBe("Japão");
 
     const participantReviewResponse = await rpc(participantAgent, "poolQuestions/reviewAnswer", {
       answerId,
@@ -251,9 +265,58 @@ describe("Pool questions routes E2E", () => {
       answerId,
       isCorrect: true,
     });
-    expect(ownerReviewResponse.status).toBe(200);
-    expect(ownerReviewResponse.body.isCorrect).toBe(true);
-    expect(ownerReviewResponse.body.reviewedByUserId).toBe(owner.id);
-    expect(ownerReviewResponse.body.reviewedAt).toBeTruthy();
+    expect(ownerReviewResponse.status).toBe(403);
+
+    const adminReviewResponse = await rpc(adminAgent, "poolQuestions/reviewAnswer", {
+      answerId,
+      isCorrect: true,
+    });
+    expect(adminReviewResponse.status).toBe(200);
+    expect(adminReviewResponse.body.isCorrect).toBe(true);
+    expect(adminReviewResponse.body.reviewedByUserId).toBe(admin.id);
+    expect(adminReviewResponse.body.reviewedAt).toBeTruthy();
+  });
+
+  it("should allow an admin outside the pool to create, list answers and review", async () => {
+    const { participant, admin, poolId } = await createPoolFixture();
+    const response = await rpc(adminAgent, "poolQuestions/create", {
+      poolId,
+      question: "Quem será campeão?",
+      points: 4,
+      closesAt: new Date(Date.now() + 60_000).toISOString(),
+    });
+    expect(response.status).toBe(200);
+    expect(response.body.createdByUserId).toBe(admin.id);
+
+    const listResponse = await rpc(adminAgent, "poolQuestions/list", { poolId });
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body[0].question).toBe("Quem será campeão?");
+
+    const participantPoolUser = await db.query.poolUser.findFirst({
+      where: (table, { and, eq }) => and(eq(table.poolId, poolId), eq(table.userId, participant.id)),
+    });
+    const answerId = crypto.randomUUID();
+    await db.insert(poolQuestionAnswer).values({
+      id: answerId,
+      questionId: response.body.id,
+      poolId,
+      userId: participant.id,
+      poolUserId: participantPoolUser!.id,
+      answer: "Brasil",
+    });
+
+    const answersResponse = await rpc(adminAgent, "poolQuestions/listAnswers", { questionId: response.body.id });
+    expect(answersResponse.status).toBe(200);
+    expect(answersResponse.body).toHaveLength(1);
+
+    const reviewResponse = await rpc(adminAgent, "poolQuestions/reviewAnswer", {
+      answerId,
+      isCorrect: true,
+    });
+    expect(reviewResponse.status).toBe(200);
+    expect(reviewResponse.body).toMatchObject({
+      isCorrect: true,
+      reviewedByUserId: admin.id,
+    });
   });
 });
