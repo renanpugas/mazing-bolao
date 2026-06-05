@@ -14,6 +14,7 @@ process.env.NODE_ENV = "test";
 process.env.DATABASE_URL = databaseUrl;
 process.env.BETTER_AUTH_SECRET = "test-secret-with-at-least-32-characters";
 process.env.BETTER_AUTH_URL = "http://localhost:3009";
+process.env.ODDS_API_KEY = "test-odds-api-key";
 
 async function runMigrations() {
   const client = createClient({
