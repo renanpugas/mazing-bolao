@@ -321,6 +321,14 @@ function PredictionsPage() {
 }
 
 function CanarinhoEasterEgg({ animationKey }: { animationKey: number }) {
+  useEffect(() => {
+    if (!animationKey) return;
+
+    const audio = new Audio("/aqui-e-o-brasil.mp3");
+    audio.currentTime = 0;
+    void audio.play().catch(() => undefined);
+  }, [animationKey]);
+
   if (!animationKey) return null;
 
   return createPortal(
