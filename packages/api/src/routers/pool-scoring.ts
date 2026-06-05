@@ -1,9 +1,10 @@
-import { db, match, pool, poolMatchScoringRule, poolQuestion, poolQuestionAnswer, poolUser, prediction, user } from "@mazing-bolao/db";
+import { db, match, poolMatchScoringRule, poolQuestion, poolQuestionAnswer, poolUser, prediction, user } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
+import { requirePoolManager, requirePoolParticipantOrAdmin } from "../permissions";
 import {
   calculateMatchPredictionScore,
   DEFAULT_POOL_SCORING_RULES,
@@ -25,48 +26,6 @@ const questionScoreInput = z.object({
   id: z.string().trim().min(1, "Pergunta é obrigatória"),
   points: z.number().int().positive("Pontuação deve ser um inteiro positivo"),
 });
-
-async function requireParticipant(poolId: string, userId: string) {
-  const participant = await db.query.poolUser.findFirst({
-    where: and(eq(poolUser.poolId, poolId), eq(poolUser.userId, userId)),
-    columns: { id: true },
-  });
-
-  if (!participant) {
-    throw new ORPCError("FORBIDDEN", {
-      message: "Você não participa desse bolão",
-    });
-  }
-
-  return participant;
-}
-
-async function requirePool(poolId: string) {
-  const currentPool = await db.query.pool.findFirst({
-    where: eq(pool.id, poolId),
-    columns: { id: true, tournamentId: true, createdByUserId: true },
-  });
-
-  if (!currentPool) {
-    throw new ORPCError("NOT_FOUND", {
-      message: "Bolão não encontrado",
-    });
-  }
-
-  return currentPool;
-}
-
-async function requirePoolOwner(poolId: string, userId: string) {
-  const currentPool = await requirePool(poolId);
-
-  if (currentPool.createdByUserId !== userId) {
-    throw new ORPCError("FORBIDDEN", {
-      message: "Somente o criador do bolão pode configurar a pontuação",
-    });
-  }
-
-  return currentPool;
-}
 
 async function getMergedRules(poolId: string) {
   const customRules = await db
@@ -91,13 +50,12 @@ export const poolScoringRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
-      const currentPool = await requirePool(input.poolId);
-      await requireParticipant(input.poolId, userId);
+      const currentPool = await requirePoolParticipantOrAdmin(input.poolId, userId);
 
       const rules = await getMergedRules(input.poolId);
       return {
         poolId: input.poolId,
-        isOwner: currentPool.createdByUserId === userId,
+        canManage: currentPool.canManage,
         rules,
         defaults: DEFAULT_POOL_SCORING_RULES,
       };
@@ -111,7 +69,7 @@ export const poolScoringRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
-      await requirePoolOwner(input.poolId, userId);
+      await requirePoolManager(input.poolId, userId);
 
       const stages = new Set(input.rules.map((rule) => rule.stage));
       if (stages.size !== DEFAULT_POOL_SCORING_RULES.length) {
@@ -144,7 +102,7 @@ export const poolScoringRouter = {
 
       return {
         poolId: input.poolId,
-        isOwner: true,
+        canManage: true,
         rules: await getMergedRules(input.poolId),
         defaults: DEFAULT_POOL_SCORING_RULES,
       };
@@ -157,8 +115,7 @@ export const poolScoringRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
-      const currentPool = await requirePool(input.poolId);
-      await requireParticipant(input.poolId, userId);
+      const currentPool = await requirePoolParticipantOrAdmin(input.poolId, userId);
 
       const questions = await db
         .select({
@@ -174,7 +131,7 @@ export const poolScoringRouter = {
 
       return {
         poolId: input.poolId,
-        isOwner: currentPool.createdByUserId === userId,
+        canManage: currentPool.canManage,
         questions,
       };
     }),
@@ -187,7 +144,7 @@ export const poolScoringRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
-      await requirePoolOwner(input.poolId, userId);
+      await requirePoolManager(input.poolId, userId);
 
       const questionIds = new Set(input.questions.map((question) => question.id));
       if (questionIds.size !== input.questions.length) {
@@ -224,7 +181,7 @@ export const poolScoringRouter = {
 
       return {
         poolId: input.poolId,
-        isOwner: true,
+        canManage: true,
         questions,
       };
     }),
@@ -236,8 +193,7 @@ export const poolScoringRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
-      const currentPool = await requirePool(input.poolId);
-      await requireParticipant(input.poolId, userId);
+      const currentPool = await requirePoolParticipantOrAdmin(input.poolId, userId);
 
       if (!currentPool.tournamentId) {
         throw new ORPCError("NOT_FOUND", {

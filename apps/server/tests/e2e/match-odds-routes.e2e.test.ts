@@ -21,8 +21,10 @@ describe("Match odds routes E2E", () => {
   async function createFixture() {
     const ownerAgent = createAgent();
     const participantAgent = createAgent();
+    const adminAgent = createAgent();
     const owner = await signInTestUser(ownerAgent, { name: "Owner" });
     const participant = await signInTestUser(participantAgent, { name: "Participant" });
+    await signInTestUser(adminAgent, { name: "Admin", isAdmin: true });
     const tournamentId = crypto.randomUUID();
     const poolId = crypto.randomUUID();
     const matchId = crypto.randomUUID();
@@ -64,7 +66,7 @@ describe("Match odds routes E2E", () => {
       },
     ]);
 
-    return { ownerAgent, participantAgent, tournamentId, poolId, matchId, matchWithoutOddsId };
+    return { ownerAgent, participantAgent, adminAgent, tournamentId, poolId, matchId, matchWithoutOddsId };
   }
 
   function mockEventsFetch(events: unknown[]) {
@@ -95,26 +97,34 @@ describe("Match odds routes E2E", () => {
     expect(syncResponse.status).toBe(401);
   });
 
-  it("should forbid participants that are not the pool creator", async () => {
-    const { participantAgent, poolId, matchId } = await createFixture();
+  it("should forbid non-admin users", async () => {
+    const { ownerAgent, participantAgent, poolId, matchId } = await createFixture();
 
     const listResponse = await rpc(participantAgent, "matchOdds/listForPool", { poolId });
     expect(listResponse.status).toBe(403);
 
+    const ownerListResponse = await rpc(ownerAgent, "matchOdds/listForPool", { poolId });
+    expect(ownerListResponse.status).toBe(403);
+
     const updateResponse = await rpc(participantAgent, "matchOdds/updateForMatch", { poolId, matchId });
     expect(updateResponse.status).toBe(403);
+
+    const ownerUpdateResponse = await rpc(ownerAgent, "matchOdds/updateForMatch", { poolId, matchId });
+    expect(ownerUpdateResponse.status).toBe(403);
 
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
     const syncResponse = await rpc(participantAgent, "matchOdds/syncMissingMatchIds", { poolId });
     expect(syncResponse.status).toBe(403);
+    const ownerSyncResponse = await rpc(ownerAgent, "matchOdds/syncMissingMatchIds", { poolId });
+    expect(ownerSyncResponse.status).toBe(403);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("should list tournament matches with current odds for the pool creator", async () => {
-    const { ownerAgent, poolId, matchId } = await createFixture();
+  it("should list tournament matches with current odds for admins", async () => {
+    const { adminAgent, poolId, matchId } = await createFixture();
 
-    const response = await rpc(ownerAgent, "matchOdds/listForPool", { poolId });
+    const response = await rpc(adminAgent, "matchOdds/listForPool", { poolId });
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(2);
@@ -129,8 +139,70 @@ describe("Match odds routes E2E", () => {
     });
   });
 
+  it("should let an admin outside the pool list, update and sync odds", async () => {
+    const { adminAgent, poolId, matchId, matchWithoutOddsId } = await createFixture();
+
+    const listResponse = await rpc(adminAgent, "matchOdds/listForPool", { poolId });
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body).toHaveLength(2);
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: URL | string) => {
+        const url = new URL(input.toString());
+
+        if (url.pathname.endsWith("/events/odds-event-1/odds")) {
+          return Response.json({
+            id: "odds-event-1",
+            home_team: "Brazil",
+            away_team: "Morocco",
+            bookmakers: [
+              {
+                key: "fanduel",
+                markets: [
+                  {
+                    key: "h2h",
+                    outcomes: [
+                      { name: "Brazil", price: 1.8 },
+                      { name: "Morocco", price: 4.8 },
+                      { name: "Draw", price: 3.4 },
+                    ],
+                  },
+                ],
+              },
+            ],
+          });
+        }
+
+        return Response.json([
+          {
+            id: "odds-event-admin",
+            home_team: "Canada",
+            away_team: "Qatar",
+            commence_time: "2026-06-21T19:00:00Z",
+          },
+        ]);
+      }),
+    );
+
+    const updateResponse = await rpc(adminAgent, "matchOdds/updateForMatch", { poolId, matchId });
+    expect(updateResponse.status).toBe(200);
+    expect(updateResponse.body).toMatchObject({
+      oddsHomeTeam: 1.8,
+      oddsAwayTeam: 4.8,
+      oddsDraw: 3.4,
+    });
+
+    const syncResponse = await rpc(adminAgent, "matchOdds/syncMissingMatchIds", { poolId });
+    expect(syncResponse.status).toBe(200);
+    expect(syncResponse.body.updatedCount).toBe(1);
+
+    const updatedMatch = await db.query.match.findFirst({ where: eq(match.id, matchWithoutOddsId) });
+    expect(updatedMatch?.oddsApiMatchId).toBe("odds-event-admin");
+  });
+
   it("should update one match from mocked The Odds API odds", async () => {
-    const { ownerAgent, poolId, matchId } = await createFixture();
+    const { adminAgent, poolId, matchId } = await createFixture();
     const fetchMock = vi.fn(async (input: URL | string) => {
       const url = new URL(input.toString());
       expect(url.origin).toBe("https://api.the-odds-api.com");
@@ -164,7 +236,7 @@ describe("Match odds routes E2E", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const response = await rpc(ownerAgent, "matchOdds/updateForMatch", { poolId, matchId });
+    const response = await rpc(adminAgent, "matchOdds/updateForMatch", { poolId, matchId });
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
@@ -181,18 +253,18 @@ describe("Match odds routes E2E", () => {
   });
 
   it("should reject a match without oddsApiMatchId without calling fetch", async () => {
-    const { ownerAgent, poolId, matchWithoutOddsId } = await createFixture();
+    const { adminAgent, poolId, matchWithoutOddsId } = await createFixture();
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
-    const response = await rpc(ownerAgent, "matchOdds/updateForMatch", { poolId, matchId: matchWithoutOddsId });
+    const response = await rpc(adminAgent, "matchOdds/updateForMatch", { poolId, matchId: matchWithoutOddsId });
 
     expect(response.status).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("should sync a missing oddsApiMatchId when teams and UTC day match", async () => {
-    const { ownerAgent, poolId, matchWithoutOddsId } = await createFixture();
+    const { adminAgent, poolId, matchWithoutOddsId } = await createFixture();
     const fetchMock = mockEventsFetch([
       {
         id: "odds-event-2",
@@ -202,7 +274,7 @@ describe("Match odds routes E2E", () => {
       },
     ]);
 
-    const response = await rpc(ownerAgent, "matchOdds/syncMissingMatchIds", { poolId });
+    const response = await rpc(adminAgent, "matchOdds/syncMissingMatchIds", { poolId });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -217,7 +289,7 @@ describe("Match odds routes E2E", () => {
   });
 
   it("should not update matches that already have oddsApiMatchId", async () => {
-    const { ownerAgent, poolId, matchId } = await createFixture();
+    const { adminAgent, poolId, matchId } = await createFixture();
     mockEventsFetch([
       {
         id: "new-brazil-event",
@@ -227,7 +299,7 @@ describe("Match odds routes E2E", () => {
       },
     ]);
 
-    const response = await rpc(ownerAgent, "matchOdds/syncMissingMatchIds", { poolId });
+    const response = await rpc(adminAgent, "matchOdds/syncMissingMatchIds", { poolId });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -241,7 +313,7 @@ describe("Match odds routes E2E", () => {
   });
 
   it("should match Odds API team aliases when syncing missing ids", async () => {
-    const { ownerAgent, tournamentId, poolId } = await createFixture();
+    const { adminAgent, tournamentId, poolId } = await createFixture();
     const aliasMatchId = crypto.randomUUID();
     await db.insert(match).values({
       id: aliasMatchId,
@@ -259,7 +331,7 @@ describe("Match odds routes E2E", () => {
       },
     ]);
 
-    const response = await rpc(ownerAgent, "matchOdds/syncMissingMatchIds", { poolId });
+    const response = await rpc(adminAgent, "matchOdds/syncMissingMatchIds", { poolId });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -273,7 +345,7 @@ describe("Match odds routes E2E", () => {
   });
 
   it("should skip a matched event id that already exists on another match", async () => {
-    const { ownerAgent, poolId, matchWithoutOddsId } = await createFixture();
+    const { adminAgent, poolId, matchWithoutOddsId } = await createFixture();
     mockEventsFetch([
       {
         id: "odds-event-1",
@@ -283,7 +355,7 @@ describe("Match odds routes E2E", () => {
       },
     ]);
 
-    const response = await rpc(ownerAgent, "matchOdds/syncMissingMatchIds", { poolId });
+    const response = await rpc(adminAgent, "matchOdds/syncMissingMatchIds", { poolId });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -343,10 +415,10 @@ describe("Match odds routes E2E", () => {
       },
     },
   ])("should reject incomplete odds responses without partial updates: $name", async ({ payload }) => {
-    const { ownerAgent, poolId, matchId } = await createFixture();
+    const { adminAgent, poolId, matchId } = await createFixture();
     vi.stubGlobal("fetch", vi.fn(async () => Response.json(payload)));
 
-    const response = await rpc(ownerAgent, "matchOdds/updateForMatch", { poolId, matchId });
+    const response = await rpc(adminAgent, "matchOdds/updateForMatch", { poolId, matchId });
 
     expect(response.status).toBe(502);
     const unchangedMatch = await db.query.match.findFirst({ where: eq(match.id, matchId) });

@@ -1,9 +1,10 @@
-import { db, pool, poolQuestion, poolQuestionAnswer, poolUser, user } from "@mazing-bolao/db";
+import { db, poolQuestion, poolQuestionAnswer, poolUser, user } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
+import { requirePoolManager, requirePoolParticipantOrAdmin } from "../permissions";
 
 const answerInput = z.string().trim().min(1, "Resposta é obrigatória").max(4000);
 const questionInput = z.string().trim().min(1, "Pergunta é obrigatória").max(1000);
@@ -23,27 +24,6 @@ async function requireParticipant(poolId: string, userId: string) {
   return participant;
 }
 
-async function requirePoolOwner(poolId: string, userId: string) {
-  const currentPool = await db.query.pool.findFirst({
-    where: eq(pool.id, poolId),
-    columns: { id: true, createdByUserId: true },
-  });
-
-  if (!currentPool) {
-    throw new ORPCError("NOT_FOUND", {
-      message: "Bolão não encontrado",
-    });
-  }
-
-  if (currentPool.createdByUserId !== userId) {
-    throw new ORPCError("FORBIDDEN", {
-      message: "Somente o criador do bolão pode gerenciar perguntas",
-    });
-  }
-
-  return currentPool;
-}
-
 export const poolQuestionsRouter = {
   create: protectedProcedure
     .input(
@@ -58,7 +38,7 @@ export const poolQuestionsRouter = {
       const userId = context.session.user.id;
       const closesAt = input.closesAt;
 
-      await requirePoolOwner(input.poolId, userId);
+      await requirePoolManager(input.poolId, userId);
 
       if (closesAt <= new Date()) {
         throw new ORPCError("BAD_REQUEST", {
@@ -87,7 +67,7 @@ export const poolQuestionsRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
-      await requireParticipant(input.poolId, userId);
+      await requirePoolParticipantOrAdmin(input.poolId, userId);
 
       return db
         .select({
@@ -209,7 +189,7 @@ export const poolQuestionsRouter = {
         });
       }
 
-      await requirePoolOwner(currentQuestion.poolId, userId);
+      await requirePoolManager(currentQuestion.poolId, userId);
 
       return db
         .select({
@@ -255,7 +235,7 @@ export const poolQuestionsRouter = {
         });
       }
 
-      await requirePoolOwner(currentAnswer.poolId, userId);
+      await requirePoolManager(currentAnswer.poolId, userId);
 
       const result = await db
         .update(poolQuestionAnswer)

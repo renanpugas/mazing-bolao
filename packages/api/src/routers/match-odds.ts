@@ -1,30 +1,16 @@
-import { db, match, pool } from "@mazing-bolao/db";
+import { db, match } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
+import { requirePoolManager } from "../permissions";
 import { fetchMatchOdds, fetchOddsApiEvents, normalizeOddsApiTeamName, type OddsApiEvent } from "../services/odds";
 
-async function requirePoolOwner(poolId: string, userId: string) {
-  const currentPool = await db.query.pool.findFirst({
-    where: eq(pool.id, poolId),
-    columns: { id: true, createdByUserId: true, tournamentId: true },
-  });
-
-  if (!currentPool) {
-    throw new ORPCError("NOT_FOUND", {
-      message: "Bolão não encontrado",
-    });
-  }
-
-  if (currentPool.createdByUserId !== userId) {
-    throw new ORPCError("FORBIDDEN", {
-      message: "Somente o criador do bolão pode gerenciar odds",
-    });
-  }
-
+async function requirePoolWithTournament(poolId: string, userId: string) {
+  const currentPool = await requirePoolManager(poolId, userId);
   const tournamentId = currentPool.tournamentId;
+
   if (!tournamentId) {
     throw new ORPCError("NOT_FOUND", {
       message: "Bolão não possui torneio vinculado",
@@ -86,7 +72,7 @@ export const matchOddsRouter = {
       }),
     )
     .handler(async ({ context, input }) => {
-      const currentPool = await requirePoolOwner(input.poolId, context.session.user.id);
+      const currentPool = await requirePoolWithTournament(input.poolId, context.session.user.id);
 
       return db
         .select(matchOddsSelection)
@@ -102,7 +88,7 @@ export const matchOddsRouter = {
       }),
     )
     .handler(async ({ context, input }) => {
-      const currentPool = await requirePoolOwner(input.poolId, context.session.user.id);
+      const currentPool = await requirePoolWithTournament(input.poolId, context.session.user.id);
 
       const currentMatch = await db.query.match.findFirst({
         where: and(eq(match.id, input.matchId), eq(match.tournamentId, currentPool.tournamentId)),
@@ -143,7 +129,7 @@ export const matchOddsRouter = {
       }),
     )
     .handler(async ({ context, input }) => {
-      const currentPool = await requirePoolOwner(input.poolId, context.session.user.id);
+      const currentPool = await requirePoolWithTournament(input.poolId, context.session.user.id);
       const events = await fetchOddsApiEvents();
 
       const tournamentMatches = await db.query.match.findMany({

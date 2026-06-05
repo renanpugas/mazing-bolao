@@ -2,7 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { orpc } from "@/lib/orpc";
 
-export const usePoolsListQuery = () => useQuery(orpc.pools.list.queryOptions());
+export const usePoolsListQuery = (options?: { enabled?: boolean }) =>
+  useQuery({
+    ...orpc.pools.list.queryOptions(),
+    enabled: options?.enabled ?? true,
+  });
 
 export const useCreatePoolMutation = () => {
   const queryClient = useQueryClient();

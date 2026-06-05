@@ -2,14 +2,15 @@ import { Link, useLocation } from "@tanstack/react-router";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
+import { useSessionQuery } from "@/hooks/use-session-api";
 import { cn } from "@/lib/utils";
 
 const items = [
   { label: "Home", to: "/" },
   { label: "Predictions", to: "/predictions" },
-  { label: "Perguntas", to: "/questions" },
+  { label: "Perguntas", to: "/questions", adminOnly: true },
   { label: "Pontuação", to: "/scoring" },
-  { label: "Odds", to: "/match-odds" },
+  { label: "Odds", to: "/match-odds", adminOnly: true },
   { label: "Pools", to: "/pools" },
   { label: "Create Pool", to: "/pools/new" },
   { label: "Pool Results", to: "/pool-results" },
@@ -17,12 +18,15 @@ const items = [
 
 export function Header() {
   const location = useLocation();
+  const sessionQuery = useSessionQuery();
+  const isAdmin = !!sessionQuery.data?.user.isAdmin;
+  const visibleItems = items.filter((item) => !("adminOnly" in item) || isAdmin);
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 md:flex-row md:items-center md:justify-between">
         <nav className="flex flex-wrap items-center gap-2">
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const active = item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to);
             return (
               <Link
