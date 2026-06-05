@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-export function PageShell({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <main className={`mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 ${className}`}>{children}</main>;
+export function PageShell({ children, className = "", wide = false }: { children: ReactNode; className?: string; wide?: boolean }) {
+  return <main className={`mx-auto w-full ${wide ? "max-w-screen-2xl" : "max-w-6xl"} px-4 py-8 sm:px-6 ${className}`}>{children}</main>;
 }
 
 export function PageHeader({ title, description, className = "" }: { title: string; description?: string; className?: string }) {

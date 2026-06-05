@@ -1,7 +1,10 @@
+import { BarChart3 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import type { Jogo, Palpite, PalpiteUpdate } from "@/components/predictions/types";
+import type { Jogo, Palpite, PalpiteUpdate, PredictionSaveStatus } from "@/components/predictions/types";
 
 const parseGols = (value: string) => {
   if (value === "") return null;
@@ -9,10 +12,36 @@ const parseGols = (value: string) => {
   return Number.isNaN(parsed) ? null : Math.max(0, parsed);
 };
 
-export function PredictionMatchCard({ jogo, palpite, onUpdate }: { jogo: Jogo; palpite: Palpite; onUpdate: (payload: PalpiteUpdate) => void }) {
+const statusVariant = {
+  missing: "warning",
+  open: "success",
+  saved: "default",
+  locked: "secondary",
+  finished: "secondary",
+} as const;
+
+const formatOdd = (odd: number | null) => odd?.toFixed(2) ?? "-";
+
+export function PredictionMatchCard({
+  jogo,
+  palpite,
+  onUpdate,
+  onCompare,
+  saveStatus = "idle",
+  compact = false,
+  timeline = false,
+}: {
+  jogo: Jogo;
+  palpite: Palpite;
+  onUpdate: (payload: PalpiteUpdate) => void;
+  onCompare?: (jogoId: string) => void;
+  saveStatus?: PredictionSaveStatus;
+  compact?: boolean;
+  timeline?: boolean;
+}) {
   return (
-    <Card>
-      <CardHeader>
+    <Card className={timeline ? "w-full" : undefined}>
+      <CardHeader className={compact ? "p-4" : undefined}>
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-sm font-medium">{jogo.rodada}</div>
@@ -27,40 +56,71 @@ export function PredictionMatchCard({ jogo, palpite, onUpdate }: { jogo: Jogo; p
           ) : null}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0 flex-1 truncate text-right font-medium">
-            {jogo.mandanteEmoji ? <span className="mr-1">{jogo.mandanteEmoji}</span> : null}
+      <CardContent className={compact ? "px-4 pb-4" : undefined}>
+        <div className={`grid grid-cols-[minmax(0,1fr)_4rem_auto_4rem_minmax(0,1fr)] items-end gap-3 ${timeline ? "w-full" : ""}`}>
+          <div className="min-w-0 self-end pb-2 text-right">
+            <div className="truncate font-medium">
             {jogo.mandante}
+            </div>
           </div>
-          <Input
-            value={palpite.golsMandante ?? ""}
-            type="number"
-            min="0"
-            inputMode="numeric"
-            className="w-16"
-            disabled={jogo.bloqueado}
-            onChange={(event) => onUpdate({ jogoId: jogo.id, lado: "mandante", gols: parseGols(event.target.value) })}
-          />
-          <span className="text-sm text-muted-foreground">x</span>
-          <Input
-            value={palpite.golsVisitante ?? ""}
-            type="number"
-            min="0"
-            inputMode="numeric"
-            className="w-16"
-            disabled={jogo.bloqueado}
-            onChange={(event) => onUpdate({ jogoId: jogo.id, lado: "visitante", gols: parseGols(event.target.value) })}
-          />
-          <div className="min-w-0 flex-1 truncate font-medium">
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex h-10 items-center justify-center gap-2">
+              {jogo.oddsMandante !== null ? <span className="text-xs font-semibold text-muted-foreground">Odd {formatOdd(jogo.oddsMandante)}</span> : null}
+              <span className="text-4xl leading-none">{jogo.mandanteEmoji}</span>
+            </div>
+            <Input
+              value={palpite.golsMandante ?? ""}
+              type="number"
+              min="0"
+              inputMode="numeric"
+              className="w-16"
+              disabled={jogo.bloqueado}
+              onChange={(event) => onUpdate({ jogoId: jogo.id, lado: "mandante", gols: parseGols(event.target.value) })}
+            />
+          </div>
+          <div className="flex flex-col items-center gap-2 self-end pb-2">
+            <div className="flex h-10 items-center justify-center">
+              {jogo.oddsEmpate !== null ? <span className="text-xs font-semibold text-muted-foreground">{formatOdd(jogo.oddsEmpate)}</span> : null}
+            </div>
+            <span className="text-sm text-muted-foreground">x</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex h-10 items-center justify-center gap-2">
+              <span className="text-4xl leading-none">{jogo.visitanteEmoji}</span>
+              {jogo.oddsVisitante !== null ? <span className="text-xs font-semibold text-muted-foreground">Odd {formatOdd(jogo.oddsVisitante)}</span> : null}
+            </div>
+            <Input
+              value={palpite.golsVisitante ?? ""}
+              type="number"
+              min="0"
+              inputMode="numeric"
+              className="w-16"
+              disabled={jogo.bloqueado}
+              onChange={(event) => onUpdate({ jogoId: jogo.id, lado: "visitante", gols: parseGols(event.target.value) })}
+            />
+          </div>
+          <div className="min-w-0 self-end pb-2">
+            <div className="truncate font-medium">
             {jogo.visitante}
-            {jogo.visitanteEmoji ? <span className="ml-1">{jogo.visitanteEmoji}</span> : null}
+            </div>
           </div>
         </div>
+        {jogo.encerrado ? (
+          <div className="mt-3 rounded-lg bg-muted px-3 py-2 text-center text-sm">
+            Resultado final: <span className="font-semibold">{jogo.golsMandanteResultado ?? "-"} x {jogo.golsVisitanteResultado ?? "-"}</span>
+          </div>
+        ) : null}
       </CardContent>
-      <CardFooter className="justify-between gap-2 text-xs text-muted-foreground">
+      <CardFooter className={`justify-between gap-2 text-xs text-muted-foreground ${compact ? "px-4 pb-4" : ""}`}>
         <span>{[jogo.estadio, jogo.cidade].filter(Boolean).join(" · ") || "Local a definir"}</span>
-        {jogo.encerrado ? <Badge variant="secondary">Encerrado</Badge> : jogo.bloqueado ? <Badge variant="warning">Bloqueado</Badge> : <Badge variant="success">Aberto</Badge>}
+        <div className="flex items-center gap-2">
+          {onCompare ? (
+            <Button type="button" variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs" onClick={() => onCompare(jogo.id)}>
+              <BarChart3 className="size-3" /> Comparar
+            </Button>
+          ) : null}
+          <Badge variant={saveStatus === "saving" ? "secondary" : saveStatus === "error" ? "destructive" : statusVariant[jogo.status]}>{saveStatus === "saving" ? "Salvando..." : saveStatus === "error" ? "Erro ao salvar" : jogo.statusLabel}</Badge>
+        </div>
       </CardFooter>
     </Card>
   );

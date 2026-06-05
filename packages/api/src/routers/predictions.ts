@@ -1,10 +1,10 @@
-import { db, match, pool, poolMatchScoringRule, poolUser, prediction } from "@mazing-bolao/db";
+import { db, match, pool, poolMatchScoringRule, poolUser, prediction, user } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
-import { isBrazilMatch, mergePoolScoringRules, normalizeScoringStage, type PoolScoringStage } from "../services/scoring";
+import { calculateMatchPredictionScore, isBrazilMatch, mergePoolScoringRules, normalizeScoringStage, type PoolScoringStage } from "../services/scoring";
 
 export const predictionsRouter = {
   create: protectedProcedure
@@ -154,6 +154,9 @@ export const predictionsRouter = {
             matchday: match.matchday,
             stadiumName: match.stadiumName,
             stadiumCity: match.stadiumCity,
+            oddsHomeTeam: match.oddsHomeTeam,
+            oddsAwayTeam: match.oddsAwayTeam,
+            oddsDraw: match.oddsDraw,
             homeScore: match.homeScore,
             awayScore: match.awayScore,
             finished: match.finished,
@@ -189,6 +192,155 @@ export const predictionsRouter = {
           },
         };
       });
+    }),
+  matchComparison: protectedProcedure
+    .input(
+      z.object({
+        poolId: z.string().trim().min(1, "Bolão é obrigatório"),
+        matchId: z.string().trim().min(1, "Partida é obrigatória"),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      const userId = context.session.user.id;
+
+      const currentPool = await db.query.pool.findFirst({
+        where: eq(pool.id, input.poolId),
+        columns: { id: true, tournamentId: true },
+      });
+
+      if (!currentPool?.tournamentId) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Bolão não possui torneio vinculado",
+        });
+      }
+
+      const participant = await db.query.poolUser.findFirst({
+        where: and(eq(poolUser.poolId, input.poolId), eq(poolUser.userId, userId)),
+        columns: { id: true },
+      });
+
+      if (!participant) {
+        throw new ORPCError("FORBIDDEN", {
+          message: "Você não participa desse bolão",
+        });
+      }
+
+      const selectedMatch = await db.query.match.findFirst({
+        where: and(eq(match.id, input.matchId), eq(match.tournamentId, currentPool.tournamentId)),
+        columns: {
+          id: true,
+          homeTeam: true,
+          awayTeam: true,
+          homeTeamLabel: true,
+          awayTeamLabel: true,
+          homeTeamEmoji: true,
+          awayTeamEmoji: true,
+          homeTeamExternalId: true,
+          awayTeamExternalId: true,
+          startsAt: true,
+          stage: true,
+          groupName: true,
+          matchday: true,
+          homeScore: true,
+          awayScore: true,
+          finished: true,
+        },
+      });
+
+      if (!selectedMatch) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Partida não encontrada no torneio desse bolão",
+        });
+      }
+
+      const customRules = await db
+        .select({
+          stage: poolMatchScoringRule.stage,
+          exactScorePoints: poolMatchScoringRule.exactScorePoints,
+          outcomePoints: poolMatchScoringRule.outcomePoints,
+          brazilMultiplier: poolMatchScoringRule.brazilMultiplier,
+        })
+        .from(poolMatchScoringRule)
+        .where(eq(poolMatchScoringRule.poolId, input.poolId));
+      const scoringRules = mergePoolScoringRules(customRules.map((rule) => ({ ...rule, stage: rule.stage as PoolScoringStage })));
+      const canCompare = selectedMatch.startsAt <= new Date();
+      const brazilMatch = isBrazilMatch(selectedMatch);
+
+      const participantRows = await db
+        .select({
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          predictionId: prediction.id,
+          homeGoals: prediction.homeGoals,
+          awayGoals: prediction.awayGoals,
+        })
+        .from(poolUser)
+        .innerJoin(user, eq(user.id, poolUser.userId))
+        .leftJoin(
+          prediction,
+          and(eq(prediction.poolId, input.poolId), eq(prediction.matchId, input.matchId), eq(prediction.userId, user.id)),
+        )
+        .where(eq(poolUser.poolId, input.poolId))
+        .orderBy(asc(user.name));
+
+      const visibleRows = participantRows.map((row) => {
+        const showPrediction = canCompare || row.userId === userId;
+        const homeGoals = showPrediction ? row.homeGoals : null;
+        const awayGoals = showPrediction ? row.awayGoals : null;
+        const score = calculateMatchPredictionScore({
+          predictionHomeGoals: homeGoals,
+          predictionAwayGoals: awayGoals,
+          matchHomeScore: selectedMatch.finished ? selectedMatch.homeScore : null,
+          matchAwayScore: selectedMatch.finished ? selectedMatch.awayScore : null,
+          stage: selectedMatch.stage,
+          isBrazilMatch: brazilMatch,
+          rules: scoringRules,
+        });
+
+        return {
+          userId: row.userId,
+          name: row.name,
+          email: row.email,
+          isCurrentUser: row.userId === userId,
+          predictionId: showPrediction ? row.predictionId : null,
+          homeGoals,
+          awayGoals,
+          hasPrediction: homeGoals !== null && awayGoals !== null,
+          points: score.points,
+          resultType: score.type,
+        };
+      });
+
+      const comparableRows = visibleRows.filter((row) => row.hasPrediction);
+      const distribution = comparableRows.reduce(
+        (acc, row) => {
+          if (row.homeGoals! > row.awayGoals!) acc.homeWinCount += 1;
+          else if (row.awayGoals! > row.homeGoals!) acc.awayWinCount += 1;
+          else acc.drawCount += 1;
+
+          const currentUserPrediction = visibleRows.find((item) => item.isCurrentUser);
+          if (
+            currentUserPrediction?.hasPrediction &&
+            row.homeGoals === currentUserPrediction.homeGoals &&
+            row.awayGoals === currentUserPrediction.awayGoals
+          ) {
+            acc.sameAsCurrentUserCount += 1;
+          }
+
+          if (row.resultType === "exact") acc.exactScoreCount += 1;
+          if (row.resultType === "outcome") acc.outcomeCount += 1;
+          return acc;
+        },
+        { homeWinCount: 0, drawCount: 0, awayWinCount: 0, sameAsCurrentUserCount: 0, exactScoreCount: 0, outcomeCount: 0 },
+      );
+
+      return {
+        match: selectedMatch,
+        canCompare,
+        participants: visibleRows,
+        distribution,
+      };
     }),
   update: protectedProcedure
     .input(

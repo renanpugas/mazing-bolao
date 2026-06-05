@@ -1,7 +1,19 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function PredictionSummary({ totalJogos, palpitesPreenchidos }: { totalJogos: number; palpitesPreenchidos: number }) {
+export function PredictionSummary({
+  totalJogos,
+  palpitesPreenchidos,
+  pendentes = 0,
+  encerrados = 0,
+  bloqueados = 0,
+}: {
+  totalJogos: number;
+  palpitesPreenchidos: number;
+  pendentes?: number;
+  encerrados?: number;
+  bloqueados?: number;
+}) {
   const percentage = Math.round((palpitesPreenchidos / totalJogos) * 100) || 0;
 
   return (
@@ -13,7 +25,12 @@ export function PredictionSummary({ totalJogos, palpitesPreenchidos }: { totalJo
             {palpitesPreenchidos} / {totalJogos}
           </p>
         </div>
-        <Badge>{percentage}%</Badge>
+        <div className="flex flex-wrap gap-2">
+          <Badge>{percentage}%</Badge>
+          <Badge variant="warning">{pendentes} pendente(s)</Badge>
+          <Badge variant="secondary">{bloqueados} bloqueado(s)</Badge>
+          <Badge variant="outline">{encerrados} encerrado(s)</Badge>
+        </div>
       </CardContent>
     </Card>
   );
