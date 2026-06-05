@@ -69,6 +69,14 @@ function PredictionsPage() {
       visitanteEmoji: item.match.awayTeamEmoji,
       encerrado: !!item.match.finished,
       bloqueado: startsAt <= new Date(),
+      pontuacao: item.match.scoring
+        ? {
+            placarExato: item.match.scoring.exactScorePoints,
+            resultado: item.match.scoring.outcomePoints,
+            jogoBrasil: item.match.scoring.isBrazilMatch,
+            multiplicadorBrasil: item.match.scoring.brazilMultiplier,
+          }
+        : null,
     };
   });
   const palpitesPreenchidos = jogos.filter((jogo) => {

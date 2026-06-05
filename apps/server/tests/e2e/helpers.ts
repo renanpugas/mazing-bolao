@@ -6,6 +6,7 @@ import {
   groupStanding,
   match,
   pool,
+  poolMatchScoringRule,
   poolQuestion,
   poolQuestionAnswer,
   poolUser,
@@ -62,6 +63,7 @@ export async function signInTestUser(agent: request.Agent, userOverrides: Partia
 export async function cleanupDatabase() {
   await db.delete(poolQuestionAnswer);
   await db.delete(poolQuestion);
+  await db.delete(poolMatchScoringRule);
   await db.delete(prediction);
   await db.delete(match);
   await db.delete(groupStanding);

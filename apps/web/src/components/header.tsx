@@ -8,6 +8,7 @@ const items = [
   { label: "Home", to: "/" },
   { label: "Predictions", to: "/predictions" },
   { label: "Perguntas", to: "/questions" },
+  { label: "Pontuação", to: "/scoring" },
   { label: "Pools", to: "/pools" },
   { label: "Create Pool", to: "/pools/new" },
   { label: "Pool Results", to: "/pool-results" },

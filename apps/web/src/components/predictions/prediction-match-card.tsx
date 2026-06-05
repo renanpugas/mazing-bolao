@@ -13,9 +13,18 @@ export function PredictionMatchCard({ jogo, palpite, onUpdate }: { jogo: Jogo; p
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-sm font-medium">{jogo.rodada}</div>
-          <div className="text-xs text-muted-foreground">{jogo.horario}</div>
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-sm font-medium">{jogo.rodada}</div>
+            <div className="text-xs text-muted-foreground">{jogo.horario}</div>
+          </div>
+          {jogo.pontuacao ? (
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline">Placar exato: {jogo.pontuacao.placarExato} pts</Badge>
+              <Badge variant="outline">Resultado: {jogo.pontuacao.resultado} pts</Badge>
+              {jogo.pontuacao.jogoBrasil ? <Badge>Jogo do Brasil {jogo.pontuacao.multiplicadorBrasil}x</Badge> : null}
+            </div>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent>

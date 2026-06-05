@@ -1,9 +1,10 @@
-import { db, match, pool, poolUser, prediction } from "@mazing-bolao/db";
+import { db, match, pool, poolMatchScoringRule, poolUser, prediction } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
+import { isBrazilMatch, mergePoolScoringRules, normalizeScoringStage, type PoolScoringStage } from "../services/scoring";
 
 export const predictionsRouter = {
   create: protectedProcedure
@@ -116,7 +117,18 @@ export const predictionsRouter = {
         });
       }
 
-      return db
+      const customRules = await db
+        .select({
+          stage: poolMatchScoringRule.stage,
+          exactScorePoints: poolMatchScoringRule.exactScorePoints,
+          outcomePoints: poolMatchScoringRule.outcomePoints,
+          brazilMultiplier: poolMatchScoringRule.brazilMultiplier,
+        })
+        .from(poolMatchScoringRule)
+        .where(eq(poolMatchScoringRule.poolId, input.poolId));
+      const scoringRules = mergePoolScoringRules(customRules.map((rule) => ({ ...rule, stage: rule.stage as PoolScoringStage })));
+
+      const rows = await db
         .select({
           id: prediction.id,
           poolId: prediction.poolId,
@@ -134,6 +146,8 @@ export const predictionsRouter = {
             awayTeamLabel: match.awayTeamLabel,
             homeTeamEmoji: match.homeTeamEmoji,
             awayTeamEmoji: match.awayTeamEmoji,
+            homeTeamExternalId: match.homeTeamExternalId,
+            awayTeamExternalId: match.awayTeamExternalId,
             startsAt: match.startsAt,
             stage: match.stage,
             groupName: match.groupName,
@@ -153,6 +167,28 @@ export const predictionsRouter = {
         )
         .where(eq(match.tournamentId, currentPool.tournamentId))
         .orderBy(asc(match.startsAt));
+
+      return rows.map((row) => {
+        const brazilMatch = isBrazilMatch(row.match);
+        const rule = scoringRules.find((item) => item.stage === normalizeScoringStage(row.match.stage)) ?? scoringRules[0];
+
+        return {
+          ...row,
+          match: {
+            ...row.match,
+            scoring: rule
+              ? {
+                  exactScorePoints: brazilMatch ? rule.exactScorePoints * rule.brazilMultiplier : rule.exactScorePoints,
+                  outcomePoints: brazilMatch ? rule.outcomePoints * rule.brazilMultiplier : rule.outcomePoints,
+                  baseExactScorePoints: rule.exactScorePoints,
+                  baseOutcomePoints: rule.outcomePoints,
+                  brazilMultiplier: rule.brazilMultiplier,
+                  isBrazilMatch: brazilMatch,
+                }
+              : null,
+          },
+        };
+      });
     }),
   update: protectedProcedure
     .input(
