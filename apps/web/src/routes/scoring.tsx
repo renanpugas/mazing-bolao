@@ -112,7 +112,7 @@ function ScoringPage() {
     }
   };
 
-  const isOwner = !!configQuery.data?.isOwner;
+  const canManage = !!configQuery.data?.canManage;
 
   return (
     <PageShell className="space-y-6">
@@ -141,7 +141,7 @@ function ScoringPage() {
               <CardTitle>Regras por fase</CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">Placar exato vale 100%; acerto de resultado, vencedor ou empate usa o valor parcial.</p>
             </div>
-            <Badge variant={isOwner ? "default" : "secondary"}>{isOwner ? "Editável" : "Somente leitura"}</Badge>
+            <Badge variant={canManage ? "default" : "secondary"}>{canManage ? "Editável" : "Somente leitura"}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -158,11 +158,11 @@ function ScoringPage() {
               {rules.map((rule) => (
                 <TableRow key={rule.stage}>
                   <TableCell className="font-medium">{rule.label}</TableCell>
-                  <TableCell><Input className="w-24" type="number" min={0} step={1} disabled={!isOwner} value={rule.exactScorePoints} onChange={(event) => updateRule(rule.stage, "exactScorePoints", Number(event.target.value))} /></TableCell>
-                  <TableCell><Input className="w-24" type="number" min={0} step={1} disabled={!isOwner} value={rule.outcomePoints} onChange={(event) => updateRule(rule.stage, "outcomePoints", Number(event.target.value))} /></TableCell>
+                  <TableCell><Input className="w-24" type="number" min={0} step={1} disabled={!canManage} value={rule.exactScorePoints} onChange={(event) => updateRule(rule.stage, "exactScorePoints", Number(event.target.value))} /></TableCell>
+                  <TableCell><Input className="w-24" type="number" min={0} step={1} disabled={!canManage} value={rule.outcomePoints} onChange={(event) => updateRule(rule.stage, "outcomePoints", Number(event.target.value))} /></TableCell>
                   <TableCell>
                     <label className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" disabled={!isOwner} checked={rule.brazilMultiplier > 1} onChange={(event) => updateRule(rule.stage, "brazilMultiplier", event.target.checked ? 2 : 1)} />
+                      <input type="checkbox" disabled={!canManage} checked={rule.brazilMultiplier > 1} onChange={(event) => updateRule(rule.stage, "brazilMultiplier", event.target.checked ? 2 : 1)} />
                       {rule.brazilMultiplier > 1 ? `dobra (${rule.brazilMultiplier}x)` : "sem bônus"}
                     </label>
                   </TableCell>
@@ -171,12 +171,12 @@ function ScoringPage() {
             </TableBody>
           </Table>
 
-          {isOwner ? (
+          {canManage ? (
             <div className="flex flex-wrap justify-end gap-2">
               <Button variant="outline" className="gap-2" onClick={restoreDefaults}><RotateCcw className="size-4" />Restaurar padrão</Button>
               <Button className="gap-2" disabled={!rules.length || updateConfigMutation.isPending} onClick={() => void saveConfig()}><Save className="size-4" />Salvar configuração</Button>
             </div>
-          ) : <p className="text-sm text-muted-foreground">Somente o criador do bolão pode alterar estas regras.</p>}
+          ) : <p className="text-sm text-muted-foreground">Somente administradores podem alterar estas regras.</p>}
         </CardContent>
       </Card>
 
@@ -187,7 +187,7 @@ function ScoringPage() {
               <CardTitle>Perguntas livres</CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">Defina quantos pontos cada pergunta cadastrada vale quando a resposta for corrigida como correta.</p>
             </div>
-            <Badge variant={isOwner ? "default" : "secondary"}>{isOwner ? "Editável" : "Somente leitura"}</Badge>
+            <Badge variant={canManage ? "default" : "secondary"}>{canManage ? "Editável" : "Somente leitura"}</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -210,7 +210,7 @@ function ScoringPage() {
                       <TableCell className="max-w-xl font-medium">{question.question}</TableCell>
                       <TableCell>{closesAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })}</TableCell>
                       <TableCell><Badge variant={closed ? "secondary" : "default"}>{closed ? "Fechada" : "Aberta"}</Badge></TableCell>
-                      <TableCell><Input className="w-24" type="number" min={1} step={1} disabled={!isOwner} value={question.points} onChange={(event) => updateQuestionScore(question.id, Number(event.target.value))} /></TableCell>
+                      <TableCell><Input className="w-24" type="number" min={1} step={1} disabled={!canManage} value={question.points} onChange={(event) => updateQuestionScore(question.id, Number(event.target.value))} /></TableCell>
                     </TableRow>
                   );
                 })}
@@ -218,11 +218,11 @@ function ScoringPage() {
             </Table>
           ) : <p className="text-sm text-muted-foreground">Nenhuma pergunta livre cadastrada para este bolão.</p>}
 
-          {isOwner ? (
+          {canManage ? (
             <div className="flex flex-wrap justify-end gap-2">
               <Button className="gap-2" disabled={!questionScores.length || updateQuestionScoresMutation.isPending} onClick={() => void saveQuestionScores()}><Save className="size-4" />Salvar pontuação das perguntas</Button>
             </div>
-          ) : <p className="text-sm text-muted-foreground">Somente o criador do bolão pode alterar a pontuação das perguntas.</p>}
+          ) : <p className="text-sm text-muted-foreground">Somente administradores podem alterar a pontuação das perguntas.</p>}
         </CardContent>
       </Card>
     </PageShell>

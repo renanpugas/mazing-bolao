@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreatePoolMutation, usePoolsListQuery } from "@/hooks/use-pools-api";
+import { useSessionQuery } from "@/hooks/use-session-api";
 import { useTournamentsListQuery } from "@/hooks/use-tournaments-api";
 
 type Privacidade = "publico" | "privado";
@@ -25,10 +26,12 @@ function NewPoolPage() {
   const [createdSuccessfully, setCreatedSuccessfully] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
   const poolsQuery = usePoolsListQuery();
+  const sessionQuery = useSessionQuery();
   const tournamentsQuery = useTournamentsListQuery();
   const createPoolMutation = useCreatePoolMutation();
   const createdPools = poolsQuery.data ?? [];
   const tournaments = tournamentsQuery.data ?? [];
+  const isAdmin = !!sessionQuery.data?.user.isAdmin;
 
   const validar = () => {
     const nextErrors: Record<string, string> = {};
@@ -59,6 +62,9 @@ function NewPoolPage() {
     <div className="min-h-[calc(100vh-64px)] bg-transparent">
       <PageShell className="space-y-6">
         <PageHeader title="Create Pool" description="Configure seu bolão e defina as regras iniciais para os participantes." />
+        {sessionQuery.status === "pending" ? <Alert variant="info"><AlertTitle>Verificando permissões</AlertTitle><AlertDescription>Carregando sua sessão.</AlertDescription></Alert> : null}
+        {sessionQuery.status === "success" && !isAdmin ? <Alert variant="warning"><AlertTitle>Acesso restrito</AlertTitle><AlertDescription>Somente administradores podem criar novos bolões.</AlertDescription></Alert> : null}
+        {isAdmin ? (
         <Card className="mx-auto w-full max-w-4xl bg-card/80 backdrop-blur-sm">
           <CardContent className="pt-6">
             <form className="space-y-5" onSubmit={createPool}>
@@ -89,6 +95,7 @@ function NewPoolPage() {
             {requestError ? <Alert className="mt-4" variant="destructive"><AlertTitle>Erro ao criar bolão</AlertTitle><AlertDescription>{requestError}</AlertDescription></Alert> : null}
           </CardContent>
         </Card>
+        ) : null}
         {createdPools.length ? <Card><CardHeader><CardTitle>Bolões cadastrados</CardTitle></CardHeader><CardContent className="space-y-3">{createdPools.map((pool) => <div key={pool.id} className="rounded-lg border p-3"><p className="font-medium">{pool.name}</p><p className="text-sm text-muted-foreground">{pool.tournamentName ?? "Sem torneio"} · Criado em: {new Date(pool.createdAt).toLocaleString("pt-BR")}</p></div>)}</CardContent></Card> : null}
         {!createdPools.length && poolsQuery.status === "pending" ? <Alert variant="info"><AlertTitle>Carregando bolões</AlertTitle><AlertDescription>Buscando bolões cadastrados...</AlertDescription></Alert> : null}
         {!createdPools.length && poolsQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar bolões</AlertTitle><AlertDescription>{poolsQuery.error?.message || "Não foi possível carregar os bolões."}</AlertDescription></Alert> : null}

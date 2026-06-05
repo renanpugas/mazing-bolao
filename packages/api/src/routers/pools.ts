@@ -4,6 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
+import { requireAdmin, requirePoolManager } from "../permissions";
 
 export const poolsRouter = {
   list: protectedProcedure.handler(async () => {
@@ -30,6 +31,8 @@ export const poolsRouter = {
     )
     .handler(async ({ context, input }) => {
       const userId = context.session.user.id;
+      await requireAdmin(userId);
+
       const poolId = crypto.randomUUID();
       const newPool = {
         id: poolId,
@@ -65,7 +68,9 @@ export const poolsRouter = {
         name: z.string().trim().min(1, "Nome é obrigatório").max(120),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ context, input }) => {
+      await requirePoolManager(input.id, context.session.user.id);
+
       const result = await db
         .update(pool)
         .set({ name: input.name, updatedAt: new Date() })

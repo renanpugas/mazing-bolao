@@ -20,7 +20,9 @@ const WORLD_CUP_2026_FINAL_DEADLINE = "2026-07-19T22:00";
 
 function QuestionsPage() {
   const sessionQuery = useSessionQuery();
-  const poolsQuery = usePoolsListQuery();
+  const isAdmin = !!sessionQuery.data?.user.isAdmin;
+  const canManage = isAdmin;
+  const poolsQuery = usePoolsListQuery({ enabled: canManage });
   const pools = poolsQuery.data ?? [];
   const [selectedPoolId, setSelectedPoolId] = useState<string | null>(null);
   const questionsQuery = usePoolQuestionsListQuery(selectedPoolId);
@@ -38,9 +40,6 @@ function QuestionsPage() {
     if (!selectedPoolId && pools[0]) setSelectedPoolId(pools[0].id);
   }, [selectedPoolId, pools]);
 
-  const selectedPool = pools.find((pool) => pool.id === selectedPoolId);
-  const currentUserId = sessionQuery.data?.user.id;
-  const isOwner = !!selectedPool?.createdByUserId && selectedPool.createdByUserId === currentUserId;
   const selectedQuestion = useMemo(() => (questionsQuery.data ?? []).find((question) => question.id === selectedQuestionId), [questionsQuery.data, selectedQuestionId]);
 
   const selectPool = (poolId: string) => {
@@ -85,24 +84,27 @@ function QuestionsPage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-transparent">
       <PageShell className="space-y-6">
-        <PageHeader title="Perguntas" description="Crie perguntas livres do bolão e corrija respostas quando você for o criador." />
+        <PageHeader title="Perguntas" description="Crie perguntas livres do bolão e corrija respostas quando você for administrador." />
 
         {successMessage ? <Alert variant="success"><AlertDescription>{successMessage}</AlertDescription></Alert> : null}
         {requestError ? <Alert variant="destructive"><AlertTitle>Não foi possível continuar</AlertTitle><AlertDescription>{requestError}</AlertDescription></Alert> : null}
 
-        <Card className="bg-card/80 backdrop-blur-sm">
+        {sessionQuery.status === "pending" ? <Alert variant="info"><AlertTitle>Verificando permissões</AlertTitle><AlertDescription>Carregando sua sessão.</AlertDescription></Alert> : null}
+        {sessionQuery.status === "success" && !canManage ? <Alert variant="warning"><AlertTitle>Acesso restrito</AlertTitle><AlertDescription>Somente administradores podem cadastrar ou editar perguntas.</AlertDescription></Alert> : null}
+
+        {canManage ? <Card className="bg-card/80 backdrop-blur-sm">
           <CardContent className="space-y-3 pt-6">
             <p className="text-sm font-medium">Selecione o bolão</p>
             <div className="flex flex-wrap gap-2">
               {pools.map((pool) => <Button key={pool.id} variant={pool.id === selectedPoolId ? "default" : "soft"} onClick={() => selectPool(pool.id)}>{pool.name}</Button>)}
             </div>
           </CardContent>
-        </Card>
+        </Card> : null}
 
-        {poolsQuery.status === "pending" || questionsQuery.status === "pending" ? <Alert variant="info"><AlertTitle>Carregando perguntas</AlertTitle><AlertDescription>Buscando bolões e perguntas cadastradas.</AlertDescription></Alert> : null}
-        {questionsQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar perguntas</AlertTitle><AlertDescription>{questionsQuery.error?.message || "Não foi possível carregar as perguntas."}</AlertDescription></Alert> : null}
+        {canManage && (poolsQuery.status === "pending" || questionsQuery.status === "pending") ? <Alert variant="info"><AlertTitle>Carregando perguntas</AlertTitle><AlertDescription>Buscando bolões e perguntas cadastradas.</AlertDescription></Alert> : null}
+        {canManage && questionsQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar perguntas</AlertTitle><AlertDescription>{questionsQuery.error?.message || "Não foi possível carregar as perguntas."}</AlertDescription></Alert> : null}
 
-        {isOwner ? (
+        {canManage ? (
           <Card className="bg-card/80 backdrop-blur-sm">
             <CardHeader><CardTitle>Criar pergunta</CardTitle></CardHeader>
             <CardContent className="grid gap-4">
@@ -123,9 +125,9 @@ function QuestionsPage() {
           </Card>
         ) : null}
 
-        {questionsQuery.status === "success" && !(questionsQuery.data ?? []).length ? <Alert variant="warning"><AlertTitle>Nenhuma pergunta</AlertTitle><AlertDescription>Este bolão ainda não tem perguntas cadastradas.</AlertDescription></Alert> : null}
+        {canManage && questionsQuery.status === "success" && !(questionsQuery.data ?? []).length ? <Alert variant="warning"><AlertTitle>Nenhuma pergunta</AlertTitle><AlertDescription>Este bolão ainda não tem perguntas cadastradas.</AlertDescription></Alert> : null}
 
-        <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
+        {canManage ? <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
           <div className="space-y-4">
             {(questionsQuery.data ?? []).map((question) => {
               const closesAt = new Date(question.closesAt);
@@ -146,7 +148,7 @@ function QuestionsPage() {
                   <CardContent className="space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <p className="text-sm text-muted-foreground">{reviewed ? `Sua resposta foi corrigida como ${question.answer?.isCorrect ? "correta" : "errada"}` : closed ? "Prazo encerrado para respostas" : "Aberta para respostas em Palpites"}</p>
-                      {isOwner ? <Button className="gap-2" variant={selectedQuestionId === question.id ? "secondary" : "outline"} onClick={() => setSelectedQuestionId(question.id)}><Eye className="size-4" />Respostas</Button> : null}
+                      {canManage ? <Button className="gap-2" variant={selectedQuestionId === question.id ? "secondary" : "outline"} onClick={() => setSelectedQuestionId(question.id)}><Eye className="size-4" />Respostas</Button> : null}
                     </div>
                   </CardContent>
                 </Card>
@@ -154,7 +156,7 @@ function QuestionsPage() {
             })}
           </div>
 
-          {isOwner ? (
+          {canManage ? (
             <Card className="h-fit bg-card/80 backdrop-blur-sm">
               <CardHeader><CardTitle>Correção</CardTitle></CardHeader>
               <CardContent className="space-y-4">
@@ -181,7 +183,7 @@ function QuestionsPage() {
               </CardContent>
             </Card>
           ) : null}
-        </div>
+        </div> : null}
       </PageShell>
     </div>
   );

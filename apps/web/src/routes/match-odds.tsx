@@ -30,12 +30,9 @@ function formatOdd(value: number | null | undefined) {
 
 function MatchOddsPage() {
   const sessionQuery = useSessionQuery();
-  const poolsQuery = usePoolsListQuery();
-  const currentUserId = sessionQuery.data?.user.id;
-  const ownerPools = useMemo(
-    () => (poolsQuery.data ?? []).filter((pool) => pool.createdByUserId === currentUserId),
-    [currentUserId, poolsQuery.data],
-  );
+  const isAdmin = !!sessionQuery.data?.user.isAdmin;
+  const poolsQuery = usePoolsListQuery({ enabled: isAdmin });
+  const manageablePools = useMemo(() => (isAdmin ? (poolsQuery.data ?? []) : []), [isAdmin, poolsQuery.data]);
   const [selectedPoolId, setSelectedPoolId] = useState<string | null>(null);
   const [updatingMatchId, setUpdatingMatchId] = useState<string | null>(null);
   const [successMatchId, setSuccessMatchId] = useState<string | null>(null);
@@ -51,14 +48,14 @@ function MatchOddsPage() {
   const syncMissingIdsMutation = useSyncMissingMatchOddsIdsMutation(selectedPoolId);
 
   useEffect(() => {
-    if (!selectedPoolId && ownerPools[0]) setSelectedPoolId(ownerPools[0].id);
-  }, [ownerPools, selectedPoolId]);
+    if (!selectedPoolId && manageablePools[0]) setSelectedPoolId(manageablePools[0].id);
+  }, [manageablePools, selectedPoolId]);
 
   useEffect(() => {
-    if (selectedPoolId && ownerPools.length && !ownerPools.some((pool) => pool.id === selectedPoolId)) {
-      setSelectedPoolId(ownerPools[0]?.id ?? null);
+    if (selectedPoolId && manageablePools.length && !manageablePools.some((pool) => pool.id === selectedPoolId)) {
+      setSelectedPoolId(manageablePools[0]?.id ?? null);
     }
-  }, [ownerPools, selectedPoolId]);
+  }, [manageablePools, selectedPoolId]);
 
   const updateOdds = async (matchId: string) => {
     if (!selectedPoolId) return;
@@ -96,34 +93,48 @@ function MatchOddsPage() {
       <PageShell className="space-y-6">
         <PageHeader title="Odds das Partidas" />
 
-        {poolsQuery.status === "pending" || sessionQuery.status === "pending" ? (
+        {sessionQuery.status === "pending" ? (
+          <Alert variant="info">
+            <AlertTitle>Verificando permissões</AlertTitle>
+            <AlertDescription>Carregando sua sessão.</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {sessionQuery.status === "success" && !isAdmin ? (
+          <Alert variant="warning">
+            <AlertTitle>Acesso restrito</AlertTitle>
+            <AlertDescription>Somente administradores podem acessar a tela de odds.</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {poolsQuery.status === "pending" && isAdmin ? (
           <Alert variant="info">
             <AlertTitle>Carregando bolões</AlertTitle>
             <AlertDescription>Buscando seus bolões cadastrados.</AlertDescription>
           </Alert>
         ) : null}
 
-        {poolsQuery.status === "error" ? (
+        {poolsQuery.status === "error" && isAdmin ? (
           <Alert variant="destructive">
             <AlertTitle>Erro ao carregar bolões</AlertTitle>
             <AlertDescription>{poolsQuery.error?.message || "Não foi possível carregar os bolões."}</AlertDescription>
           </Alert>
         ) : null}
 
-        {poolsQuery.status === "success" && !ownerPools.length ? (
+        {poolsQuery.status === "success" && isAdmin && !manageablePools.length ? (
           <Alert variant="warning">
-            <AlertTitle>Nenhum bolão criado</AlertTitle>
-            <AlertDescription>Você ainda não criou um bolão.</AlertDescription>
+            <AlertTitle>Nenhum bolão disponível</AlertTitle>
+            <AlertDescription>Você não tem bolões para administrar.</AlertDescription>
           </Alert>
         ) : null}
 
-        {ownerPools.length ? (
+        {manageablePools.length ? (
           <Card className="bg-card/80 backdrop-blur-sm">
             <CardContent className="space-y-3 pt-6">
               <p className="text-sm font-medium">Bolão</p>
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex flex-wrap gap-2">
-                  {ownerPools.map((pool) => (
+                  {manageablePools.map((pool) => (
                     <Button
                       key={pool.id}
                       variant={pool.id === selectedPoolId ? "default" : "soft"}
