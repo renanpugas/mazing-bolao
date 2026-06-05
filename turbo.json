@@ -30,6 +30,12 @@
     "db:seed": {
       "cache": false
     },
+    "db:seed:odds-api-match-ids": {
+      "cache": false
+    },
+    "db:seed:match-odds-values": {
+      "cache": false
+    },
     "db:setup": {
       "cache": false
     },

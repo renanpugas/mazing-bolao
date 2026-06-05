@@ -15,8 +15,10 @@
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "node src/seed.mjs",
-    "db:setup": "drizzle-kit migrate && node src/seed.mjs"
+    "db:seed": "node src/seed.mjs && node src/seed-odds-api-match-ids.mjs && node src/seed-match-odds-values.mjs",
+    "db:seed:odds-api-match-ids": "node src/seed-odds-api-match-ids.mjs",
+    "db:seed:match-odds-values": "node src/seed-match-odds-values.mjs",
+    "db:setup": "drizzle-kit migrate && pnpm db:seed"
   },
   "dependencies": {
     "@libsql/client": "0.15.15",

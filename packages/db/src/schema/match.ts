@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { tournament } from "./tournament";
 
@@ -15,6 +15,10 @@ export const match = sqliteTable(
     startsAt: integer("starts_at", { mode: "timestamp_ms" }).notNull(),
     externalSource: text("external_source"),
     externalId: text("external_id"),
+    oddsApiMatchId: text("odds_api_match_id"),
+    oddsHomeTeam: real("odds_home_team"),
+    oddsAwayTeam: real("odds_away_team"),
+    oddsDraw: real("odds_draw"),
     season: text("season"),
     stage: text("stage"),
     groupName: text("group_name"),
@@ -48,5 +52,6 @@ export const match = sqliteTable(
       table.externalSource,
       table.externalId,
     ),
+    uniqueIndex("match_odds_api_match_id_unique").on(table.oddsApiMatchId),
   ],
 );

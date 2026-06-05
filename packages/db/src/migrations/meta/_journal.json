@@ -78,6 +78,20 @@
       "when": 1785675600000,
       "tag": "0010_create_pool_match_scoring_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1785775600000,
+      "tag": "0011_add_match_odds_api_match_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1785776200000,
+      "tag": "0012_add_match_odds_values",
+      "breakpoints": true
     }
   ]
 }
