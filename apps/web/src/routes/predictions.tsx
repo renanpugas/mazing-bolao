@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { PredictionMatchCard } from "@/components/predictions/prediction-match-card";
 import { PredictionMatchList } from "@/components/predictions/prediction-match-list";
@@ -54,6 +55,15 @@ function getStatus(jogo: Pick<Jogo, "bloqueado" | "encerrado">, palpite?: Palpit
   return { status: "saved", statusLabel: "Salvo" };
 }
 
+function shouldTriggerCanarinhoEasterEgg(jogo: Jogo, palpite: Palpite & { golsMandante: number; golsVisitante: number }) {
+  const homeWins = palpite.golsMandante > palpite.golsVisitante;
+  const awayWins = palpite.golsVisitante > palpite.golsMandante;
+  const brazilLoses = (jogo.mandante === "Brasil" && awayWins) || (jogo.visitante === "Brasil" && homeWins);
+  const argentinaWins = (jogo.mandante === "Argentina" && homeWins) || (jogo.visitante === "Argentina" && awayWins);
+
+  return brazilLoses || argentinaWins;
+}
+
 function groupBy<T>(items: T[], getKey: (item: T) => string) {
   return items.reduce<Record<string, T[]>>((acc, item) => {
     const key = getKey(item);
@@ -82,6 +92,7 @@ function PredictionsPage() {
   const [respostasLivres, setRespostasLivres] = useState<Record<string, string>>({});
   const [mensagemResposta, setMensagemResposta] = useState<string | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
+  const [canarinhoAnimationKey, setCanarinhoAnimationKey] = useState(0);
 
   useEffect(() => {
     if (!bolaoSelecionadoId && boloes[0]) setBolaoSelecionadoId(boloes[0].id);
@@ -166,6 +177,9 @@ function PredictionsPage() {
 
         void save
           .then((result) => {
+            if (shouldTriggerCanarinhoEasterEgg(jogo, completePalpite)) {
+              setCanarinhoAnimationKey((current) => current + 1);
+            }
             setPalpitesLocais((current) => ({
               ...current,
               [jogoId]: { ...(current[jogoId] ?? completePalpite), id: result?.id ?? current[jogoId]?.id ?? null },
@@ -228,6 +242,7 @@ function PredictionsPage() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-transparent">
+      <CanarinhoEasterEgg animationKey={canarinhoAnimationKey} />
       <PageShell wide className="space-y-6">
         <PageHeader title="Palpites" description="Organize seus palpites por grupo, acompanhe pendências e navegue pelos jogos em timeline." />
         {requestError ? <Alert variant="destructive"><AlertTitle>Não foi possível salvar</AlertTitle><AlertDescription>{requestError}</AlertDescription></Alert> : null}
@@ -302,6 +317,39 @@ function PredictionsPage() {
         {selectedComparisonMatchId ? <ComparisonModal data={comparisonQuery.data} status={comparisonQuery.status} error={comparisonQuery.error} onClose={() => setSelectedComparisonMatchId(null)} /> : null}
       </PageShell>
     </div>
+  );
+}
+
+function CanarinhoEasterEgg({ animationKey }: { animationKey: number }) {
+  if (!animationKey) return null;
+
+  return createPortal(
+    <div key={animationKey} className="pointer-events-none fixed inset-0 z-[1000] overflow-hidden">
+      <img src="/canarinho.png" alt="" aria-hidden="true" className="absolute top-[90%] w-[min(88vw,720px)] -translate-y-1/2 animate-[canarinho-slide_7.2s_ease-in-out_forwards] select-none drop-shadow-2xl" />
+      <style>{`
+        @keyframes canarinho-slide {
+          0% {
+            left: calc(100% + 280px);
+            opacity: 0;
+            transform: translateY(-50%) translateX(0) scale(0.98);
+          }
+          14% {
+            opacity: 1;
+          }
+          78% {
+            left: 50%;
+            opacity: 1;
+            transform: translateY(-50%) translateX(-50%) scale(1);
+          }
+          100% {
+            left: 50%;
+            opacity: 0;
+            transform: translateY(-50%) translateX(-50%) scale(0.96);
+          }
+        }
+      `}</style>
+    </div>,
+    document.body,
   );
 }
 
