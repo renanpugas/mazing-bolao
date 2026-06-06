@@ -86,6 +86,7 @@ function PredictionsPage() {
   const updatePredictionMutation = useUpdatePredictionMutation();
   const answerQuestionMutation = useAnswerPoolQuestionMutation(bolaoSelecionadoId);
   const savingIdsRef = useRef(new Set<string>());
+  const [palpitesSalvos, setPalpitesSalvos] = useState<Record<string, Palpite>>({});
   const [palpitesLocais, setPalpitesLocais] = useState<Record<string, Palpite>>({});
   const [palpitesAlterados, setPalpitesAlterados] = useState<Set<string>>(new Set());
   const [saveStatuses, setSaveStatuses] = useState<Record<string, PredictionSaveStatus>>({});
@@ -103,6 +104,7 @@ function PredictionsPage() {
       acc[item.match.id] = { id: item.id, golsMandante: item.homeGoals, golsVisitante: item.awayGoals };
       return acc;
     }, {});
+    setPalpitesSalvos(nextPalpites);
     setPalpitesLocais(nextPalpites);
     setPalpitesAlterados(new Set());
     setSaveStatuses({});
@@ -119,11 +121,11 @@ function PredictionsPage() {
 
   const jogos: Jogo[] = (predictionsQuery.data ?? []).map((item) => {
     const startsAt = new Date(item.match.startsAt);
-    const palpite = palpitesLocais[item.match.id] ?? { id: item.id, golsMandante: item.homeGoals, golsVisitante: item.awayGoals };
+    const palpiteSalvo = palpitesSalvos[item.match.id] ?? { id: item.id, golsMandante: item.homeGoals, golsVisitante: item.awayGoals };
     const stageLabel = getStageLabel(item.match.stage);
     const rodada = item.match.stage === "group" ? `Grupo ${item.match.groupName ?? ""} · Rodada ${item.match.matchday ?? ""}` : `${stageLabel} · Jogo ${item.match.matchday ?? ""}`;
     const base = { bloqueado: startsAt <= new Date(), encerrado: !!item.match.finished };
-    const status = getStatus(base, palpite);
+    const status = getStatus(base, palpiteSalvo);
 
     return {
       id: item.match.id,
@@ -183,6 +185,10 @@ function PredictionsPage() {
             setPalpitesLocais((current) => ({
               ...current,
               [jogoId]: { ...(current[jogoId] ?? completePalpite), id: result?.id ?? current[jogoId]?.id ?? null },
+            }));
+            setPalpitesSalvos((current) => ({
+              ...current,
+              [jogoId]: { ...completePalpite, id: result?.id ?? completePalpite.id ?? current[jogoId]?.id ?? null },
             }));
             setPalpitesAlterados((current) => {
               const next = new Set(current);
