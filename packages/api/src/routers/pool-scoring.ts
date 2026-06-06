@@ -368,4 +368,122 @@ export const poolScoringRouter = {
           a.name.localeCompare(b.name),
       );
     }),
+  participantPredictions: protectedProcedure
+    .input(
+      z.object({
+        poolId: z.string().trim().min(1, "Bolão é obrigatório"),
+        participantUserId: z.string().trim().min(1, "Participante é obrigatório"),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      const userId = context.session.user.id;
+      const currentPool = await requirePoolParticipantOrAdmin(input.poolId, userId);
+
+      if (!currentPool.tournamentId) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Bolão não possui torneio vinculado",
+        });
+      }
+
+      const participant = await db
+        .select({
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+        })
+        .from(poolUser)
+        .innerJoin(user, eq(user.id, poolUser.userId))
+        .where(and(eq(poolUser.poolId, input.poolId), eq(poolUser.userId, input.participantUserId)))
+        .limit(1);
+
+      if (!participant[0]) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Participante não encontrado nesse bolão",
+        });
+      }
+
+      const rules = await getMergedRules(input.poolId);
+      const oddBonusRules = await getOddBonusRules(input.poolId);
+      const rows = await db
+        .select({
+          predictionHomeGoals: prediction.homeGoals,
+          predictionAwayGoals: prediction.awayGoals,
+          match: {
+            id: match.id,
+            startsAt: match.startsAt,
+            stage: match.stage,
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            homeTeamLabel: match.homeTeamLabel,
+            awayTeamLabel: match.awayTeamLabel,
+            homeTeamExternalId: match.homeTeamExternalId,
+            awayTeamExternalId: match.awayTeamExternalId,
+            homeScore: match.homeScore,
+            awayScore: match.awayScore,
+            oddsHomeTeam: match.oddsHomeTeam,
+            oddsAwayTeam: match.oddsAwayTeam,
+            oddsDraw: match.oddsDraw,
+            finished: match.finished,
+          },
+        })
+        .from(match)
+        .leftJoin(
+          prediction,
+          and(
+            eq(prediction.matchId, match.id),
+            eq(prediction.poolId, input.poolId),
+            eq(prediction.userId, input.participantUserId),
+          ),
+        )
+        .where(eq(match.tournamentId, currentPool.tournamentId))
+        .orderBy(asc(match.startsAt), asc(match.id));
+
+      return {
+        poolId: input.poolId,
+        participant: {
+          ...participant[0],
+          isCurrentUser: participant[0].userId === userId,
+        },
+        matches: rows.map((row) => {
+          const showPrediction = row.match.finished === true || input.participantUserId === userId;
+          const hasVisiblePrediction = showPrediction && row.predictionHomeGoals !== null && row.predictionAwayGoals !== null;
+          const score = showPrediction
+            ? calculateMatchPredictionScore({
+                predictionHomeGoals: row.predictionHomeGoals,
+                predictionAwayGoals: row.predictionAwayGoals,
+                matchHomeScore: row.match.finished ? row.match.homeScore : null,
+                matchAwayScore: row.match.finished ? row.match.awayScore : null,
+                stage: row.match.stage,
+                isBrazilMatch: isBrazilMatch(row.match),
+                rules,
+                oddBonusRules,
+                oddsHomeTeam: row.match.oddsHomeTeam,
+                oddsAwayTeam: row.match.oddsAwayTeam,
+                oddsDraw: row.match.oddsDraw,
+              })
+            : null;
+
+          return {
+            matchId: row.match.id,
+            startsAt: row.match.startsAt,
+            stage: row.match.stage,
+            homeTeam: row.match.homeTeam,
+            awayTeam: row.match.awayTeam,
+            homeTeamLabel: row.match.homeTeamLabel,
+            awayTeamLabel: row.match.awayTeamLabel,
+            homeScore: row.match.finished ? row.match.homeScore : null,
+            awayScore: row.match.finished ? row.match.awayScore : null,
+            finished: row.match.finished === true,
+            showPrediction,
+            hasPrediction: hasVisiblePrediction,
+            homeGoals: showPrediction ? row.predictionHomeGoals : null,
+            awayGoals: showPrediction ? row.predictionAwayGoals : null,
+            points: showPrediction ? score?.points ?? 0 : 0,
+            resultType: showPrediction ? score?.type ?? "none" : "none",
+            oddBonusPoints: showPrediction ? score?.oddBonusPoints ?? 0 : 0,
+            oddBonusApplied: showPrediction ? score?.oddBonusApplied ?? false : false,
+          };
+        }),
+      };
+    }),
 };

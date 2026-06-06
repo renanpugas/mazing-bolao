@@ -275,4 +275,156 @@ describe("Pool scoring routes E2E", () => {
       oddBonusApplied: true,
     });
   });
+
+  it("should list participant predictions with match privacy and per-match scoring", async () => {
+    const { poolId, owner, participant, ownerPoolUserId, participantPoolUserId } = await createFixture();
+    const configResponse = await rpc(adminAgent, "poolScoring/getConfig", { poolId });
+    const rules = configResponse.body.rules.map((rule: { stage: string; exactScorePoints: number; outcomePoints: number; brazilMultiplier: number }) => ({
+      stage: rule.stage,
+      exactScorePoints: rule.exactScorePoints,
+      outcomePoints: rule.outcomePoints,
+      brazilMultiplier: rule.brazilMultiplier,
+    }));
+    const tournamentId = crypto.randomUUID();
+    const finishedMatchId = crypto.randomUUID();
+    const pendingMatchId = crypto.randomUUID();
+
+    await db.insert(tournament).values({
+      id: tournamentId,
+      name: "World Cup 2026",
+      slug: `world-cup-${crypto.randomUUID()}`,
+    });
+    await db.update(pool).set({ tournamentId }).where(eq(pool.id, poolId));
+    await db.insert(match).values([
+      {
+        id: finishedMatchId,
+        tournamentId,
+        homeTeam: "Brazil",
+        awayTeam: "Argentina",
+        startsAt: new Date(Date.now() - 60_000),
+        stage: "group",
+        homeScore: 2,
+        awayScore: 0,
+        oddsHomeTeam: 2.5,
+        finished: true,
+      },
+      {
+        id: pendingMatchId,
+        tournamentId,
+        homeTeam: "Canada",
+        awayTeam: "Mexico",
+        startsAt: new Date(Date.now() + 60_000),
+        stage: "group",
+        finished: false,
+      },
+    ]);
+    await db.insert(prediction).values([
+      {
+        id: crypto.randomUUID(),
+        poolId,
+        matchId: finishedMatchId,
+        userId: owner.id,
+        poolUserId: ownerPoolUserId,
+        homeGoals: 2,
+        awayGoals: 0,
+      },
+      {
+        id: crypto.randomUUID(),
+        poolId,
+        matchId: pendingMatchId,
+        userId: owner.id,
+        poolUserId: ownerPoolUserId,
+        homeGoals: 1,
+        awayGoals: 1,
+      },
+      {
+        id: crypto.randomUUID(),
+        poolId,
+        matchId: pendingMatchId,
+        userId: participant.id,
+        poolUserId: participantPoolUserId,
+        homeGoals: 3,
+        awayGoals: 2,
+      },
+    ]);
+
+    const updateConfigResponse = await rpc(adminAgent, "poolScoring/updateConfig", {
+      poolId,
+      rules,
+      oddBonusRules: [{ oddThreshold: 2, bonusPercent: 50 }],
+    });
+    expect(updateConfigResponse.status).toBe(200);
+
+    const ownResponse = await rpc(participantAgent, "poolScoring/participantPredictions", {
+      poolId,
+      participantUserId: participant.id,
+    });
+    expect(ownResponse.status).toBe(200);
+    expect(ownResponse.body.participant).toMatchObject({
+      userId: participant.id,
+      name: "Participant",
+      isCurrentUser: true,
+    });
+    expect(ownResponse.body.matches.find((entry: { matchId: string }) => entry.matchId === pendingMatchId)).toMatchObject({
+      showPrediction: true,
+      hasPrediction: true,
+      homeGoals: 3,
+      awayGoals: 2,
+      points: 0,
+      resultType: "none",
+      oddBonusPoints: 0,
+      oddBonusApplied: false,
+    });
+
+    const otherResponse = await rpc(participantAgent, "poolScoring/participantPredictions", {
+      poolId,
+      participantUserId: owner.id,
+    });
+    expect(otherResponse.status).toBe(200);
+    expect(otherResponse.body.participant).toMatchObject({
+      userId: owner.id,
+      isCurrentUser: false,
+    });
+    expect(otherResponse.body.matches.find((entry: { matchId: string }) => entry.matchId === pendingMatchId)).toMatchObject({
+      showPrediction: false,
+      hasPrediction: false,
+      homeGoals: null,
+      awayGoals: null,
+      points: 0,
+      resultType: "none",
+      oddBonusPoints: 0,
+      oddBonusApplied: false,
+    });
+    expect(otherResponse.body.matches.find((entry: { matchId: string }) => entry.matchId === finishedMatchId)).toMatchObject({
+      showPrediction: true,
+      hasPrediction: true,
+      homeGoals: 2,
+      awayGoals: 0,
+      homeScore: 2,
+      awayScore: 0,
+      points: 30,
+      resultType: "exact",
+      oddBonusPoints: 10,
+      oddBonusApplied: true,
+    });
+
+    const rankingResponse = await rpc(participantAgent, "poolScoring/ranking", { poolId });
+    expect(rankingResponse.status).toBe(200);
+    expect(rankingResponse.body.find((entry: { userId: string }) => entry.userId === owner.id)).toMatchObject({
+      points: 30,
+      oddBonusPoints: 10,
+    });
+
+    const outsiderResponse = await rpc(outsiderAgent, "poolScoring/participantPredictions", {
+      poolId,
+      participantUserId: owner.id,
+    });
+    expect(outsiderResponse.status).toBe(403);
+
+    const adminResponse = await rpc(adminAgent, "poolScoring/participantPredictions", {
+      poolId,
+      participantUserId: owner.id,
+    });
+    expect(adminResponse.status).toBe(200);
+  });
 });

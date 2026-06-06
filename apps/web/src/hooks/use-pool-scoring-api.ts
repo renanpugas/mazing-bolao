@@ -14,6 +14,14 @@ export const usePoolScoringRankingQuery = (poolId: string | null) =>
     enabled: !!poolId,
   });
 
+export const usePoolScoringParticipantPredictionsQuery = (poolId: string | null, participantUserId: string | null) =>
+  useQuery({
+    ...orpc.poolScoring.participantPredictions.queryOptions({
+      input: { poolId: poolId ?? "", participantUserId: participantUserId ?? "" },
+    }),
+    enabled: !!poolId && !!participantUserId,
+  });
+
 export const usePoolQuestionScoresQuery = (poolId: string | null) =>
   useQuery({
     ...orpc.poolScoring.listQuestionScores.queryOptions({ input: { poolId: poolId ?? "" } }),
