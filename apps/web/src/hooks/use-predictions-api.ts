@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { orpc } from "@/lib/orpc";
 
@@ -14,6 +14,26 @@ export const usePredictionMatchComparisonQuery = (poolId: string | null, matchId
     enabled: !!poolId && !!matchId,
   });
 
-export const useCreatePredictionMutation = () => useMutation(orpc.predictions.create.mutationOptions());
+export const useCreatePredictionMutation = () => {
+  const queryClient = useQueryClient();
 
-export const useUpdatePredictionMutation = () => useMutation(orpc.predictions.update.mutationOptions());
+  return useMutation(
+    orpc.predictions.create.mutationOptions({
+      onSuccess: (_data, variables) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.predictions.list.queryOptions({ input: { poolId: variables.poolId } }).queryKey });
+      },
+    }),
+  );
+};
+
+export const useUpdatePredictionMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    orpc.predictions.update.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: orpc.predictions.list.key({ type: "query" }) });
+      },
+    }),
+  );
+};
