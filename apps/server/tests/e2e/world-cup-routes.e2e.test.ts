@@ -1,0 +1,61 @@
+import { db } from "@mazing-bolao/db";
+import request from "supertest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { cleanupDatabase, createAgent, rpc, signInTestUser } from "./helpers";
+
+describe("World Cup routes E2E", () => {
+  let agent: request.Agent;
+
+  beforeEach(() => {
+    agent = createAgent();
+  });
+
+  afterEach(async () => {
+    vi.unstubAllGlobals();
+    await cleanupDatabase();
+  });
+
+  it("should require auth and admin to sync World Cup data", async () => {
+    const unauthenticatedResponse = await rpc(agent, "worldCup/sync");
+    expect(unauthenticatedResponse.status).toBe(401);
+
+    await signInTestUser(createAgent(), { isAdmin: true });
+    await signInTestUser(agent, { isAdmin: false });
+
+    const forbiddenResponse = await rpc(agent, "worldCup/sync");
+    expect(forbiddenResponse.status).toBe(403);
+  });
+
+  it("should allow admins to sync World Cup data and save last sync date", async () => {
+    const adminAgent = createAgent();
+    await signInTestUser(adminAgent, { isAdmin: true });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string | URL | Request) => {
+        const href = String(url);
+        const data = href.includes("teams")
+          ? [{ id: "9", name_en: "Brazil", fifa_code: "BRA", iso2: "BR", groups: "C" }]
+          : href.includes("stadiums")
+            ? [{ id: "1", name_en: "Estadio Azteca", city_en: "Mexico City" }]
+            : href.includes("groups")
+              ? [{ group: "C", teams: [{ team_id: "9", mp: "0", w: "0", d: "0", l: "0", pts: "0", gf: "0", ga: "0", gd: "0" }] }]
+              : [{ id: "1", home_team_id: "9", away_team_id: "0", away_team_label: "A definir", local_date: "06/11/2026 13:00", stadium_id: "1", finished: "FALSE", type: "group", group: "C", matchday: "1" }];
+
+        return { ok: true, json: async () => data };
+      }),
+    );
+
+    const response = await rpc(adminAgent, "worldCup/sync");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ teams: 1, stadiums: 1, standings: 1, matches: 1 });
+
+    const syncedTournament = await db.query.tournament.findFirst({
+      where: (table, { eq }) => eq(table.id, "worldcup2026:2026"),
+      columns: { lastSyncedAt: true },
+    });
+    expect(syncedTournament?.lastSyncedAt).toBeInstanceOf(Date);
+  });
+});

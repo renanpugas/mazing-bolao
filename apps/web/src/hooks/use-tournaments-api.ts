@@ -11,6 +11,10 @@ export const useSyncWorldCupMutation = () => {
     orpc.worldCup.sync.mutationOptions({
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: orpc.tournaments.list.queryOptions().queryKey });
+        void queryClient.invalidateQueries({ queryKey: orpc.predictions.list.key({ type: "query" }) });
+        void queryClient.invalidateQueries({ queryKey: orpc.predictions.matchComparison.key({ type: "query" }) });
+        void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.ranking.key({ type: "query" }) });
+        void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.participantPredictions.key({ type: "query" }) });
       },
     }),
   );

@@ -17,6 +17,7 @@ import { usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
 import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useCreatePredictionMutation, usePredictionMatchComparisonQuery, usePredictionsListQuery, useUpdatePredictionMutation } from "@/hooks/use-predictions-api";
 import { useSessionQuery } from "@/hooks/use-session-api";
+import { useSyncWorldCupMutation, useTournamentsListQuery } from "@/hooks/use-tournaments-api";
 import { formatTeamNamePtBr } from "@/lib/team-names";
 import { cn } from "@/lib/utils";
 
@@ -186,9 +187,11 @@ export function ParticipantPage() {
   const rankingQuery = usePoolScoringRankingQuery(bolaoSelecionadoId);
   const comparisonQuery = usePredictionMatchComparisonQuery(bolaoSelecionadoId, selectedComparisonMatchId);
   const questionsQuery = usePoolQuestionsListQuery(bolaoSelecionadoId);
+  const tournamentsQuery = useTournamentsListQuery();
   const createPredictionMutation = useCreatePredictionMutation();
   const updatePredictionMutation = useUpdatePredictionMutation();
   const answerQuestionMutation = useAnswerPoolQuestionMutation(bolaoSelecionadoId);
+  const syncWorldCupMutation = useSyncWorldCupMutation();
   const savingIdsRef = useRef(new Set<string>());
   const [palpitesSalvos, setPalpitesSalvos] = useState<Record<string, Palpite>>({});
   const [palpitesLocais, setPalpitesLocais] = useState<Record<string, Palpite>>({});
@@ -197,6 +200,8 @@ export function ParticipantPage() {
   const [respostasLivres, setRespostasLivres] = useState<Record<string, string>>({});
   const [mensagemResposta, setMensagemResposta] = useState<string | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const [canarinhoAnimationKey, setCanarinhoAnimationKey] = useState(0);
 
   useEffect(() => {
@@ -324,10 +329,16 @@ export function ParticipantPage() {
   const jogosHoje = jogos.filter((jogo) => getDateKey(jogo.startsAt) === getDateKey(new Date())).length;
   const jogosSemPontuacao = jogos.filter((jogo) => !jogo.pontuacao).length;
   const currentUserId = sessionQuery.data?.user?.id;
+  const isAdmin = !!sessionQuery.data?.user?.isAdmin;
   const ranking = rankingQuery.data ?? [];
   const userRankingIndex = ranking.findIndex((entry) => entry.userId === currentUserId);
   const userScore = userRankingIndex >= 0 ? ranking[userRankingIndex] : null;
   const bolaoSelecionado = boloes.find((bolao) => bolao.id === bolaoSelecionadoId) ?? null;
+  const worldCupTournament = (tournamentsQuery.data ?? []).find((item) => item.externalSource === "worldcup2026" && item.season === "2026");
+  const lastSyncedAt = worldCupTournament?.lastSyncedAt ? new Date(worldCupTournament.lastSyncedAt) : null;
+  const lastSyncedLabel = lastSyncedAt
+    ? lastSyncedAt.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
+    : "Ainda não atualizado";
 
   const atualizarPalpite = ({ jogoId, lado, gols }: PalpiteUpdate) => {
     setPalpitesLocais((current) => {
@@ -355,6 +366,17 @@ export function ParticipantPage() {
       setMensagemResposta("Resposta salva.");
     } catch (error) {
       setRequestError(error instanceof Error ? error.message : "Erro ao salvar resposta.");
+    }
+  };
+
+  const sincronizarJogos = async () => {
+    setSyncMessage(null);
+    setSyncError(null);
+    try {
+      const result = await syncWorldCupMutation.mutateAsync(undefined);
+      setSyncMessage(`${result.matches} partidas atualizadas. Última atualização: ${new Date(result.syncedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}.`);
+    } catch (error) {
+      setSyncError(error instanceof Error ? error.message : "Erro ao atualizar jogos.");
     }
   };
 
@@ -387,10 +409,25 @@ export function ParticipantPage() {
                 {bolaoSelecionadoId ? <Link to="/pool-results/$poolId" params={{ poolId: bolaoSelecionadoId }} className={cn(buttonVariants({ variant: "default" }), "flex-1")}>Resultados</Link> : null}
                 <Link to="/pools" className={cn(buttonVariants({ variant: "outline" }), "flex-1")}>Bolões</Link>
               </div>
+              {isAdmin ? (
+                <div className="rounded-lg border bg-muted/40 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">Atualização dos jogos</p>
+                      <p className="text-xs text-muted-foreground">Última atualização: {lastSyncedLabel}</p>
+                    </div>
+                    <Button size="sm" onClick={() => void sincronizarJogos()} disabled={syncWorldCupMutation.isPending}>
+                      {syncWorldCupMutation.isPending ? "Atualizando..." : "Atualizar jogos"}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </CardContent>
         </Card>
         {requestError ? <Alert variant="destructive"><AlertTitle>Não foi possível salvar</AlertTitle><AlertDescription>{requestError}</AlertDescription></Alert> : null}
+        {syncMessage ? <Alert variant="success"><AlertTitle>Jogos atualizados</AlertTitle><AlertDescription>{syncMessage}</AlertDescription></Alert> : null}
+        {syncError ? <Alert variant="destructive"><AlertTitle>Não foi possível atualizar jogos</AlertTitle><AlertDescription>{syncError}</AlertDescription></Alert> : null}
         {poolsQuery.status === "success" && !boloes.length ? <Alert variant="warning"><AlertTitle>Você ainda não está em um bolão</AlertTitle><AlertDescription>Entre em um bolão disponível para começar a palpitar.</AlertDescription></Alert> : null}
         {poolsQuery.status === "pending" || predictionsQuery.status === "pending" || questionsQuery.status === "pending" || rankingQuery.status === "pending" ? <Alert variant="info"><AlertTitle>Carregando painel</AlertTitle><AlertDescription>Buscando bolões, partidas, perguntas, ranking e palpites salvos.</AlertDescription></Alert> : null}
         {predictionsQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar partidas</AlertTitle><AlertDescription>{predictionsQuery.error?.message || "Não foi possível carregar os dados."}</AlertDescription></Alert> : null}
