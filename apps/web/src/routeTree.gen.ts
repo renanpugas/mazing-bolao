@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as PoolResultsRouteImport } from './routes/pool-results'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
@@ -16,6 +17,11 @@ import { Route as PoolsIndexRouteImport } from './routes/pools/index'
 import { Route as PoolsPoolIdRouteImport } from './routes/pools/$poolId'
 import { Route as PoolResultsPoolIdRouteImport } from './routes/pool-results/$poolId'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PoolResultsRoute = PoolResultsRouteImport.update({
   id: '/pool-results',
   path: '/pool-results',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pool-results': typeof PoolResultsRouteWithChildren
+  '/users': typeof UsersRoute
   '/pool-results/$poolId': typeof PoolResultsPoolIdRoute
   '/pools/$poolId': typeof PoolsPoolIdRoute
   '/pools/': typeof PoolsIndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pool-results': typeof PoolResultsRouteWithChildren
+  '/users': typeof UsersRoute
   '/pool-results/$poolId': typeof PoolResultsPoolIdRoute
   '/pools/$poolId': typeof PoolsPoolIdRoute
   '/pools': typeof PoolsIndexRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pool-results': typeof PoolResultsRouteWithChildren
+  '/users': typeof UsersRoute
   '/pool-results/$poolId': typeof PoolResultsPoolIdRoute
   '/pools/$poolId': typeof PoolsPoolIdRoute
   '/pools/': typeof PoolsIndexRoute
@@ -78,6 +87,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/pool-results'
+    | '/users'
     | '/pool-results/$poolId'
     | '/pools/$poolId'
     | '/pools/'
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/pool-results'
+    | '/users'
     | '/pool-results/$poolId'
     | '/pools/$poolId'
     | '/pools'
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/pool-results'
+    | '/users'
     | '/pool-results/$poolId'
     | '/pools/$poolId'
     | '/pools/'
@@ -103,12 +115,20 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   PoolResultsRoute: typeof PoolResultsRouteWithChildren
+  UsersRoute: typeof UsersRoute
   PoolsPoolIdRoute: typeof PoolsPoolIdRoute
   PoolsIndexRoute: typeof PoolsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pool-results': {
       id: '/pool-results'
       path: '/pool-results'
@@ -170,6 +190,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   PoolResultsRoute: PoolResultsRouteWithChildren,
+  UsersRoute: UsersRoute,
   PoolsPoolIdRoute: PoolsPoolIdRoute,
   PoolsIndexRoute: PoolsIndexRoute,
 }

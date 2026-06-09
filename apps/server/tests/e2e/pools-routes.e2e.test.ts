@@ -54,6 +54,7 @@ describe("Pools routes E2E", () => {
       slug: `world-cup-${crypto.randomUUID()}`,
     });
 
+    await signInTestUser(createAgent(), { isAdmin: true });
     await signInTestUser(agent, { isAdmin: false });
     const forbiddenResponse = await rpc(agent, "pools/create", {
       name: "Bolão comum",

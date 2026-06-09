@@ -2,6 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
+import { useSessionQuery } from "@/hooks/use-session-api";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -11,12 +12,14 @@ const items = [
 
 export function Header() {
   const location = useLocation();
+  const sessionQuery = useSessionQuery();
+  const navItems = sessionQuery.data?.user.isAdmin ? [...items, { label: "Usuários", to: "/users" }] : items;
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 md:flex-row md:items-center md:justify-between">
         <nav className="flex flex-wrap items-center gap-2">
-          {items.map((item) => {
+          {navItems.map((item) => {
             const active = item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to);
             return (
               <Link

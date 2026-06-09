@@ -7,6 +7,7 @@ import { predictionsRouter } from "./predictions";
 import { sessionRouter } from "./session";
 import { systemRouter } from "./system";
 import { tournamentsRouter } from "./tournaments";
+import { usersRouter } from "./users";
 import { worldCupRouter } from "./world-cup";
 
 export const appRouter = {
@@ -18,6 +19,7 @@ export const appRouter = {
   poolScoring: poolScoringRouter,
   predictions: predictionsRouter,
   tournaments: tournamentsRouter,
+  users: usersRouter,
   worldCup: worldCupRouter,
 };
 export type AppRouter = typeof appRouter;
