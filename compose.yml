@@ -1,0 +1,43 @@
+services:
+  setup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: server-runtime
+    command: ["pnpm", "db:setup"]
+    env_file:
+      - .env.docker
+    volumes:
+      - db_data:/data
+    restart: "no"
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: server-runtime
+    command: ["node", "apps/server/dist/index.mjs"]
+    env_file:
+      - .env.docker
+    volumes:
+      - db_data:/data
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    expose:
+      - "3009"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web-runtime
+    depends_on:
+      - server
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+volumes:
+  db_data:

@@ -75,3 +75,33 @@ mazing-bolao/
 - `pnpm run db:migrate`: Run database migrations
 - `pnpm run db:studio`: Open database studio UI
 - `pnpm run db:local`: Start the local SQLite database
+
+## Production With Docker Compose
+
+1. Create the Docker env file:
+
+```bash
+cp .env.docker.example .env.docker
+```
+
+2. Adjust the values in `.env.docker`, especially:
+
+- `BETTER_AUTH_SECRET`
+- `BETTER_AUTH_URL`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `ODDS_API_KEY`
+
+3. Build and start the production stack:
+
+```bash
+docker compose up --build
+```
+
+The stack will:
+
+- run the existing `pnpm db:setup` flow in a one-off `setup` service
+- start the API in production mode
+- serve the built frontend through Nginx on [http://localhost:8080](http://localhost:8080)
+
+The SQLite database is persisted in the `db_data` Docker volume.

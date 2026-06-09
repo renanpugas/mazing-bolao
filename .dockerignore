@@ -1,0 +1,12 @@
+node_modules
+.git
+.turbo
+.agents
+.codex
+dist
+build
+coverage
+local.db
+tmp
+temp
+*.log
