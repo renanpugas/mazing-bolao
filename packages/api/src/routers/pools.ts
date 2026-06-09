@@ -1,10 +1,10 @@
-import { db, pool, poolUser, tournament } from "@mazing-bolao/db";
+import { db, pool, poolQuestionAnswer, poolUser, prediction, tournament, user } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
-import { requireAdmin, requirePoolManager } from "../permissions";
+import { requireAdmin, requirePoolManager, requirePoolParticipantOrAdmin } from "../permissions";
 
 export const poolsRouter = {
   list: protectedProcedure.handler(async () => {
@@ -85,6 +85,114 @@ export const poolsRouter = {
       }
 
       return updatedPool;
+    }),
+  participants: protectedProcedure
+    .input(
+      z.object({
+        poolId: z.string().trim().min(1, "Bolão é obrigatório"),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      const currentPool = await requirePoolParticipantOrAdmin(input.poolId, context.session.user.id);
+
+      const participants = await db
+        .select({
+          id: poolUser.id,
+          poolId: poolUser.poolId,
+          userId: poolUser.userId,
+          createdAt: poolUser.createdAt,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            isAdmin: user.isAdmin,
+          },
+        })
+        .from(poolUser)
+        .innerJoin(user, eq(user.id, poolUser.userId))
+        .where(eq(poolUser.poolId, input.poolId))
+        .orderBy(asc(user.name), asc(user.email));
+
+      return {
+        poolId: input.poolId,
+        canManage: currentPool.canManage,
+        participants,
+      };
+    }),
+  addParticipant: protectedProcedure
+    .input(
+      z.object({
+        poolId: z.string().trim().min(1, "Bolão é obrigatório"),
+        email: z.string().trim().email("Informe um e-mail válido"),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      await requirePoolManager(input.poolId, context.session.user.id);
+
+      const targetUser = await db.query.user.findFirst({
+        where: eq(user.email, input.email),
+        columns: { id: true, name: true, email: true },
+      });
+
+      if (!targetUser) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Usuário não encontrado",
+        });
+      }
+
+      const existingParticipant = await db.query.poolUser.findFirst({
+        where: and(eq(poolUser.poolId, input.poolId), eq(poolUser.userId, targetUser.id)),
+        columns: { id: true },
+      });
+
+      if (existingParticipant) {
+        throw new ORPCError("CONFLICT", {
+          message: "Usuário já participa desse bolão",
+        });
+      }
+
+      const newParticipant = {
+        id: crypto.randomUUID(),
+        poolId: input.poolId,
+        userId: targetUser.id,
+      };
+
+      await db.insert(poolUser).values(newParticipant);
+
+      return newParticipant;
+    }),
+  removeParticipant: protectedProcedure
+    .input(
+      z.object({
+        poolId: z.string().trim().min(1, "Bolão é obrigatório"),
+        userId: z.string().trim().min(1, "Participante é obrigatório"),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      const currentPool = await requirePoolManager(input.poolId, context.session.user.id);
+
+      if (currentPool.createdByUserId === input.userId) {
+        throw new ORPCError("FORBIDDEN", {
+          message: "Não é possível remover o criador do bolão",
+        });
+      }
+
+      const existingParticipant = await db.query.poolUser.findFirst({
+        where: and(eq(poolUser.poolId, input.poolId), eq(poolUser.userId, input.userId)),
+        columns: { id: true },
+      });
+
+      if (!existingParticipant) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Participante não encontrado nesse bolão",
+        });
+      }
+
+      await db.delete(prediction).where(and(eq(prediction.poolId, input.poolId), eq(prediction.userId, input.userId)));
+      await db.delete(poolQuestionAnswer).where(and(eq(poolQuestionAnswer.poolId, input.poolId), eq(poolQuestionAnswer.userId, input.userId)));
+      await db.delete(poolUser).where(eq(poolUser.id, existingParticipant.id));
+
+      return { success: true };
     }),
   join: protectedProcedure
     .input(

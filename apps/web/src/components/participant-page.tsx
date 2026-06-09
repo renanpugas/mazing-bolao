@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -6,22 +6,24 @@ import { createPortal } from "react-dom";
 import { PredictionMatchCard } from "@/components/predictions/prediction-match-card";
 import { PredictionMatchList } from "@/components/predictions/prediction-match-list";
 import type { Jogo, Palpite, PalpiteUpdate, PredictionSaveStatus } from "@/components/predictions/types";
-import { PageHeader, PageShell } from "@/components/page-shell";
+import { PageShell } from "@/components/page-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useAnswerPoolQuestionMutation, usePoolQuestionsListQuery } from "@/hooks/use-pool-questions-api";
+import { usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
 import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useCreatePredictionMutation, usePredictionMatchComparisonQuery, usePredictionsListQuery, useUpdatePredictionMutation } from "@/hooks/use-predictions-api";
+import { useSessionQuery } from "@/hooks/use-session-api";
 import { formatTeamNamePtBr } from "@/lib/team-names";
+import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/predictions")({ component: PredictionsPage });
-
-type ViewMode = "groups" | "list" | "timeline";
+type ViewMode = "timeline" | "groups" | "list" | "questions";
 type StatusFilter = "all" | Jogo["status"];
 type MatchBlock = { id: string; title: string; description: string; jogos: Jogo[] };
+type FreeQuestion = { id: string; question: string; points: number; closesAt: Date | string; answer: { id: string; answer: string; isCorrect: boolean | null } | null };
 
 const stageLabels: Record<string, string> = {
   group: "Fase de grupos",
@@ -72,14 +74,116 @@ function groupBy<T>(items: T[], getKey: (item: T) => string) {
   }, {});
 }
 
-function PredictionsPage() {
+function NavigationPanel({
+  viewMode,
+  statusFilter,
+  setViewMode,
+  setStatusFilter,
+  palpitesPreenchidos,
+  totalJogos,
+  pendentes,
+  bloqueados,
+  encerrados,
+  jogosHoje,
+  jogosSemPontuacao,
+  perguntasSemResposta,
+}: {
+  viewMode: ViewMode;
+  statusFilter: StatusFilter;
+  setViewMode: (viewMode: ViewMode) => void;
+  setStatusFilter: (statusFilter: StatusFilter) => void;
+  palpitesPreenchidos: number;
+  totalJogos: number;
+  pendentes: number;
+  bloqueados: number;
+  encerrados: number;
+  jogosHoje: number;
+  jogosSemPontuacao: number;
+  perguntasSemResposta: number;
+}) {
+  return (
+    <Card className="overflow-hidden border-primary/10 bg-card/95 shadow-sm">
+      <CardContent className="space-y-5 p-4 md:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-medium">Área de jogo</p>
+            <p className="text-sm text-muted-foreground">Navegue por calendário, grupos, lista completa ou perguntas livres.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <TabButton active={viewMode === "timeline"} onClick={() => setViewMode("timeline")}>Timeline <Badge variant="secondary">{jogosHoje} hoje</Badge></TabButton>
+            <TabButton active={viewMode === "groups"} onClick={() => setViewMode("groups")}>Grupos e fases <Badge variant={jogosSemPontuacao ? "warning" : "secondary"}>{jogosSemPontuacao} sem pontuação</Badge></TabButton>
+            <TabButton active={viewMode === "list"} onClick={() => setViewMode("list")}>Lista</TabButton>
+            <TabButton active={viewMode === "questions"} onClick={() => setViewMode("questions")}>Perguntas <Badge variant={perguntasSemResposta ? "warning" : "secondary"}>{perguntasSemResposta} sem resposta</Badge></TabButton>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t pt-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline">{palpitesPreenchidos}/{totalJogos} preenchidos</Badge>
+            <Badge variant="warning">{pendentes} pendente(s)</Badge>
+            <Badge variant="secondary">{bloqueados} bloqueado(s)</Badge>
+            <Badge variant="outline">{encerrados} encerrado(s)</Badge>
+          </div>
+          {viewMode === "list" ? (
+            <div className="flex flex-wrap gap-2 rounded-lg bg-muted p-1">
+              {[
+                ["all", "Todos"],
+                ["missing", "Sem palpite"],
+                ["saved", "Salvos"],
+                ["locked", "Bloqueados"],
+                ["finished", "Encerrados"],
+              ].map(([value, label]) => <Button key={value} size="sm" variant={statusFilter === value ? "default" : "ghost"} onClick={() => setStatusFilter(value as StatusFilter)}>{label}</Button>)}
+            </div>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+  return <Button variant={active ? "default" : "outline"} className="h-auto flex-wrap justify-start py-2" onClick={onClick}>{children}</Button>;
+}
+
+function FreeQuestions({ perguntas, respostasLivres, setRespostasLivres, mensagemResposta, answerQuestionPending, onSave }: { perguntas: FreeQuestion[]; respostasLivres: Record<string, string>; setRespostasLivres: React.Dispatch<React.SetStateAction<Record<string, string>>>; mensagemResposta: string | null; answerQuestionPending: boolean; onSave: (questionId: string) => void }) {
+  return (
+    <div className="space-y-4">
+      <div><h2 className="text-xl font-semibold">Perguntas livres</h2><p className="text-sm text-muted-foreground">Responda as perguntas do bolão selecionado junto da sua rotina de jogos.</p></div>
+      {mensagemResposta ? <Alert variant="success"><AlertDescription>{mensagemResposta}</AlertDescription></Alert> : null}
+      {perguntas.length ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {perguntas.map((question) => {
+            const closesAt = new Date(question.closesAt);
+            const closed = closesAt <= new Date();
+            const savedAnswer = question.answer?.answer ?? "";
+            const currentAnswer = respostasLivres[question.id] ?? "";
+            const hasSavedAnswer = !!question.answer?.id;
+            const answerChanged = currentAnswer.trim() !== savedAnswer.trim();
+            const answerButtonText = hasSavedAnswer ? "Atualizar resposta" : "Salvar resposta";
+            const answerButtonDisabled = closed || !currentAnswer.trim() || answerQuestionPending || (hasSavedAnswer && !answerChanged);
+            return (
+              <Card key={question.id} className="bg-card/80 backdrop-blur-sm">
+                <CardHeader className="space-y-3"><CardTitle className="text-lg">{question.question}</CardTitle><p className="text-sm text-muted-foreground">Prazo: {closesAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })}</p><div className="flex flex-wrap gap-2"><Badge variant={closed ? "secondary" : "default"}>{closed ? "Fechada" : "Aberta"}</Badge><Badge variant="outline">{question.points} ponto(s)</Badge>{!savedAnswer.trim() ? <Badge variant="warning">Sem resposta</Badge> : null}</div></CardHeader>
+                <CardContent className="space-y-3"><Textarea value={currentAnswer} onChange={(event) => setRespostasLivres((current) => ({ ...current, [question.id]: event.target.value }))} disabled={closed || answerQuestionPending} placeholder="Digite sua resposta" /><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-muted-foreground">{closed ? "Prazo encerrado" : "Resposta livre até o prazo"}</p><Button disabled={answerButtonDisabled} onClick={() => onSave(question.id)}>{answerButtonText}</Button></div></CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : <Card><CardContent className="pt-6 text-sm text-muted-foreground">Nenhuma pergunta livre disponível neste bolão.</CardContent></Card>}
+    </div>
+  );
+}
+
+export function ParticipantPage() {
   const poolsQuery = usePoolsListQuery();
+  const sessionQuery = useSessionQuery();
   const boloes = poolsQuery.data ?? [];
   const [bolaoSelecionadoId, setBolaoSelecionadoId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("groups");
+  const [viewMode, setViewMode] = useState<ViewMode>("timeline");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [selectedComparisonMatchId, setSelectedComparisonMatchId] = useState<string | null>(null);
   const predictionsQuery = usePredictionsListQuery(bolaoSelecionadoId);
+  const rankingQuery = usePoolScoringRankingQuery(bolaoSelecionadoId);
   const comparisonQuery = usePredictionMatchComparisonQuery(bolaoSelecionadoId, selectedComparisonMatchId);
   const questionsQuery = usePoolQuestionsListQuery(bolaoSelecionadoId);
   const createPredictionMutation = useCreatePredictionMutation();
@@ -216,6 +320,14 @@ function PredictionsPage() {
   const encerrados = jogos.filter((jogo) => jogo.status === "finished").length;
   const bloqueados = jogos.filter((jogo) => jogo.status === "locked").length;
   const perguntasLivresVisiveis = (questionsQuery.data ?? []).filter((question) => question.answer?.isCorrect === null || question.answer?.isCorrect === undefined);
+  const perguntasSemResposta = perguntasLivresVisiveis.filter((question) => !question.answer?.answer?.trim()).length;
+  const jogosHoje = jogos.filter((jogo) => getDateKey(jogo.startsAt) === getDateKey(new Date())).length;
+  const jogosSemPontuacao = jogos.filter((jogo) => !jogo.pontuacao).length;
+  const currentUserId = sessionQuery.data?.user?.id;
+  const ranking = rankingQuery.data ?? [];
+  const userRankingIndex = ranking.findIndex((entry) => entry.userId === currentUserId);
+  const userScore = userRankingIndex >= 0 ? ranking[userRankingIndex] : null;
+  const bolaoSelecionado = boloes.find((bolao) => bolao.id === bolaoSelecionadoId) ?? null;
 
   const atualizarPalpite = ({ jogoId, lado, gols }: PalpiteUpdate) => {
     setPalpitesLocais((current) => {
@@ -250,76 +362,58 @@ function PredictionsPage() {
     <div className="min-h-[calc(100vh-64px)] bg-transparent">
       <CanarinhoEasterEgg animationKey={canarinhoAnimationKey} />
       <PageShell wide className="space-y-6">
-        <PageHeader title="Palpites" description="Organize seus palpites por grupo, acompanhe pendências e navegue pelos jogos em timeline." />
+        <Card className="overflow-hidden border-primary/20 bg-primary text-primary-foreground shadow-lg">
+          <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_360px] lg:items-end">
+            <div className="space-y-3">
+              <Badge variant="secondary" className="w-fit">Meu bolão</Badge>
+              <div>
+                <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{bolaoSelecionado?.name ?? "Escolha um bolão"}</h1>
+                <p className="mt-2 max-w-2xl text-sm text-primary-foreground/80">Organize seus palpites, acompanhe pontuação, responda perguntas e veja a classificação do bolão selecionado.</p>
+              </div>
+              {bolaoSelecionado ? <p className="text-sm text-primary-foreground/75">{pendentes} pendente(s) · {palpitesPreenchidos}/{jogos.length} preenchidos</p> : null}
+            </div>
+            <div className="space-y-3 rounded-xl bg-background/95 p-4 text-foreground shadow-sm">
+              <label className="text-sm font-medium" htmlFor="bolao-select">Bolão</label>
+              <select
+                id="bolao-select"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={bolaoSelecionadoId ?? ""}
+                onChange={(event) => selecionarBolao(event.target.value)}
+              >
+                <option value="" disabled>Selecione um bolão</option>
+                {boloes.map((bolao) => <option key={bolao.id} value={bolao.id}>{bolao.name}</option>)}
+              </select>
+              <div className="flex flex-wrap gap-2">
+                {bolaoSelecionadoId ? <Link to="/pool-results/$poolId" params={{ poolId: bolaoSelecionadoId }} className={cn(buttonVariants({ variant: "default" }), "flex-1")}>Resultados</Link> : null}
+                <Link to="/pools" className={cn(buttonVariants({ variant: "outline" }), "flex-1")}>Bolões</Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         {requestError ? <Alert variant="destructive"><AlertTitle>Não foi possível salvar</AlertTitle><AlertDescription>{requestError}</AlertDescription></Alert> : null}
-
-        <Card className="bg-card/80 backdrop-blur-sm"><CardContent className="space-y-3 pt-6"><p className="text-sm font-medium">Selecione o bolão</p><div className="flex flex-wrap gap-2">{boloes.map((bolao) => <Button key={bolao.id} variant={bolao.id === bolaoSelecionadoId ? "default" : "soft"} onClick={() => selecionarBolao(bolao.id)}>{bolao.name}</Button>)}</div></CardContent></Card>
-        {poolsQuery.status === "pending" || predictionsQuery.status === "pending" || questionsQuery.status === "pending" ? <Alert variant="info"><AlertTitle>Carregando palpites</AlertTitle><AlertDescription>Buscando bolões, partidas, perguntas e palpites salvos.</AlertDescription></Alert> : null}
+        {poolsQuery.status === "success" && !boloes.length ? <Alert variant="warning"><AlertTitle>Você ainda não está em um bolão</AlertTitle><AlertDescription>Entre em um bolão disponível para começar a palpitar.</AlertDescription></Alert> : null}
+        {poolsQuery.status === "pending" || predictionsQuery.status === "pending" || questionsQuery.status === "pending" || rankingQuery.status === "pending" ? <Alert variant="info"><AlertTitle>Carregando painel</AlertTitle><AlertDescription>Buscando bolões, partidas, perguntas, ranking e palpites salvos.</AlertDescription></Alert> : null}
         {predictionsQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar partidas</AlertTitle><AlertDescription>{predictionsQuery.error?.message || "Não foi possível carregar os dados."}</AlertDescription></Alert> : null}
         {questionsQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar perguntas</AlertTitle><AlertDescription>{questionsQuery.error?.message || "Não foi possível carregar as perguntas."}</AlertDescription></Alert> : null}
+        {rankingQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar ranking</AlertTitle><AlertDescription>{rankingQuery.error?.message || "Não foi possível carregar sua pontuação."}</AlertDescription></Alert> : null}
 
-        {questionsQuery.status === "success" && perguntasLivresVisiveis.length ? (
-          <div className="space-y-4">
-            <div><h2 className="text-xl font-semibold">Perguntas livres</h2><p className="text-sm text-muted-foreground">Responda as perguntas do bolão selecionado.</p></div>
-            {mensagemResposta ? <Alert variant="success"><AlertDescription>{mensagemResposta}</AlertDescription></Alert> : null}
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {perguntasLivresVisiveis.map((question) => {
-                const closesAt = new Date(question.closesAt);
-                const closed = closesAt <= new Date();
-                const savedAnswer = question.answer?.answer ?? "";
-                const currentAnswer = respostasLivres[question.id] ?? "";
-                const hasSavedAnswer = !!question.answer?.id;
-                const answerChanged = currentAnswer.trim() !== savedAnswer.trim();
-                const answerButtonText = hasSavedAnswer ? "Atualizar resposta" : "Salvar resposta";
-                const answerButtonDisabled = closed || !currentAnswer.trim() || answerQuestionMutation.isPending || (hasSavedAnswer && !answerChanged);
-                return (
-                  <Card key={question.id} className="bg-card/80 backdrop-blur-sm">
-                    <CardHeader className="space-y-3"><CardTitle className="text-lg">{question.question}</CardTitle><p className="text-sm text-muted-foreground">Prazo: {closesAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })}</p><div className="flex flex-wrap gap-2"><Badge variant={closed ? "secondary" : "default"}>{closed ? "Fechada" : "Aberta"}</Badge><Badge variant="outline">{question.points} ponto(s)</Badge></div></CardHeader>
-                    <CardContent className="space-y-3"><Textarea value={currentAnswer} onChange={(event) => setRespostasLivres((current) => ({ ...current, [question.id]: event.target.value }))} disabled={closed || answerQuestionMutation.isPending} placeholder="Digite sua resposta" /><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-muted-foreground">{closed ? "Prazo encerrado" : "Resposta livre até o prazo"}</p><Button disabled={answerButtonDisabled} onClick={() => void salvarRespostaLivre(question.id)}>{answerButtonText}</Button></div></CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
+        {boloes.length ? (
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <Metric label="Pontos" value={userScore?.points ?? 0} />
+            <Metric label="Posição" value={userScore ? userRankingIndex + 1 : 0} />
+            <Metric label="Placares exatos" value={userScore?.exactScores ?? 0} />
+            <Metric label="Resultados" value={userScore?.correctOutcomes ?? 0} />
+            <Metric label="Perguntas" value={userScore?.questionPoints ?? 0} />
+          </section>
         ) : null}
 
         {predictionsQuery.status !== "pending" && !jogos.length ? <Alert variant="warning"><AlertTitle>Nenhuma partida importada</AlertTitle><AlertDescription>Importe a Copa do Mundo 2026 e crie um bolão ligado a esse torneio antes de registrar palpites.</AlertDescription></Alert> : null}
-        {jogos.length ? (
-          <Card className="bg-card/80 backdrop-blur-sm">
-            <CardContent className="space-y-4 pt-6">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap gap-2">
-                  <Button variant={viewMode === "groups" ? "default" : "soft"} onClick={() => setViewMode("groups")}>Grupos e fases</Button>
-                  <Button variant={viewMode === "list" ? "default" : "soft"} onClick={() => setViewMode("list")}>Lista</Button>
-                  <Button variant={viewMode === "timeline" ? "default" : "soft"} onClick={() => setViewMode("timeline")}>Timeline</Button>
-                </div>
-                {viewMode === "list" ? (
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      ["all", "Todos"],
-                      ["missing", "Sem palpite"],
-                      ["saved", "Salvos"],
-                      ["locked", "Bloqueados"],
-                      ["finished", "Encerrados"],
-                    ].map(([value, label]) => <Button key={value} size="sm" variant={statusFilter === value ? "default" : "outline"} onClick={() => setStatusFilter(value as StatusFilter)}>{label}</Button>)}
-                  </div>
-                ) : null}
-              </div>
-              <div className="flex flex-wrap items-center justify-end gap-3 text-sm text-muted-foreground">
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">{palpitesPreenchidos}/{jogos.length} preenchidos</Badge>
-                  <Badge variant="warning">{pendentes} pendente(s)</Badge>
-                  <Badge variant="secondary">{bloqueados} bloqueado(s)</Badge>
-                  <Badge variant="outline">{encerrados} encerrado(s)</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ) : null}
+        {jogos.length || perguntasLivresVisiveis.length ? <NavigationPanel viewMode={viewMode} statusFilter={statusFilter} setViewMode={setViewMode} setStatusFilter={setStatusFilter} palpitesPreenchidos={palpitesPreenchidos} totalJogos={jogos.length} pendentes={pendentes} bloqueados={bloqueados} encerrados={encerrados} jogosHoje={jogosHoje} jogosSemPontuacao={jogosSemPontuacao} perguntasSemResposta={perguntasSemResposta} /> : null}
 
         {jogos.length && viewMode === "groups" ? <GroupedMatches jogos={jogos} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
         {jogos.length && viewMode === "list" ? <ListMatches jogos={jogosFiltrados} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
         {jogos.length && viewMode === "timeline" ? <TimelineMatches jogos={jogos} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
+        {viewMode === "questions" ? <FreeQuestions perguntas={perguntasLivresVisiveis} respostasLivres={respostasLivres} setRespostasLivres={setRespostasLivres} mensagemResposta={mensagemResposta} answerQuestionPending={answerQuestionMutation.isPending} onSave={salvarRespostaLivre} /> : null}
         {selectedComparisonMatchId ? <ComparisonModal data={comparisonQuery.data} status={comparisonQuery.status} error={comparisonQuery.error} onClose={() => setSelectedComparisonMatchId(null)} /> : null}
       </PageShell>
     </div>
@@ -439,8 +533,6 @@ function TimelineMatches({ jogos, palpites, saveStatuses, onUpdate, onCompare }:
   const sortedJogos = [...jogos].sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
   const now = new Date();
   const todayKey = getDateKey(now);
-  const focusJogo = sortedJogos.find((jogo) => jogo.startsAt >= now && jogo.status === "missing") ?? sortedJogos.find((jogo) => jogo.startsAt >= now) ?? sortedJogos.at(-1);
-  const focusDayKey = focusJogo ? getDateKey(focusJogo.startsAt) : todayKey;
   const byDay = groupBy(sortedJogos, (jogo) => getDateKey(jogo.startsAt));
   const days = Array.from(new Set([...Object.keys(byDay), todayKey])).sort();
   const visibleStart = Math.max(0, activeDayIndex - timelineBufferColumns);
@@ -477,13 +569,13 @@ function TimelineMatches({ jogos, palpites, saveStatuses, onUpdate, onCompare }:
 
   useEffect(() => {
     if (didInitialScrollRef.current || !days.length) return;
-    const focusIndex = Math.max(0, days.indexOf(focusDayKey));
+    const todayIndex = Math.max(0, days.indexOf(todayKey));
     didInitialScrollRef.current = true;
-    setActiveDayIndex(focusIndex);
+    setActiveDayIndex(todayIndex);
     window.requestAnimationFrame(() => {
-      containerRef.current?.scrollTo({ left: focusIndex * timelineColumnStep });
+      containerRef.current?.scrollTo({ left: todayIndex * timelineColumnStep });
     });
-  }, [days, focusDayKey]);
+  }, [days, todayKey]);
 
   useEffect(() => () => {
     if (scrollFrameRef.current !== null) window.cancelAnimationFrame(scrollFrameRef.current);
@@ -619,5 +711,5 @@ function ModalShell({ children, onClose, className = "" }: { children: ReactNode
 }
 
 function Metric({ label, value, compact = false }: { label: string; value: number; compact?: boolean }) {
-  return <div className={`rounded-lg border bg-background/60 ${compact ? "p-2" : "p-3"}`}><p className="text-xs text-muted-foreground">{label}</p><p className={compact ? "text-lg font-semibold" : "text-2xl font-semibold"}>{value}</p></div>;
+  return <div className={`rounded-lg border border-accent bg-accent text-accent-foreground shadow-sm ${compact ? "p-2" : "p-3"}`}><p className="text-xs text-accent-foreground/70">{label}</p><p className={compact ? "text-lg font-semibold" : "text-2xl font-semibold"}>{value}</p></div>;
 }

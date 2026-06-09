@@ -9,39 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ScoringRouteImport } from './routes/scoring'
-import { Route as QuestionsRouteImport } from './routes/questions'
-import { Route as PredictionsRouteImport } from './routes/predictions'
 import { Route as PoolResultsRouteImport } from './routes/pool-results'
-import { Route as MatchOddsRouteImport } from './routes/match-odds'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PoolsIndexRouteImport } from './routes/pools/index'
-import { Route as PoolsNewRouteImport } from './routes/pools/new'
+import { Route as PoolsPoolIdRouteImport } from './routes/pools/$poolId'
+import { Route as PoolResultsPoolIdRouteImport } from './routes/pool-results/$poolId'
 
-const ScoringRoute = ScoringRouteImport.update({
-  id: '/scoring',
-  path: '/scoring',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QuestionsRoute = QuestionsRouteImport.update({
-  id: '/questions',
-  path: '/questions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PredictionsRoute = PredictionsRouteImport.update({
-  id: '/predictions',
-  path: '/predictions',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PoolResultsRoute = PoolResultsRouteImport.update({
   id: '/pool-results',
   path: '/pool-results',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MatchOddsRoute = MatchOddsRouteImport.update({
-  id: '/match-odds',
-  path: '/match-odds',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -59,44 +36,40 @@ const PoolsIndexRoute = PoolsIndexRouteImport.update({
   path: '/pools/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PoolsNewRoute = PoolsNewRouteImport.update({
-  id: '/pools/new',
-  path: '/pools/new',
+const PoolsPoolIdRoute = PoolsPoolIdRouteImport.update({
+  id: '/pools/$poolId',
+  path: '/pools/$poolId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PoolResultsPoolIdRoute = PoolResultsPoolIdRouteImport.update({
+  id: '/$poolId',
+  path: '/$poolId',
+  getParentRoute: () => PoolResultsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/match-odds': typeof MatchOddsRoute
-  '/pool-results': typeof PoolResultsRoute
-  '/predictions': typeof PredictionsRoute
-  '/questions': typeof QuestionsRoute
-  '/scoring': typeof ScoringRoute
-  '/pools/new': typeof PoolsNewRoute
+  '/pool-results': typeof PoolResultsRouteWithChildren
+  '/pool-results/$poolId': typeof PoolResultsPoolIdRoute
+  '/pools/$poolId': typeof PoolsPoolIdRoute
   '/pools/': typeof PoolsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/match-odds': typeof MatchOddsRoute
-  '/pool-results': typeof PoolResultsRoute
-  '/predictions': typeof PredictionsRoute
-  '/questions': typeof QuestionsRoute
-  '/scoring': typeof ScoringRoute
-  '/pools/new': typeof PoolsNewRoute
+  '/pool-results': typeof PoolResultsRouteWithChildren
+  '/pool-results/$poolId': typeof PoolResultsPoolIdRoute
+  '/pools/$poolId': typeof PoolsPoolIdRoute
   '/pools': typeof PoolsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
-  '/match-odds': typeof MatchOddsRoute
-  '/pool-results': typeof PoolResultsRoute
-  '/predictions': typeof PredictionsRoute
-  '/questions': typeof QuestionsRoute
-  '/scoring': typeof ScoringRoute
-  '/pools/new': typeof PoolsNewRoute
+  '/pool-results': typeof PoolResultsRouteWithChildren
+  '/pool-results/$poolId': typeof PoolResultsPoolIdRoute
+  '/pools/$poolId': typeof PoolsPoolIdRoute
   '/pools/': typeof PoolsIndexRoute
 }
 export interface FileRouteTypes {
@@ -104,84 +77,43 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/match-odds'
     | '/pool-results'
-    | '/predictions'
-    | '/questions'
-    | '/scoring'
-    | '/pools/new'
+    | '/pool-results/$poolId'
+    | '/pools/$poolId'
     | '/pools/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
-    | '/match-odds'
     | '/pool-results'
-    | '/predictions'
-    | '/questions'
-    | '/scoring'
-    | '/pools/new'
+    | '/pool-results/$poolId'
+    | '/pools/$poolId'
     | '/pools'
   id:
     | '__root__'
     | '/'
     | '/login'
-    | '/match-odds'
     | '/pool-results'
-    | '/predictions'
-    | '/questions'
-    | '/scoring'
-    | '/pools/new'
+    | '/pool-results/$poolId'
+    | '/pools/$poolId'
     | '/pools/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
-  MatchOddsRoute: typeof MatchOddsRoute
-  PoolResultsRoute: typeof PoolResultsRoute
-  PredictionsRoute: typeof PredictionsRoute
-  QuestionsRoute: typeof QuestionsRoute
-  ScoringRoute: typeof ScoringRoute
-  PoolsNewRoute: typeof PoolsNewRoute
+  PoolResultsRoute: typeof PoolResultsRouteWithChildren
+  PoolsPoolIdRoute: typeof PoolsPoolIdRoute
   PoolsIndexRoute: typeof PoolsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/scoring': {
-      id: '/scoring'
-      path: '/scoring'
-      fullPath: '/scoring'
-      preLoaderRoute: typeof ScoringRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/questions': {
-      id: '/questions'
-      path: '/questions'
-      fullPath: '/questions'
-      preLoaderRoute: typeof QuestionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/predictions': {
-      id: '/predictions'
-      path: '/predictions'
-      fullPath: '/predictions'
-      preLoaderRoute: typeof PredictionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/pool-results': {
       id: '/pool-results'
       path: '/pool-results'
       fullPath: '/pool-results'
       preLoaderRoute: typeof PoolResultsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/match-odds': {
-      id: '/match-odds'
-      path: '/match-odds'
-      fullPath: '/match-odds'
-      preLoaderRoute: typeof MatchOddsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -205,25 +137,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoolsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pools/new': {
-      id: '/pools/new'
-      path: '/pools/new'
-      fullPath: '/pools/new'
-      preLoaderRoute: typeof PoolsNewRouteImport
+    '/pools/$poolId': {
+      id: '/pools/$poolId'
+      path: '/pools/$poolId'
+      fullPath: '/pools/$poolId'
+      preLoaderRoute: typeof PoolsPoolIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/pool-results/$poolId': {
+      id: '/pool-results/$poolId'
+      path: '/$poolId'
+      fullPath: '/pool-results/$poolId'
+      preLoaderRoute: typeof PoolResultsPoolIdRouteImport
+      parentRoute: typeof PoolResultsRoute
     }
   }
 }
 
+interface PoolResultsRouteChildren {
+  PoolResultsPoolIdRoute: typeof PoolResultsPoolIdRoute
+}
+
+const PoolResultsRouteChildren: PoolResultsRouteChildren = {
+  PoolResultsPoolIdRoute: PoolResultsPoolIdRoute,
+}
+
+const PoolResultsRouteWithChildren = PoolResultsRoute._addFileChildren(
+  PoolResultsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
-  MatchOddsRoute: MatchOddsRoute,
-  PoolResultsRoute: PoolResultsRoute,
-  PredictionsRoute: PredictionsRoute,
-  QuestionsRoute: QuestionsRoute,
-  ScoringRoute: ScoringRoute,
-  PoolsNewRoute: PoolsNewRoute,
+  PoolResultsRoute: PoolResultsRouteWithChildren,
+  PoolsPoolIdRoute: PoolsPoolIdRoute,
   PoolsIndexRoute: PoolsIndexRoute,
 }
 export const routeTree = rootRouteImport
