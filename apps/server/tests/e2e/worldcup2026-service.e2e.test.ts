@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getFlagEmoji, getWorldCup2026Tournament, normalizeGame, normalizeGroup, normalizeStadium, normalizeTeam } from "@mazing-bolao/api/services/worldcup2026";
+import { getFlagEmoji, getWorldCup2026Tournament, normalizeGame, normalizeGroup, normalizeStadium, normalizeTeam, parseWorldCupDate } from "@mazing-bolao/api/services/worldcup2026";
 
 describe("World Cup 2026 service", () => {
   it("normalizes teams and converts iso2 to flag emoji", () => {
@@ -54,7 +54,15 @@ describe("World Cup 2026 service", () => {
     expect(game.finished).toBe(false);
     expect(game.timeElapsed).toBe("notstarted");
     expect(game.stadiumName).toBe("Estadio Azteca");
+    expect(game.startsAtTimeZone).toBe("America/Mexico_City");
+    expect(game.startsAt.toISOString()).toBe("2026-06-28T18:00:00.000Z");
     expect(game.startsAt).toBeInstanceOf(Date);
+  });
+
+  it("parses World Cup dates as stadium-local time", () => {
+    expect(parseWorldCupDate("06/11/2026 13:00", "America/Mexico_City").toISOString()).toBe("2026-06-11T19:00:00.000Z");
+    expect(parseWorldCupDate("06/12/2026 18:00", "America/Los_Angeles").toISOString()).toBe("2026-06-13T01:00:00.000Z");
+    expect(parseWorldCupDate("06/13/2026 21:00", "America/New_York").toISOString()).toBe("2026-06-14T01:00:00.000Z");
   });
 
   it("normalizes group standings", () => {

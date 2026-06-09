@@ -13,6 +13,7 @@ export const match = sqliteTable(
     homeTeam: text("home_team").notNull(),
     awayTeam: text("away_team").notNull(),
     startsAt: integer("starts_at", { mode: "timestamp_ms" }).notNull(),
+    startsAtTimeZone: text("starts_at_timezone"),
     externalSource: text("external_source"),
     externalId: text("external_id"),
     oddsApiMatchId: text("odds_api_match_id"),

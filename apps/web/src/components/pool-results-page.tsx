@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { PageHeader, PageShell } from "@/components/page-shell";
+import { MatchTime } from "@/components/match-time";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -191,7 +192,7 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
                               <p className="text-xs text-muted-foreground">{item.finished ? "Encerrada" : "Pendente"}</p>
                             </div>
                           </TableCell>
-                          <TableCell>{new Date(item.startsAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })}</TableCell>
+                          <TableCell><MatchTime startsAt={item.startsAt} startsAtTimeZone={item.startsAtTimeZone} /></TableCell>
                           <TableCell>
                             {item.showPrediction ? (
                               item.hasPrediction ? <span className="font-semibold">{item.homeGoals} x {item.awayGoals}</span> : <span className="text-muted-foreground">Sem palpite</span>

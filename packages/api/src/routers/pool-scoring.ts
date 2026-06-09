@@ -411,6 +411,7 @@ export const poolScoringRouter = {
           match: {
             id: match.id,
             startsAt: match.startsAt,
+            startsAtTimeZone: match.startsAtTimeZone,
             stage: match.stage,
             homeTeam: match.homeTeam,
             awayTeam: match.awayTeam,
@@ -466,6 +467,7 @@ export const poolScoringRouter = {
           return {
             matchId: row.match.id,
             startsAt: row.match.startsAt,
+            startsAtTimeZone: row.match.startsAtTimeZone,
             stage: row.match.stage,
             homeTeam: row.match.homeTeam,
             awayTeam: row.match.awayTeam,

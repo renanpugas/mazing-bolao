@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { MatchTime } from "@/components/match-time";
 import type { Jogo, Palpite, PalpiteUpdate, PredictionSaveStatus } from "@/components/predictions/types";
 
 const parseGols = (value: string) => {
@@ -45,7 +46,7 @@ export function PredictionMatchCard({
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-sm font-medium">{jogo.rodada}</div>
-            <div className="text-xs text-muted-foreground">{jogo.horario}</div>
+            <div className="text-xs text-muted-foreground"><MatchTime startsAt={jogo.startsAt} startsAtTimeZone={jogo.startsAtTimeZone} /></div>
           </div>
           {jogo.pontuacao ? (
             <div className="flex flex-wrap gap-2">

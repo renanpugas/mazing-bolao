@@ -8,6 +8,27 @@ const TOURNAMENT_SLUG = "copa-do-mundo-2026";
 const API_BASE = "https://worldcup26.ir/get";
 const RAW_BASE = "https://raw.githubusercontent.com/rezarahiminia/worldcup2026/main";
 
+const defaultMatchTimeZone = "UTC";
+
+export const worldCup2026StadiumTimeZones = {
+  "1": "America/Mexico_City",
+  "2": "America/Mexico_City",
+  "3": "America/Monterrey",
+  "4": "America/Chicago",
+  "5": "America/Chicago",
+  "6": "America/Chicago",
+  "7": "America/New_York",
+  "8": "America/New_York",
+  "9": "America/New_York",
+  "10": "America/New_York",
+  "11": "America/New_York",
+  "12": "America/Toronto",
+  "13": "America/Vancouver",
+  "14": "America/Los_Angeles",
+  "15": "America/Los_Angeles",
+  "16": "America/Los_Angeles",
+} as const;
+
 type AnyRecord = Record<string, any>;
 
 const endpoints = {
@@ -56,8 +77,8 @@ export function getWorldCup2026Tournament(syncedAt = new Date()) {
     slug: TOURNAMENT_SLUG,
     externalSource: SOURCE,
     season: SEASON,
-    startsAt: new Date(2026, 5, 11, 13, 0),
-    endsAt: new Date(2026, 6, 19, 15, 0),
+    startsAt: parseWorldCupDate("06/11/2026 13:00", "America/Mexico_City"),
+    endsAt: parseWorldCupDate("07/19/2026 15:00", "America/New_York"),
     rawPayload: { source: API_BASE, season: SEASON },
     lastSyncedAt: syncedAt,
     updatedAt: syncedAt,
@@ -81,7 +102,36 @@ export function toBoolean(value: unknown) {
   return Boolean(value);
 }
 
-export function parseWorldCupDate(value: unknown) {
+function getDateTimeFormatParts(date: Date, timeZone: string): { year: number; month: number; day: number; hour: number; minute: number; second: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, Number(part.value)]));
+
+  return {
+    year: values.year,
+    month: values.month,
+    day: values.day,
+    hour: values.hour,
+    minute: values.minute,
+    second: values.second,
+  } as { year: number; month: number; day: number; hour: number; minute: number; second: number };
+}
+
+export function getWorldCup2026StadiumTimeZone(stadiumId: unknown) {
+  const id = toNullableString(stadiumId);
+  return id ? worldCup2026StadiumTimeZones[id as keyof typeof worldCup2026StadiumTimeZones] ?? defaultMatchTimeZone : defaultMatchTimeZone;
+}
+
+export function parseWorldCupDate(value: unknown, timeZone = defaultMatchTimeZone) {
   const text = toNullableString(value);
   if (!text) return new Date(Number.NaN);
 
@@ -89,7 +139,11 @@ export function parseWorldCupDate(value: unknown) {
   if (!match) return new Date(text);
 
   const [, month, day, year, hour, minute] = match;
-  return new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+  const utcGuess = Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+  const localGuess = getDateTimeFormatParts(new Date(utcGuess), timeZone);
+  const localGuessAsUtc = Date.UTC(localGuess.year, localGuess.month - 1, localGuess.day, localGuess.hour, localGuess.minute, localGuess.second ?? 0);
+
+  return new Date(utcGuess - (localGuessAsUtc - utcGuess));
 }
 
 export function getFlagEmoji(iso2: unknown) {
@@ -170,6 +224,7 @@ export function normalizeGame(
   const stadiumData = toNullableString(payload.stadium_id)
     ? stadiumsById.get(String(payload.stadium_id))
     : undefined;
+  const startsAtTimeZone = getWorldCup2026StadiumTimeZone(payload.stadium_id);
   const homeLabel = toNullableString(payload.home_team_label) ?? homeTeam?.name ?? "A definir";
   const awayLabel = toNullableString(payload.away_team_label) ?? awayTeam?.name ?? "A definir";
 
@@ -188,7 +243,8 @@ export function normalizeGame(
     awayTeamLabel: awayLabel,
     homeTeamEmoji: homeTeam?.emoji ?? null,
     awayTeamEmoji: awayTeam?.emoji ?? null,
-    startsAt: parseWorldCupDate(payload.local_date),
+    startsAt: parseWorldCupDate(payload.local_date, startsAtTimeZone),
+    startsAtTimeZone,
     stadiumExternalId: toNullableString(payload.stadium_id),
     stadiumName: stadiumData?.name ?? null,
     stadiumCity: stadiumData?.city ?? null,

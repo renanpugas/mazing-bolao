@@ -57,5 +57,12 @@ describe("World Cup routes E2E", () => {
       columns: { lastSyncedAt: true },
     });
     expect(syncedTournament?.lastSyncedAt).toBeInstanceOf(Date);
+
+    const syncedMatch = await db.query.match.findFirst({
+      where: (table, { eq }) => eq(table.externalId, "1"),
+      columns: { startsAt: true, startsAtTimeZone: true },
+    });
+    expect(syncedMatch?.startsAtTimeZone).toBe("America/Mexico_City");
+    expect(syncedMatch?.startsAt.toISOString()).toBe("2026-06-11T19:00:00.000Z");
   });
 });

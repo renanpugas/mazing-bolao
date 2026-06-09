@@ -11,8 +11,8 @@ export const seedTables = [
         "slug": "copa-do-mundo-2026",
         "external_source": "worldcup2026",
         "season": "2026",
-        "starts_at": 1781182800000,
-        "ends_at": 1784473200000,
+        "starts_at": 1781204400000,
+        "ends_at": 1784487600000,
         "raw_payload": "{\"source\":\"https://worldcup26.ir/get\",\"season\":\"2026\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504251088,
@@ -1867,7 +1867,7 @@ export const seedTables = [
         "tournament_id": "worldcup2026:2026",
         "home_team": "Mexico",
         "away_team": "South Africa",
-        "starts_at": 1781182800000,
+        "starts_at": 1781204400000,
         "external_source": "worldcup2026",
         "external_id": "1",
         "season": "2026",
@@ -1890,14 +1890,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e001\",\"id\":\"1\",\"home_team_id\":\"1\",\"away_team_id\":\"2\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"A\",\"matchday\":\"1\",\"local_date\":\"06/11/2026 13:00\",\"persian_date\":\"1405-03-21 13:00\",\"stadium_id\":\"1\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Mexico\",\"home_team_name_fa\":\"مکزیک\",\"away_team_name_en\":\"South Africa\",\"away_team_name_fa\":\"آفریقای جنوبی\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252003,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Mexico_City"
       },
       {
         "id": "bdacacec-9073-420c-a7f2-e235b48dbedf",
         "tournament_id": "worldcup2026:2026",
         "home_team": "South Korea",
         "away_team": "Czech Republic",
-        "starts_at": 1781208000000,
+        "starts_at": 1781229600000,
         "external_source": "worldcup2026",
         "external_id": "2",
         "season": "2026",
@@ -1920,14 +1921,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e002\",\"id\":\"2\",\"home_team_id\":\"3\",\"away_team_id\":\"4\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"A\",\"matchday\":\"1\",\"local_date\":\"06/11/2026 20:00\",\"persian_date\":\"1405-03-21 20:00\",\"stadium_id\":\"2\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"South Korea\",\"home_team_name_fa\":\"کره جنوبی\",\"away_team_name_en\":\"Czech Republic\",\"away_team_name_fa\":\"جمهوری چک\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252011,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Mexico_City"
       },
       {
         "id": "34f77d79-db3b-46a1-b1dd-5366c8a89bc1",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Canada",
         "away_team": "Bosnia and Herzegovina",
-        "starts_at": 1781276400000,
+        "starts_at": 1781290800000,
         "external_source": "worldcup2026",
         "external_id": "3",
         "season": "2026",
@@ -1950,14 +1952,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e003\",\"id\":\"3\",\"home_team_id\":\"5\",\"away_team_id\":\"6\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"B\",\"matchday\":\"1\",\"local_date\":\"06/12/2026 15:00\",\"persian_date\":\"1405-03-22 15:00\",\"stadium_id\":\"12\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Canada\",\"home_team_name_fa\":\"کانادا\",\"away_team_name_en\":\"Bosnia and Herzegovina\",\"away_team_name_fa\":\"بوسنی و هرزگوین\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252019,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Toronto"
       },
       {
         "id": "822ce7d6-a126-4e48-904e-54cadc9051b7",
         "tournament_id": "worldcup2026:2026",
         "home_team": "United States",
         "away_team": "Paraguay",
-        "starts_at": 1781287200000,
+        "starts_at": 1781312400000,
         "external_source": "worldcup2026",
         "external_id": "4",
         "season": "2026",
@@ -1980,14 +1983,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e004\",\"id\":\"4\",\"home_team_id\":\"13\",\"away_team_id\":\"14\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"D\",\"matchday\":\"1\",\"local_date\":\"06/12/2026 18:00\",\"persian_date\":\"1405-03-22 18:00\",\"stadium_id\":\"16\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"United States\",\"home_team_name_fa\":\"آمریکا\",\"away_team_name_en\":\"Paraguay\",\"away_team_name_fa\":\"پاراگوئه\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252027,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "bf6054d5-6823-4f9d-84e4-9e2e473fd9ae",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Haiti",
         "away_team": "Scotland",
-        "starts_at": 1781384400000,
+        "starts_at": 1781398800000,
         "external_source": "worldcup2026",
         "external_id": "5",
         "season": "2026",
@@ -2010,14 +2014,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e005\",\"id\":\"5\",\"home_team_id\":\"11\",\"away_team_id\":\"12\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"C\",\"matchday\":\"1\",\"local_date\":\"06/13/2026 21:00\",\"persian_date\":\"1405-03-23 21:00\",\"stadium_id\":\"9\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Haiti\",\"home_team_name_fa\":\"هائیتی\",\"away_team_name_en\":\"Scotland\",\"away_team_name_fa\":\"اسکاتلند\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252035,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "ea5ddf00-066f-4f23-bf2b-6f6394fcce29",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Australia",
         "away_team": "Turkey",
-        "starts_at": 1781384400000,
+        "starts_at": 1781409600000,
         "external_source": "worldcup2026",
         "external_id": "6",
         "season": "2026",
@@ -2040,14 +2045,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e006\",\"id\":\"6\",\"home_team_id\":\"15\",\"away_team_id\":\"16\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"D\",\"matchday\":\"1\",\"local_date\":\"06/13/2026 21:00\",\"persian_date\":\"1405-03-23 21:00\",\"stadium_id\":\"13\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Australia\",\"home_team_name_fa\":\"استرالیا\",\"away_team_name_en\":\"Turkey\",\"away_team_name_fa\":\"ترکیه\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252043,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Vancouver"
       },
       {
         "id": "cf5e990e-9054-4dd0-b4e4-0fb28e830e34",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Brazil",
         "away_team": "Morocco",
-        "starts_at": 1781373600000,
+        "starts_at": 1781388000000,
         "external_source": "worldcup2026",
         "external_id": "7",
         "season": "2026",
@@ -2070,14 +2076,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e007\",\"id\":\"7\",\"home_team_id\":\"9\",\"away_team_id\":\"10\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"C\",\"matchday\":\"1\",\"local_date\":\"06/13/2026 18:00\",\"persian_date\":\"1405-03-23 18:00\",\"stadium_id\":\"11\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Brazil\",\"home_team_name_fa\":\"برزیل\",\"away_team_name_en\":\"Morocco\",\"away_team_name_fa\":\"مراکش\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252051,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "88b5016a-34ce-4bda-8716-55f96f0f64d1",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Qatar",
         "away_team": "Switzerland",
-        "starts_at": 1781352000000,
+        "starts_at": 1781377200000,
         "external_source": "worldcup2026",
         "external_id": "8",
         "season": "2026",
@@ -2100,14 +2107,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e008\",\"id\":\"8\",\"home_team_id\":\"7\",\"away_team_id\":\"8\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"B\",\"matchday\":\"1\",\"local_date\":\"06/13/2026 12:00\",\"persian_date\":\"1405-03-23 12:00\",\"stadium_id\":\"15\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Qatar\",\"home_team_name_fa\":\"قطر\",\"away_team_name_en\":\"Switzerland\",\"away_team_name_fa\":\"سوئیس\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252060,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "67953699-c9e6-4e28-b9a5-1e4eb97ab8b8",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Ivory Coast",
         "away_team": "Ecuador",
-        "starts_at": 1781463600000,
+        "starts_at": 1781478000000,
         "external_source": "worldcup2026",
         "external_id": "9",
         "season": "2026",
@@ -2130,14 +2138,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e009\",\"id\":\"9\",\"home_team_id\":\"19\",\"away_team_id\":\"20\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"E\",\"matchday\":\"1\",\"local_date\":\"06/14/2026 19:00\",\"persian_date\":\"1405-03-24 19:00\",\"stadium_id\":\"10\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Ivory Coast\",\"home_team_name_fa\":\"ساحل عاج\",\"away_team_name_en\":\"Ecuador\",\"away_team_name_fa\":\"اکوادور\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252068,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "78b96bd8-93da-491c-9e1c-1e06945d526b",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Germany",
         "away_team": "Curaçao",
-        "starts_at": 1781438400000,
+        "starts_at": 1781456400000,
         "external_source": "worldcup2026",
         "external_id": "10",
         "season": "2026",
@@ -2160,14 +2169,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e010\",\"id\":\"10\",\"home_team_id\":\"17\",\"away_team_id\":\"18\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"E\",\"matchday\":\"1\",\"local_date\":\"06/14/2026 12:00\",\"persian_date\":\"1405-03-24 12:00\",\"stadium_id\":\"5\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Germany\",\"home_team_name_fa\":\"آلمان\",\"away_team_name_en\":\"Curaçao\",\"away_team_name_fa\":\"کوراسائو\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252077,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "b27f0161-19cd-4b5c-af70-ba862f466542",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Netherlands",
         "away_team": "Japan",
-        "starts_at": 1781449200000,
+        "starts_at": 1781467200000,
         "external_source": "worldcup2026",
         "external_id": "11",
         "season": "2026",
@@ -2190,14 +2200,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e011\",\"id\":\"11\",\"home_team_id\":\"21\",\"away_team_id\":\"22\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"F\",\"matchday\":\"1\",\"local_date\":\"06/14/2026 15:00\",\"persian_date\":\"1405-03-24 15:00\",\"stadium_id\":\"4\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Netherlands\",\"home_team_name_fa\":\"هلند\",\"away_team_name_en\":\"Japan\",\"away_team_name_fa\":\"ژاپن\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252085,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "f683cf6d-07e4-457c-9323-eda4879a7d25",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Sweden",
         "away_team": "Tunisia",
-        "starts_at": 1781467200000,
+        "starts_at": 1781488800000,
         "external_source": "worldcup2026",
         "external_id": "12",
         "season": "2026",
@@ -2220,14 +2231,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e012\",\"id\":\"12\",\"home_team_id\":\"23\",\"away_team_id\":\"24\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"F\",\"matchday\":\"1\",\"local_date\":\"06/14/2026 20:00\",\"persian_date\":\"1405-03-24 20:00\",\"stadium_id\":\"3\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Sweden\",\"home_team_name_fa\":\"سوئد\",\"away_team_name_en\":\"Tunisia\",\"away_team_name_fa\":\"تونس\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252093,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Monterrey"
       },
       {
         "id": "ea04e909-a490-45e3-b0b3-0b76727d7612",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Iran",
         "away_team": "New Zealand",
-        "starts_at": 1781546400000,
+        "starts_at": 1781571600000,
         "external_source": "worldcup2026",
         "external_id": "13",
         "season": "2026",
@@ -2250,14 +2262,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e013\",\"id\":\"13\",\"home_team_id\":\"27\",\"away_team_id\":\"28\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"G\",\"matchday\":\"1\",\"local_date\":\"06/15/2026 18:00\",\"persian_date\":\"1405-03-25 18:00\",\"stadium_id\":\"16\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Iran\",\"home_team_name_fa\":\"ایران\",\"away_team_name_en\":\"New Zealand\",\"away_team_name_fa\":\"نیوزیلند\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252101,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "da9d604c-e704-4be2-8f99-31e3b769f419",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Spain",
         "away_team": "Cape Verde",
-        "starts_at": 1781524800000,
+        "starts_at": 1781539200000,
         "external_source": "worldcup2026",
         "external_id": "14",
         "season": "2026",
@@ -2280,14 +2293,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e014\",\"id\":\"14\",\"home_team_id\":\"29\",\"away_team_id\":\"30\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"H\",\"matchday\":\"1\",\"local_date\":\"06/15/2026 12:00\",\"persian_date\":\"1405-03-25 12:00\",\"stadium_id\":\"7\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Spain\",\"home_team_name_fa\":\"اسپانیا\",\"away_team_name_en\":\"Cape Verde\",\"away_team_name_fa\":\"کیپ ورد\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252109,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "9fe4f290-f2fc-4d69-9ca0-a5db26c3e2d3",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Belgium",
         "away_team": "Egypt",
-        "starts_at": 1781524800000,
+        "starts_at": 1781550000000,
         "external_source": "worldcup2026",
         "external_id": "15",
         "season": "2026",
@@ -2310,14 +2324,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e015\",\"id\":\"15\",\"home_team_id\":\"25\",\"away_team_id\":\"26\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"G\",\"matchday\":\"1\",\"local_date\":\"06/15/2026 12:00\",\"persian_date\":\"1405-03-25 12:00\",\"stadium_id\":\"14\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Belgium\",\"home_team_name_fa\":\"بلژیک\",\"away_team_name_en\":\"Egypt\",\"away_team_name_fa\":\"مصر\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252117,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "40f40d05-72e8-45a6-905a-d873218a78c7",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Saudi Arabia",
         "away_team": "Uruguay",
-        "starts_at": 1781546400000,
+        "starts_at": 1781560800000,
         "external_source": "worldcup2026",
         "external_id": "16",
         "season": "2026",
@@ -2340,14 +2355,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e016\",\"id\":\"16\",\"home_team_id\":\"31\",\"away_team_id\":\"32\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"H\",\"matchday\":\"1\",\"local_date\":\"06/15/2026 18:00\",\"persian_date\":\"1405-03-25 18:00\",\"stadium_id\":\"8\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Saudi Arabia\",\"home_team_name_fa\":\"عربستان\",\"away_team_name_en\":\"Uruguay\",\"away_team_name_fa\":\"اروگوئه\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252125,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "63f6e837-8bea-457f-8c5c-c35d00c3cacb",
         "tournament_id": "worldcup2026:2026",
         "home_team": "France",
         "away_team": "Senegal",
-        "starts_at": 1781622000000,
+        "starts_at": 1781636400000,
         "external_source": "worldcup2026",
         "external_id": "17",
         "season": "2026",
@@ -2370,14 +2386,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e017\",\"id\":\"17\",\"home_team_id\":\"33\",\"away_team_id\":\"34\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"I\",\"matchday\":\"1\",\"local_date\":\"06/16/2026 15:00\",\"persian_date\":\"1405-03-26 15:00\",\"stadium_id\":\"11\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"France\",\"home_team_name_fa\":\"فرانسه\",\"away_team_name_en\":\"Senegal\",\"away_team_name_fa\":\"سنگال\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252133,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "977bad31-994a-4dd4-b212-a06d710d80a6",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Iraq",
         "away_team": "Norway",
-        "starts_at": 1781632800000,
+        "starts_at": 1781647200000,
         "external_source": "worldcup2026",
         "external_id": "18",
         "season": "2026",
@@ -2400,14 +2417,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e018\",\"id\":\"18\",\"home_team_id\":\"35\",\"away_team_id\":\"36\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"I\",\"matchday\":\"1\",\"local_date\":\"06/16/2026 18:00\",\"persian_date\":\"1405-03-26 18:00\",\"stadium_id\":\"9\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Iraq\",\"home_team_name_fa\":\"عراق\",\"away_team_name_en\":\"Norway\",\"away_team_name_fa\":\"نروژ\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252141,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "97a46e50-91ed-45b4-afc8-471e96763ec2",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Argentina",
         "away_team": "Algeria",
-        "starts_at": 1781640000000,
+        "starts_at": 1781658000000,
         "external_source": "worldcup2026",
         "external_id": "19",
         "season": "2026",
@@ -2430,14 +2448,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e019\",\"id\":\"19\",\"home_team_id\":\"37\",\"away_team_id\":\"38\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"J\",\"matchday\":\"1\",\"local_date\":\"06/16/2026 20:00\",\"persian_date\":\"1405-03-26 20:00\",\"stadium_id\":\"6\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Argentina\",\"home_team_name_fa\":\"آرژانتین\",\"away_team_name_en\":\"Algeria\",\"away_team_name_fa\":\"الجزایر\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252149,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "ae0493bf-c60d-4d0b-8b51-704096c6d39e",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Austria",
         "away_team": "Jordan",
-        "starts_at": 1781643600000,
+        "starts_at": 1781668800000,
         "external_source": "worldcup2026",
         "external_id": "20",
         "season": "2026",
@@ -2460,14 +2479,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e020\",\"id\":\"20\",\"home_team_id\":\"39\",\"away_team_id\":\"40\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"J\",\"matchday\":\"1\",\"local_date\":\"06/16/2026 21:00\",\"persian_date\":\"1405-03-26 21:00\",\"stadium_id\":\"15\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Austria\",\"home_team_name_fa\":\"اتریش\",\"away_team_name_en\":\"Jordan\",\"away_team_name_fa\":\"اردن\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252157,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "02e2cc68-b77b-42bb-9123-2c8a6fbe529d",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Portugal",
         "away_team": "Democratic Republic of the Congo",
-        "starts_at": 1781697600000,
+        "starts_at": 1781715600000,
         "external_source": "worldcup2026",
         "external_id": "21",
         "season": "2026",
@@ -2490,14 +2510,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e021\",\"id\":\"21\",\"home_team_id\":\"41\",\"away_team_id\":\"42\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"K\",\"matchday\":\"1\",\"local_date\":\"06/17/2026 12:00\",\"persian_date\":\"1405-03-27 12:00\",\"stadium_id\":\"5\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Portugal\",\"home_team_name_fa\":\"پرتغال\",\"away_team_name_en\":\"Democratic Republic of the Congo\",\"away_team_name_fa\":\"جمهوری دموکراتیک کنگو\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252165,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "2922df99-0881-4cc5-ac47-23201bb4b9d1",
         "tournament_id": "worldcup2026:2026",
         "home_team": "England",
         "away_team": "Croatia",
-        "starts_at": 1781708400000,
+        "starts_at": 1781726400000,
         "external_source": "worldcup2026",
         "external_id": "22",
         "season": "2026",
@@ -2520,14 +2541,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e022\",\"id\":\"22\",\"home_team_id\":\"45\",\"away_team_id\":\"46\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"L\",\"matchday\":\"1\",\"local_date\":\"06/17/2026 15:00\",\"persian_date\":\"1405-03-27 15:00\",\"stadium_id\":\"4\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"England\",\"home_team_name_fa\":\"انگلستان\",\"away_team_name_en\":\"Croatia\",\"away_team_name_fa\":\"کرواسی\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252173,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "df1c7f1d-df37-4cc9-9bf5-8d3c199424e6",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Uzbekistan",
         "away_team": "Colombia",
-        "starts_at": 1781726400000,
+        "starts_at": 1781748000000,
         "external_source": "worldcup2026",
         "external_id": "23",
         "season": "2026",
@@ -2550,14 +2572,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e023\",\"id\":\"23\",\"home_team_id\":\"43\",\"away_team_id\":\"44\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"K\",\"matchday\":\"1\",\"local_date\":\"06/17/2026 20:00\",\"persian_date\":\"1405-03-27 20:00\",\"stadium_id\":\"1\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Uzbekistan\",\"home_team_name_fa\":\"ازبکستان\",\"away_team_name_en\":\"Colombia\",\"away_team_name_fa\":\"کلمبیا\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252181,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Mexico_City"
       },
       {
         "id": "d5bbde9c-09a7-424d-b1ce-5564fb527deb",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Ghana",
         "away_team": "Panama",
-        "starts_at": 1781722800000,
+        "starts_at": 1781737200000,
         "external_source": "worldcup2026",
         "external_id": "24",
         "season": "2026",
@@ -2580,14 +2603,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e024\",\"id\":\"24\",\"home_team_id\":\"47\",\"away_team_id\":\"48\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"L\",\"matchday\":\"1\",\"local_date\":\"06/17/2026 19:00\",\"persian_date\":\"1405-03-27 19:00\",\"stadium_id\":\"12\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Ghana\",\"home_team_name_fa\":\"غنا\",\"away_team_name_en\":\"Panama\",\"away_team_name_fa\":\"پاناما\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252190,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Toronto"
       },
       {
         "id": "b6f400d2-3ab3-417f-ba2f-3d9eec21861c",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Mexico",
         "away_team": "South Korea",
-        "starts_at": 1781809200000,
+        "starts_at": 1781830800000,
         "external_source": "worldcup2026",
         "external_id": "25",
         "season": "2026",
@@ -2610,14 +2634,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e025\",\"id\":\"25\",\"home_team_id\":\"1\",\"away_team_id\":\"3\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"A\",\"matchday\":\"2\",\"local_date\":\"06/18/2026 19:00\",\"persian_date\":\"1405-03-28 19:00\",\"stadium_id\":\"2\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Mexico\",\"home_team_name_fa\":\"مکزیک\",\"away_team_name_en\":\"South Korea\",\"away_team_name_fa\":\"کره جنوبی\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252198,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Mexico_City"
       },
       {
         "id": "fa4da834-a163-4ac1-827e-0dfce9625e9a",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Switzerland",
         "away_team": "Bosnia and Herzegovina",
-        "starts_at": 1781784000000,
+        "starts_at": 1781809200000,
         "external_source": "worldcup2026",
         "external_id": "26",
         "season": "2026",
@@ -2640,14 +2665,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e026\",\"id\":\"26\",\"home_team_id\":\"8\",\"away_team_id\":\"6\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"B\",\"matchday\":\"2\",\"local_date\":\"06/18/2026 12:00\",\"persian_date\":\"1405-03-28 12:00\",\"stadium_id\":\"16\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Switzerland\",\"home_team_name_fa\":\"سوئیس\",\"away_team_name_en\":\"Bosnia and Herzegovina\",\"away_team_name_fa\":\"بوسنی و هرزگوین\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252206,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "9da925ab-bf86-4da9-b917-4f8a55425322",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Canada",
         "away_team": "Qatar",
-        "starts_at": 1781794800000,
+        "starts_at": 1781820000000,
         "external_source": "worldcup2026",
         "external_id": "27",
         "season": "2026",
@@ -2670,14 +2696,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e027\",\"id\":\"27\",\"home_team_id\":\"5\",\"away_team_id\":\"7\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"B\",\"matchday\":\"2\",\"local_date\":\"06/18/2026 15:00\",\"persian_date\":\"1405-03-28 15:00\",\"stadium_id\":\"13\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Canada\",\"home_team_name_fa\":\"کانادا\",\"away_team_name_en\":\"Qatar\",\"away_team_name_fa\":\"قطر\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252214,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Vancouver"
       },
       {
         "id": "75801af2-290d-4cd2-a663-f06e81cb644c",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Czech Republic",
         "away_team": "South Africa",
-        "starts_at": 1781784000000,
+        "starts_at": 1781798400000,
         "external_source": "worldcup2026",
         "external_id": "28",
         "season": "2026",
@@ -2700,14 +2727,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e028\",\"id\":\"28\",\"home_team_id\":\"4\",\"away_team_id\":\"2\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"A\",\"matchday\":\"2\",\"local_date\":\"06/18/2026 12:00\",\"persian_date\":\"1405-03-28 12:00\",\"stadium_id\":\"7\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Czech Republic\",\"home_team_name_fa\":\"جمهوری چک\",\"away_team_name_en\":\"South Africa\",\"away_team_name_fa\":\"آفریقای جنوبی\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252222,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "7b1859b4-1e6c-4703-a85a-b215d2475633",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Brazil",
         "away_team": "Haiti",
-        "starts_at": 1781902800000,
+        "starts_at": 1781917200000,
         "external_source": "worldcup2026",
         "external_id": "29",
         "season": "2026",
@@ -2730,14 +2758,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e029\",\"id\":\"29\",\"home_team_id\":\"9\",\"away_team_id\":\"11\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"C\",\"matchday\":\"2\",\"local_date\":\"06/19/2026 21:00\",\"persian_date\":\"1405-03-29 21:00\",\"stadium_id\":\"10\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Brazil\",\"home_team_name_fa\":\"برزیل\",\"away_team_name_en\":\"Haiti\",\"away_team_name_fa\":\"هائیتی\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252230,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "57de05b0-e7fa-4c33-899b-f66a6bcab07a",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Scotland",
         "away_team": "Morocco",
-        "starts_at": 1781892000000,
+        "starts_at": 1781906400000,
         "external_source": "worldcup2026",
         "external_id": "30",
         "season": "2026",
@@ -2760,14 +2789,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e030\",\"id\":\"30\",\"home_team_id\":\"12\",\"away_team_id\":\"10\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"C\",\"matchday\":\"2\",\"local_date\":\"06/19/2026 18:00\",\"persian_date\":\"1405-03-29 18:00\",\"stadium_id\":\"9\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Scotland\",\"home_team_name_fa\":\"اسکاتلند\",\"away_team_name_en\":\"Morocco\",\"away_team_name_fa\":\"مراکش\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252238,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "a143b3c4-cfce-4b0b-bc86-6b4f48f87d3b",
         "tournament_id": "worldcup2026:2026",
         "home_team": "United States",
         "away_team": "Australia",
-        "starts_at": 1781870400000,
+        "starts_at": 1781895600000,
         "external_source": "worldcup2026",
         "external_id": "31",
         "season": "2026",
@@ -2790,14 +2820,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e031\",\"id\":\"31\",\"home_team_id\":\"13\",\"away_team_id\":\"15\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"D\",\"matchday\":\"2\",\"local_date\":\"06/19/2026 12:00\",\"persian_date\":\"1405-03-29 12:00\",\"stadium_id\":\"14\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"United States\",\"home_team_name_fa\":\"آمریکا\",\"away_team_name_en\":\"Australia\",\"away_team_name_fa\":\"استرالیا\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252246,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "4e20f07f-bacf-4527-8d28-b9d774c3e1f3",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Turkey",
         "away_team": "Paraguay",
-        "starts_at": 1781899200000,
+        "starts_at": 1781924400000,
         "external_source": "worldcup2026",
         "external_id": "32",
         "season": "2026",
@@ -2820,14 +2851,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e032\",\"id\":\"32\",\"home_team_id\":\"16\",\"away_team_id\":\"14\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"D\",\"matchday\":\"2\",\"local_date\":\"06/19/2026 20:00\",\"persian_date\":\"1405-03-29 20:00\",\"stadium_id\":\"15\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Turkey\",\"home_team_name_fa\":\"ترکیه\",\"away_team_name_en\":\"Paraguay\",\"away_team_name_fa\":\"پاراگوئه\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252254,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "3404e31f-d914-4df1-b305-a444ec7f4a30",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Germany",
         "away_team": "Ivory Coast",
-        "starts_at": 1781971200000,
+        "starts_at": 1781985600000,
         "external_source": "worldcup2026",
         "external_id": "33",
         "season": "2026",
@@ -2850,14 +2882,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e033\",\"id\":\"33\",\"home_team_id\":\"17\",\"away_team_id\":\"19\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"E\",\"matchday\":\"2\",\"local_date\":\"06/20/2026 16:00\",\"persian_date\":\"1405-03-30 16:00\",\"stadium_id\":\"12\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Germany\",\"home_team_name_fa\":\"آلمان\",\"away_team_name_en\":\"Ivory Coast\",\"away_team_name_fa\":\"ساحل عاج\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252262,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Toronto"
       },
       {
         "id": "fd5b04a8-98b8-4df5-931d-12da975ede51",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Ecuador",
         "away_team": "Curaçao",
-        "starts_at": 1781982000000,
+        "starts_at": 1782000000000,
         "external_source": "worldcup2026",
         "external_id": "34",
         "season": "2026",
@@ -2880,14 +2913,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e034\",\"id\":\"34\",\"home_team_id\":\"20\",\"away_team_id\":\"18\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"E\",\"matchday\":\"2\",\"local_date\":\"06/20/2026 19:00\",\"persian_date\":\"1405-03-30 19:00\",\"stadium_id\":\"6\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Ecuador\",\"home_team_name_fa\":\"اکوادور\",\"away_team_name_en\":\"Curaçao\",\"away_team_name_fa\":\"کوراسائو\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252270,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "00b1776d-de7e-4a73-a8aa-e08bbc43cc5a",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Netherlands",
         "away_team": "Sweden",
-        "starts_at": 1781956800000,
+        "starts_at": 1781974800000,
         "external_source": "worldcup2026",
         "external_id": "35",
         "season": "2026",
@@ -2910,14 +2944,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e035\",\"id\":\"35\",\"home_team_id\":\"21\",\"away_team_id\":\"23\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"F\",\"matchday\":\"2\",\"local_date\":\"06/20/2026 12:00\",\"persian_date\":\"1405-03-30 12:00\",\"stadium_id\":\"5\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Netherlands\",\"home_team_name_fa\":\"هلند\",\"away_team_name_en\":\"Sweden\",\"away_team_name_fa\":\"سوئد\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252278,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "da881202-bc22-4a20-89dc-2d20bda57060",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Tunisia",
         "away_team": "Japan",
-        "starts_at": 1781992800000,
+        "starts_at": 1782014400000,
         "external_source": "worldcup2026",
         "external_id": "36",
         "season": "2026",
@@ -2940,14 +2975,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e036\",\"id\":\"36\",\"home_team_id\":\"24\",\"away_team_id\":\"22\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"F\",\"matchday\":\"2\",\"local_date\":\"06/20/2026 22:00\",\"persian_date\":\"1405-03-30 22:00\",\"stadium_id\":\"3\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Tunisia\",\"home_team_name_fa\":\"تونس\",\"away_team_name_en\":\"Japan\",\"away_team_name_fa\":\"ژاپن\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252286,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Monterrey"
       },
       {
         "id": "889a0a18-7d3f-40aa-871f-1acb38dbfc1f",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Belgium",
         "away_team": "Iran",
-        "starts_at": 1782043200000,
+        "starts_at": 1782068400000,
         "external_source": "worldcup2026",
         "external_id": "37",
         "season": "2026",
@@ -2970,14 +3006,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e037\",\"id\":\"37\",\"home_team_id\":\"25\",\"away_team_id\":\"27\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"G\",\"matchday\":\"2\",\"local_date\":\"06/21/2026 12:00\",\"persian_date\":\"1405-03-31 12:00\",\"stadium_id\":\"16\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Belgium\",\"home_team_name_fa\":\"بلژیک\",\"away_team_name_en\":\"Iran\",\"away_team_name_fa\":\"ایران\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252294,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "830239ff-db9e-44f7-bdd8-257054e69af4",
         "tournament_id": "worldcup2026:2026",
         "home_team": "New Zealand",
         "away_team": "Egypt",
-        "starts_at": 1782064800000,
+        "starts_at": 1782090000000,
         "external_source": "worldcup2026",
         "external_id": "38",
         "season": "2026",
@@ -3000,14 +3037,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e038\",\"id\":\"38\",\"home_team_id\":\"28\",\"away_team_id\":\"26\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"G\",\"matchday\":\"2\",\"local_date\":\"06/21/2026 18:00\",\"persian_date\":\"1405-03-31 18:00\",\"stadium_id\":\"13\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"New Zealand\",\"home_team_name_fa\":\"نیوزیلند\",\"away_team_name_en\":\"Egypt\",\"away_team_name_fa\":\"مصر\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252302,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Vancouver"
       },
       {
         "id": "0468128c-aff3-4be2-a68f-454b9e18d341",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Spain",
         "away_team": "Saudi Arabia",
-        "starts_at": 1782043200000,
+        "starts_at": 1782057600000,
         "external_source": "worldcup2026",
         "external_id": "39",
         "season": "2026",
@@ -3030,14 +3068,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e039\",\"id\":\"39\",\"home_team_id\":\"29\",\"away_team_id\":\"31\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"H\",\"matchday\":\"2\",\"local_date\":\"06/21/2026 12:00\",\"persian_date\":\"1405-03-31 12:00\",\"stadium_id\":\"7\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Spain\",\"home_team_name_fa\":\"اسپانیا\",\"away_team_name_en\":\"Saudi Arabia\",\"away_team_name_fa\":\"عربستان\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252310,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "a1395387-38df-4431-8fb3-58aae29cce2c",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Uruguay",
         "away_team": "Cape Verde",
-        "starts_at": 1782064800000,
+        "starts_at": 1782079200000,
         "external_source": "worldcup2026",
         "external_id": "40",
         "season": "2026",
@@ -3060,14 +3099,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e040\",\"id\":\"40\",\"home_team_id\":\"32\",\"away_team_id\":\"30\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"H\",\"matchday\":\"2\",\"local_date\":\"06/21/2026 18:00\",\"persian_date\":\"1405-03-31 18:00\",\"stadium_id\":\"8\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Uruguay\",\"home_team_name_fa\":\"اروگوئه\",\"away_team_name_en\":\"Cape Verde\",\"away_team_name_fa\":\"کیپ ورد\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252318,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "237cc6aa-368f-45f6-864c-4b222d1fbb41",
         "tournament_id": "worldcup2026:2026",
         "home_team": "France",
         "away_team": "Iraq",
-        "starts_at": 1782147600000,
+        "starts_at": 1782162000000,
         "external_source": "worldcup2026",
         "external_id": "41",
         "season": "2026",
@@ -3090,14 +3130,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e041\",\"id\":\"41\",\"home_team_id\":\"33\",\"away_team_id\":\"35\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"I\",\"matchday\":\"2\",\"local_date\":\"06/22/2026 17:00\",\"persian_date\":\"1405-04-01 17:00\",\"stadium_id\":\"10\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"France\",\"home_team_name_fa\":\"فرانسه\",\"away_team_name_en\":\"Iraq\",\"away_team_name_fa\":\"عراق\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252326,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "912bf83c-bb6d-47a7-b1ec-edf997e5cfeb",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Norway",
         "away_team": "Senegal",
-        "starts_at": 1782158400000,
+        "starts_at": 1782172800000,
         "external_source": "worldcup2026",
         "external_id": "42",
         "season": "2026",
@@ -3120,14 +3161,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e042\",\"id\":\"42\",\"home_team_id\":\"36\",\"away_team_id\":\"34\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"I\",\"matchday\":\"2\",\"local_date\":\"06/22/2026 20:00\",\"persian_date\":\"1405-04-01 20:00\",\"stadium_id\":\"11\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Norway\",\"home_team_name_fa\":\"نروژ\",\"away_team_name_en\":\"Senegal\",\"away_team_name_fa\":\"سنگال\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252334,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "b86522ae-ba6a-423b-92d8-9d4544e5d2d6",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Argentina",
         "away_team": "Austria",
-        "starts_at": 1782129600000,
+        "starts_at": 1782147600000,
         "external_source": "worldcup2026",
         "external_id": "43",
         "season": "2026",
@@ -3150,14 +3192,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e043\",\"id\":\"43\",\"home_team_id\":\"37\",\"away_team_id\":\"39\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"J\",\"matchday\":\"2\",\"local_date\":\"06/22/2026 12:00\",\"persian_date\":\"1405-04-01 12:00\",\"stadium_id\":\"4\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Argentina\",\"home_team_name_fa\":\"آرژانتین\",\"away_team_name_en\":\"Austria\",\"away_team_name_fa\":\"اتریش\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252342,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "b0c7ec13-693a-4ed2-8667-7466f567c497",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Jordan",
         "away_team": "Algeria",
-        "starts_at": 1782158400000,
+        "starts_at": 1782183600000,
         "external_source": "worldcup2026",
         "external_id": "44",
         "season": "2026",
@@ -3180,14 +3223,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e044\",\"id\":\"44\",\"home_team_id\":\"40\",\"away_team_id\":\"38\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"J\",\"matchday\":\"2\",\"local_date\":\"06/22/2026 20:00\",\"persian_date\":\"1405-04-01 20:00\",\"stadium_id\":\"15\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Jordan\",\"home_team_name_fa\":\"اردن\",\"away_team_name_en\":\"Algeria\",\"away_team_name_fa\":\"الجزایر\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252350,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "cb3aede1-fb99-46c3-bcc9-d76f546537a4",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Portugal",
         "away_team": "Uzbekistan",
-        "starts_at": 1782216000000,
+        "starts_at": 1782234000000,
         "external_source": "worldcup2026",
         "external_id": "45",
         "season": "2026",
@@ -3210,14 +3254,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e045\",\"id\":\"45\",\"home_team_id\":\"41\",\"away_team_id\":\"43\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"K\",\"matchday\":\"2\",\"local_date\":\"06/23/2026 12:00\",\"persian_date\":\"1405-04-02 12:00\",\"stadium_id\":\"5\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Portugal\",\"home_team_name_fa\":\"پرتغال\",\"away_team_name_en\":\"Uzbekistan\",\"away_team_name_fa\":\"ازبکستان\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252358,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "d54e8e6e-206b-4f6b-847c-c45312fba2eb",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Panama",
         "away_team": "Croatia",
-        "starts_at": 1782241200000,
+        "starts_at": 1782255600000,
         "external_source": "worldcup2026",
         "external_id": "46",
         "season": "2026",
@@ -3240,14 +3285,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e046\",\"id\":\"46\",\"home_team_id\":\"48\",\"away_team_id\":\"46\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"L\",\"matchday\":\"2\",\"local_date\":\"06/23/2026 19:00\",\"persian_date\":\"1405-04-02 19:00\",\"stadium_id\":\"12\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Panama\",\"home_team_name_fa\":\"پاناما\",\"away_team_name_en\":\"Croatia\",\"away_team_name_fa\":\"کرواسی\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252366,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Toronto"
       },
       {
         "id": "492686d2-a04d-4d48-a32a-a5965cc707e1",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Colombia",
         "away_team": "Democratic Republic of the Congo",
-        "starts_at": 1782244800000,
+        "starts_at": 1782266400000,
         "external_source": "worldcup2026",
         "external_id": "47",
         "season": "2026",
@@ -3270,14 +3316,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e047\",\"id\":\"47\",\"home_team_id\":\"44\",\"away_team_id\":\"42\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"K\",\"matchday\":\"2\",\"local_date\":\"06/23/2026 20:00\",\"persian_date\":\"1405-04-02 20:00\",\"stadium_id\":\"2\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Colombia\",\"home_team_name_fa\":\"کلمبیا\",\"away_team_name_en\":\"Democratic Republic of the Congo\",\"away_team_name_fa\":\"جمهوری دموکراتیک کنگو\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252375,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Mexico_City"
       },
       {
         "id": "99f80b74-26b7-4a69-9c01-2d0d4721034a",
         "tournament_id": "worldcup2026:2026",
         "home_team": "England",
         "away_team": "Ghana",
-        "starts_at": 1782230400000,
+        "starts_at": 1782244800000,
         "external_source": "worldcup2026",
         "external_id": "48",
         "season": "2026",
@@ -3300,14 +3347,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e048\",\"id\":\"48\",\"home_team_id\":\"45\",\"away_team_id\":\"47\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"L\",\"matchday\":\"2\",\"local_date\":\"06/23/2026 16:00\",\"persian_date\":\"1405-04-02 16:00\",\"stadium_id\":\"9\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"England\",\"home_team_name_fa\":\"انگلستان\",\"away_team_name_en\":\"Ghana\",\"away_team_name_fa\":\"غنا\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252385,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "51353619-ff3a-4919-bc56-d7aa04c41645",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Scotland",
         "away_team": "Brazil",
-        "starts_at": 1782324000000,
+        "starts_at": 1782338400000,
         "external_source": "worldcup2026",
         "external_id": "49",
         "season": "2026",
@@ -3330,14 +3378,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e049\",\"id\":\"49\",\"home_team_id\":\"12\",\"away_team_id\":\"9\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"C\",\"matchday\":\"3\",\"local_date\":\"06/24/2026 18:00\",\"persian_date\":\"1405-04-03 18:00\",\"stadium_id\":\"8\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Scotland\",\"home_team_name_fa\":\"اسکاتلند\",\"away_team_name_en\":\"Brazil\",\"away_team_name_fa\":\"برزیل\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252392,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "d1ab186f-8ef6-4c2e-bb12-e9308c754a01",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Morocco",
         "away_team": "Haiti",
-        "starts_at": 1782324000000,
+        "starts_at": 1782338400000,
         "external_source": "worldcup2026",
         "external_id": "50",
         "season": "2026",
@@ -3360,14 +3409,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e050\",\"id\":\"50\",\"home_team_id\":\"10\",\"away_team_id\":\"11\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"C\",\"matchday\":\"3\",\"local_date\":\"06/24/2026 18:00\",\"persian_date\":\"1405-04-03 18:00\",\"stadium_id\":\"7\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Morocco\",\"home_team_name_fa\":\"مراکش\",\"away_team_name_en\":\"Haiti\",\"away_team_name_fa\":\"هائیتی\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252400,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "cf127511-fece-498d-8c12-04edafa2f2e1",
         "tournament_id": "worldcup2026:2026",
         "home_team": "South Africa",
         "away_team": "South Korea",
-        "starts_at": 1782327600000,
+        "starts_at": 1782349200000,
         "external_source": "worldcup2026",
         "external_id": "51",
         "season": "2026",
@@ -3390,14 +3440,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e051\",\"id\":\"51\",\"home_team_id\":\"2\",\"away_team_id\":\"3\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"A\",\"matchday\":\"3\",\"local_date\":\"06/24/2026 19:00\",\"persian_date\":\"1405-04-03 19:00\",\"stadium_id\":\"3\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"South Africa\",\"home_team_name_fa\":\"آفریقای جنوبی\",\"away_team_name_en\":\"South Korea\",\"away_team_name_fa\":\"کره جنوبی\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252408,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Monterrey"
       },
       {
         "id": "625c1f3d-14b6-49a6-9222-1277fd88c434",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Czech Republic",
         "away_team": "Mexico",
-        "starts_at": 1782327600000,
+        "starts_at": 1782349200000,
         "external_source": "worldcup2026",
         "external_id": "52",
         "season": "2026",
@@ -3420,14 +3471,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e052\",\"id\":\"52\",\"home_team_id\":\"4\",\"away_team_id\":\"1\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"A\",\"matchday\":\"3\",\"local_date\":\"06/24/2026 19:00\",\"persian_date\":\"1405-04-03 19:00\",\"stadium_id\":\"1\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Czech Republic\",\"home_team_name_fa\":\"جمهوری چک\",\"away_team_name_en\":\"Mexico\",\"away_team_name_fa\":\"مکزیک\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252416,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Mexico_City"
       },
       {
         "id": "385e28c3-5397-412e-9d96-ac7ef0a6fe06",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Bosnia and Herzegovina",
         "away_team": "Qatar",
-        "starts_at": 1782302400000,
+        "starts_at": 1782327600000,
         "external_source": "worldcup2026",
         "external_id": "53",
         "season": "2026",
@@ -3450,14 +3502,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e053\",\"id\":\"53\",\"home_team_id\":\"6\",\"away_team_id\":\"7\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"B\",\"matchday\":\"3\",\"local_date\":\"06/24/2026 12:00\",\"persian_date\":\"1405-04-03 12:00\",\"stadium_id\":\"14\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Bosnia and Herzegovina\",\"home_team_name_fa\":\"بوسنی و هرزگوین\",\"away_team_name_en\":\"Qatar\",\"away_team_name_fa\":\"قطر\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252426,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "b948a8ab-f03f-40be-812f-ac12a86843c4",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Switzerland",
         "away_team": "Canada",
-        "starts_at": 1782302400000,
+        "starts_at": 1782327600000,
         "external_source": "worldcup2026",
         "external_id": "54",
         "season": "2026",
@@ -3480,14 +3533,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e054\",\"id\":\"54\",\"home_team_id\":\"8\",\"away_team_id\":\"5\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"B\",\"matchday\":\"3\",\"local_date\":\"06/24/2026 12:00\",\"persian_date\":\"1405-04-03 12:00\",\"stadium_id\":\"13\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Switzerland\",\"home_team_name_fa\":\"سوئیس\",\"away_team_name_en\":\"Canada\",\"away_team_name_fa\":\"کانادا\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252433,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Vancouver"
       },
       {
         "id": "97e8b477-43a3-4e09-ae0a-1237a17aec49",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Curaçao",
         "away_team": "Ivory Coast",
-        "starts_at": 1782403200000,
+        "starts_at": 1782417600000,
         "external_source": "worldcup2026",
         "external_id": "55",
         "season": "2026",
@@ -3510,14 +3564,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e055\",\"id\":\"55\",\"home_team_id\":\"18\",\"away_team_id\":\"19\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"E\",\"matchday\":\"3\",\"local_date\":\"06/25/2026 16:00\",\"persian_date\":\"1405-04-04 16:00\",\"stadium_id\":\"10\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Curaçao\",\"home_team_name_fa\":\"کوراسائو\",\"away_team_name_en\":\"Ivory Coast\",\"away_team_name_fa\":\"ساحل عاج\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252441,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "21e24179-c5db-40b1-a963-c02df62205b7",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Ecuador",
         "away_team": "Germany",
-        "starts_at": 1782403200000,
+        "starts_at": 1782417600000,
         "external_source": "worldcup2026",
         "external_id": "56",
         "season": "2026",
@@ -3540,14 +3595,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e056\",\"id\":\"56\",\"home_team_id\":\"20\",\"away_team_id\":\"17\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"E\",\"matchday\":\"3\",\"local_date\":\"06/25/2026 16:00\",\"persian_date\":\"1405-04-04 16:00\",\"stadium_id\":\"11\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Ecuador\",\"home_team_name_fa\":\"اکوادور\",\"away_team_name_en\":\"Germany\",\"away_team_name_fa\":\"آلمان\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252449,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "8db249ba-1feb-4d4f-83b8-8c4e6dc0d5c2",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Paraguay",
         "away_team": "Australia",
-        "starts_at": 1782414000000,
+        "starts_at": 1782439200000,
         "external_source": "worldcup2026",
         "external_id": "57",
         "season": "2026",
@@ -3570,14 +3626,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e057\",\"id\":\"57\",\"home_team_id\":\"14\",\"away_team_id\":\"15\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"D\",\"matchday\":\"3\",\"local_date\":\"06/25/2026 19:00\",\"persian_date\":\"1405-04-04 19:00\",\"stadium_id\":\"15\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Paraguay\",\"home_team_name_fa\":\"پاراگوئه\",\"away_team_name_en\":\"Australia\",\"away_team_name_fa\":\"استرالیا\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252458,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "eba449a1-a1df-4732-afce-1608323c55a0",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Turkey",
         "away_team": "United States",
-        "starts_at": 1782414000000,
+        "starts_at": 1782439200000,
         "external_source": "worldcup2026",
         "external_id": "58",
         "season": "2026",
@@ -3600,14 +3657,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e058\",\"id\":\"58\",\"home_team_id\":\"16\",\"away_team_id\":\"13\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"D\",\"matchday\":\"3\",\"local_date\":\"06/25/2026 19:00\",\"persian_date\":\"1405-04-04 19:00\",\"stadium_id\":\"16\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Turkey\",\"home_team_name_fa\":\"ترکیه\",\"away_team_name_en\":\"United States\",\"away_team_name_fa\":\"آمریکا\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252466,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "d9172993-6310-4d70-9657-ae284487ba31",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Japan",
         "away_team": "Sweden",
-        "starts_at": 1782410400000,
+        "starts_at": 1782428400000,
         "external_source": "worldcup2026",
         "external_id": "59",
         "season": "2026",
@@ -3630,14 +3688,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e059\",\"id\":\"59\",\"home_team_id\":\"22\",\"away_team_id\":\"23\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"F\",\"matchday\":\"3\",\"local_date\":\"06/25/2026 18:00\",\"persian_date\":\"1405-04-04 18:00\",\"stadium_id\":\"4\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Japan\",\"home_team_name_fa\":\"ژاپن\",\"away_team_name_en\":\"Sweden\",\"away_team_name_fa\":\"سوئد\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252474,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "2eed3035-5c5a-42d3-87d7-b9f04f7bbdfb",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Tunisia",
         "away_team": "Netherlands",
-        "starts_at": 1782410400000,
+        "starts_at": 1782428400000,
         "external_source": "worldcup2026",
         "external_id": "60",
         "season": "2026",
@@ -3660,14 +3719,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e060\",\"id\":\"60\",\"home_team_id\":\"24\",\"away_team_id\":\"21\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"F\",\"matchday\":\"3\",\"local_date\":\"06/25/2026 18:00\",\"persian_date\":\"1405-04-04 18:00\",\"stadium_id\":\"6\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Tunisia\",\"home_team_name_fa\":\"تونس\",\"away_team_name_en\":\"Netherlands\",\"away_team_name_fa\":\"هلند\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252482,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "24d5bf21-e278-4744-81df-33e5538566b1",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Senegal",
         "away_team": "Iraq",
-        "starts_at": 1782486000000,
+        "starts_at": 1782500400000,
         "external_source": "worldcup2026",
         "external_id": "61",
         "season": "2026",
@@ -3690,14 +3750,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e061\",\"id\":\"61\",\"home_team_id\":\"34\",\"away_team_id\":\"35\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"I\",\"matchday\":\"3\",\"local_date\":\"06/26/2026 15:00\",\"persian_date\":\"1405-04-05 15:00\",\"stadium_id\":\"12\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Senegal\",\"home_team_name_fa\":\"سنگال\",\"away_team_name_en\":\"Iraq\",\"away_team_name_fa\":\"عراق\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252490,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Toronto"
       },
       {
         "id": "f7700ad2-8533-4c33-8b2b-4237350d3522",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Norway",
         "away_team": "France",
-        "starts_at": 1782486000000,
+        "starts_at": 1782500400000,
         "external_source": "worldcup2026",
         "external_id": "62",
         "season": "2026",
@@ -3720,14 +3781,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e062\",\"id\":\"62\",\"home_team_id\":\"36\",\"away_team_id\":\"33\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"I\",\"matchday\":\"3\",\"local_date\":\"06/26/2026 15:00\",\"persian_date\":\"1405-04-05 15:00\",\"stadium_id\":\"9\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Norway\",\"home_team_name_fa\":\"نروژ\",\"away_team_name_en\":\"France\",\"away_team_name_fa\":\"فرانسه\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252501,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "d22366c2-ac97-4002-9f27-794b90ca9e72",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Egypt",
         "away_team": "Iran",
-        "starts_at": 1782504000000,
+        "starts_at": 1782529200000,
         "external_source": "worldcup2026",
         "external_id": "63",
         "season": "2026",
@@ -3750,14 +3812,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e063\",\"id\":\"63\",\"home_team_id\":\"26\",\"away_team_id\":\"27\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"G\",\"matchday\":\"3\",\"local_date\":\"06/26/2026 20:00\",\"persian_date\":\"1405-04-05 20:00\",\"stadium_id\":\"14\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Egypt\",\"home_team_name_fa\":\"مصر\",\"away_team_name_en\":\"Iran\",\"away_team_name_fa\":\"ایران\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252509,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "232c0a26-a4cc-478b-b3ee-a73b1918d0d9",
         "tournament_id": "worldcup2026:2026",
         "home_team": "New Zealand",
         "away_team": "Belgium",
-        "starts_at": 1782504000000,
+        "starts_at": 1782529200000,
         "external_source": "worldcup2026",
         "external_id": "64",
         "season": "2026",
@@ -3780,14 +3843,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e064\",\"id\":\"64\",\"home_team_id\":\"28\",\"away_team_id\":\"25\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"G\",\"matchday\":\"3\",\"local_date\":\"06/26/2026 20:00\",\"persian_date\":\"1405-04-05 20:00\",\"stadium_id\":\"13\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"New Zealand\",\"home_team_name_fa\":\"نیوزیلند\",\"away_team_name_en\":\"Belgium\",\"away_team_name_fa\":\"بلژیک\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252518,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Vancouver"
       },
       {
         "id": "77220d95-b5df-49ba-9105-d8e1987e9cdf",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Cape Verde",
         "away_team": "Saudi Arabia",
-        "starts_at": 1782500400000,
+        "starts_at": 1782518400000,
         "external_source": "worldcup2026",
         "external_id": "65",
         "season": "2026",
@@ -3810,14 +3874,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e065\",\"id\":\"65\",\"home_team_id\":\"30\",\"away_team_id\":\"31\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"H\",\"matchday\":\"3\",\"local_date\":\"06/26/2026 19:00\",\"persian_date\":\"1405-04-05 19:00\",\"stadium_id\":\"5\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Cape Verde\",\"home_team_name_fa\":\"کیپ ورد\",\"away_team_name_en\":\"Saudi Arabia\",\"away_team_name_fa\":\"عربستان\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252527,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "778c9be3-0160-4a4b-a039-752ebc4e4042",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Uruguay",
         "away_team": "Spain",
-        "starts_at": 1782496800000,
+        "starts_at": 1782518400000,
         "external_source": "worldcup2026",
         "external_id": "66",
         "season": "2026",
@@ -3840,14 +3905,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e066\",\"id\":\"66\",\"home_team_id\":\"32\",\"away_team_id\":\"29\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"H\",\"matchday\":\"3\",\"local_date\":\"06/26/2026 18:00\",\"persian_date\":\"1405-04-05 18:00\",\"stadium_id\":\"2\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Uruguay\",\"home_team_name_fa\":\"اروگوئه\",\"away_team_name_en\":\"Spain\",\"away_team_name_fa\":\"اسپانیا\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252535,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Mexico_City"
       },
       {
         "id": "22d3eb9c-a9eb-4a74-963c-fe2710b1c522",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Panama",
         "away_team": "England",
-        "starts_at": 1782579600000,
+        "starts_at": 1782594000000,
         "external_source": "worldcup2026",
         "external_id": "67",
         "season": "2026",
@@ -3870,14 +3936,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e067\",\"id\":\"67\",\"home_team_id\":\"48\",\"away_team_id\":\"45\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"L\",\"matchday\":\"3\",\"local_date\":\"06/27/2026 17:00\",\"persian_date\":\"1405-04-06 17:00\",\"stadium_id\":\"11\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Panama\",\"home_team_name_fa\":\"پاناما\",\"away_team_name_en\":\"England\",\"away_team_name_fa\":\"انگلستان\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252544,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "6e930a7f-8d1d-43ab-bd4a-3ffa1c128c4f",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Croatia",
         "away_team": "Ghana",
-        "starts_at": 1782579600000,
+        "starts_at": 1782594000000,
         "external_source": "worldcup2026",
         "external_id": "68",
         "season": "2026",
@@ -3900,14 +3967,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e068\",\"id\":\"68\",\"home_team_id\":\"46\",\"away_team_id\":\"47\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"L\",\"matchday\":\"3\",\"local_date\":\"06/27/2026 17:00\",\"persian_date\":\"1405-04-06 17:00\",\"stadium_id\":\"10\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Croatia\",\"home_team_name_fa\":\"کرواسی\",\"away_team_name_en\":\"Ghana\",\"away_team_name_fa\":\"غنا\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252553,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "4a297a5e-32e5-4306-b322-c9115fb74ad1",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Algeria",
         "away_team": "Austria",
-        "starts_at": 1782594000000,
+        "starts_at": 1782612000000,
         "external_source": "worldcup2026",
         "external_id": "69",
         "season": "2026",
@@ -3930,14 +3998,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e069\",\"id\":\"69\",\"home_team_id\":\"38\",\"away_team_id\":\"39\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"J\",\"matchday\":\"3\",\"local_date\":\"06/27/2026 21:00\",\"persian_date\":\"1405-04-06 21:00\",\"stadium_id\":\"6\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Algeria\",\"home_team_name_fa\":\"الجزایر\",\"away_team_name_en\":\"Austria\",\"away_team_name_fa\":\"اتریش\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252563,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "39595010-9870-458c-a2d1-3695aa4e1293",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Jordan",
         "away_team": "Argentina",
-        "starts_at": 1782594000000,
+        "starts_at": 1782612000000,
         "external_source": "worldcup2026",
         "external_id": "70",
         "season": "2026",
@@ -3960,14 +4029,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e070\",\"id\":\"70\",\"home_team_id\":\"40\",\"away_team_id\":\"37\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"J\",\"matchday\":\"3\",\"local_date\":\"06/27/2026 21:00\",\"persian_date\":\"1405-04-06 21:00\",\"stadium_id\":\"4\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Jordan\",\"home_team_name_fa\":\"اردن\",\"away_team_name_en\":\"Argentina\",\"away_team_name_fa\":\"آرژانتین\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252571,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "0305ea52-78c0-4ca6-814a-4ad3ba3a1600",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Colombia",
         "away_team": "Portugal",
-        "starts_at": 1782588600000,
+        "starts_at": 1782603000000,
         "external_source": "worldcup2026",
         "external_id": "71",
         "season": "2026",
@@ -3990,14 +4060,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e071\",\"id\":\"71\",\"home_team_id\":\"44\",\"away_team_id\":\"41\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"K\",\"matchday\":\"3\",\"local_date\":\"06/27/2026 19:30\",\"persian_date\":\"1405-04-06 19:30\",\"stadium_id\":\"8\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Colombia\",\"home_team_name_fa\":\"کلمبیا\",\"away_team_name_en\":\"Portugal\",\"away_team_name_fa\":\"پرتغال\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252579,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "e6918abc-ed1a-41ec-a0d8-f588be936922",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Democratic Republic of the Congo",
         "away_team": "Uzbekistan",
-        "starts_at": 1782588600000,
+        "starts_at": 1782603000000,
         "external_source": "worldcup2026",
         "external_id": "72",
         "season": "2026",
@@ -4020,14 +4091,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e072\",\"id\":\"72\",\"home_team_id\":\"42\",\"away_team_id\":\"43\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"K\",\"matchday\":\"3\",\"local_date\":\"06/27/2026 19:30\",\"persian_date\":\"1405-04-06 19:30\",\"stadium_id\":\"7\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"group\",\"home_team_name_en\":\"Democratic Republic of the Congo\",\"home_team_name_fa\":\"جمهوری دموکراتیک کنگو\",\"away_team_name_en\":\"Uzbekistan\",\"away_team_name_fa\":\"ازبکستان\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252586,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "39928181-9092-4ab6-acd1-cc6b58ff991a",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Runner-up Group A",
         "away_team": "Runner-up Group B",
-        "starts_at": 1782648000000,
+        "starts_at": 1782673200000,
         "external_source": "worldcup2026",
         "external_id": "73",
         "season": "2026",
@@ -4050,14 +4122,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e073\",\"id\":\"73\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"06/28/2026 12:00\",\"persian_date\":\"1405-04-07 12:00\",\"stadium_id\":\"16\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Runner-up Group A\",\"away_team_label\":\"Runner-up Group B\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252594,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "e94a93d4-ad20-489d-b0c1-68ecc93cd16e",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group E",
         "away_team": "3rd Group A/B/C/D/F",
-        "starts_at": 1782750600000,
+        "starts_at": 1782765000000,
         "external_source": "worldcup2026",
         "external_id": "74",
         "season": "2026",
@@ -4080,14 +4153,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e074\",\"id\":\"74\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"06/29/2026 16:30\",\"persian_date\":\"1405-04-08 16:30\",\"stadium_id\":\"9\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group E\",\"away_team_label\":\"3rd Group A/B/C/D/F\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252602,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "a090ff62-aa0b-4128-ac70-6f3c4f11fa60",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group F",
         "away_team": "Runner-up Group C",
-        "starts_at": 1782759600000,
+        "starts_at": 1782781200000,
         "external_source": "worldcup2026",
         "external_id": "75",
         "season": "2026",
@@ -4110,14 +4184,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e075\",\"id\":\"75\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"06/29/2026 19:00\",\"persian_date\":\"1405-04-08 19:00\",\"stadium_id\":\"3\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group F\",\"away_team_label\":\"Runner-up Group C\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252610,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Monterrey"
       },
       {
         "id": "d3997362-4317-46b3-a7f7-05c3d82724bd",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group C",
         "away_team": "Runner-up Group F",
-        "starts_at": 1782734400000,
+        "starts_at": 1782752400000,
         "external_source": "worldcup2026",
         "external_id": "76",
         "season": "2026",
@@ -4140,14 +4215,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e076\",\"id\":\"76\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"06/29/2026 12:00\",\"persian_date\":\"1405-04-08 12:00\",\"stadium_id\":\"5\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group C\",\"away_team_label\":\"Runner-up Group F\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252618,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "6dab11d6-2af3-4c15-865e-7c54b31e3a5e",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group I",
         "away_team": "3rd Group C/D/F/G/H",
-        "starts_at": 1782838800000,
+        "starts_at": 1782853200000,
         "external_source": "worldcup2026",
         "external_id": "77",
         "season": "2026",
@@ -4170,14 +4246,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e077\",\"id\":\"77\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"06/30/2026 17:00\",\"persian_date\":\"1405-04-09 17:00\",\"stadium_id\":\"11\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group I\",\"away_team_label\":\"3rd Group C/D/F/G/H\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252626,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "e56fab1c-1e5d-485a-b533-f9464bb236a5",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Runner-up Group E",
         "away_team": "Runner-up Group I",
-        "starts_at": 1782820800000,
+        "starts_at": 1782838800000,
         "external_source": "worldcup2026",
         "external_id": "78",
         "season": "2026",
@@ -4200,14 +4277,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e078\",\"id\":\"78\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"06/30/2026 12:00\",\"persian_date\":\"1405-04-09 12:00\",\"stadium_id\":\"4\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Runner-up Group E\",\"away_team_label\":\"Runner-up Group I\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252636,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "e2531ea9-9748-48a1-abe5-4130cbef8c69",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group A",
         "away_team": "3rd Group C/E/F/H/I",
-        "starts_at": 1782846000000,
+        "starts_at": 1782867600000,
         "external_source": "worldcup2026",
         "external_id": "79",
         "season": "2026",
@@ -4230,14 +4308,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e079\",\"id\":\"79\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"06/30/2026 19:00\",\"persian_date\":\"1405-04-09 19:00\",\"stadium_id\":\"1\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group A\",\"away_team_label\":\"3rd Group C/E/F/H/I\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252644,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Mexico_City"
       },
       {
         "id": "90b29b85-abc8-42aa-ad3b-4547132b7a1c",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group L",
         "away_team": "3rd Group E/H/I/J/K",
-        "starts_at": 1782907200000,
+        "starts_at": 1782921600000,
         "external_source": "worldcup2026",
         "external_id": "80",
         "season": "2026",
@@ -4260,14 +4339,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e07a\",\"id\":\"80\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"07/01/2026 12:00\",\"persian_date\":\"1405-04-10 12:00\",\"stadium_id\":\"7\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group L\",\"away_team_label\":\"3rd Group E/H/I/J/K\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252652,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "e9a24bd7-f799-49b9-84cc-9f167dac4ee5",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group D",
         "away_team": "3rd Group B/E/F/I/J",
-        "starts_at": 1782925200000,
+        "starts_at": 1782950400000,
         "external_source": "worldcup2026",
         "external_id": "81",
         "season": "2026",
@@ -4290,14 +4370,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e07b\",\"id\":\"81\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"07/01/2026 17:00\",\"persian_date\":\"1405-04-10 17:00\",\"stadium_id\":\"15\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group D\",\"away_team_label\":\"3rd Group B/E/F/I/J\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252660,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "23491d47-48cc-4e48-9764-076cda93a716",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group G",
         "away_team": "3rd Group A/E/H/I/J",
-        "starts_at": 1782910800000,
+        "starts_at": 1782936000000,
         "external_source": "worldcup2026",
         "external_id": "82",
         "season": "2026",
@@ -4320,14 +4401,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e07c\",\"id\":\"82\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"07/01/2026 13:00\",\"persian_date\":\"1405-04-10 13:00\",\"stadium_id\":\"14\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group G\",\"away_team_label\":\"3rd Group A/E/H/I/J\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252668,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "46844bb0-43a5-4521-8919-8d78446d7a07",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Runner-up Group K",
         "away_team": "Runner-up Group L",
-        "starts_at": 1783018800000,
+        "starts_at": 1783033200000,
         "external_source": "worldcup2026",
         "external_id": "83",
         "season": "2026",
@@ -4350,14 +4432,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e07d\",\"id\":\"83\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"07/02/2026 19:00\",\"persian_date\":\"1405-04-11 19:00\",\"stadium_id\":\"12\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Runner-up Group K\",\"away_team_label\":\"Runner-up Group L\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252677,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Toronto"
       },
       {
         "id": "82951826-ba50-4de3-8cd7-baad0a9801aa",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group H",
         "away_team": "Runner-up Group J",
-        "starts_at": 1782993600000,
+        "starts_at": 1783018800000,
         "external_source": "worldcup2026",
         "external_id": "84",
         "season": "2026",
@@ -4380,14 +4463,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e07e\",\"id\":\"84\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"07/02/2026 12:00\",\"persian_date\":\"1405-04-11 12:00\",\"stadium_id\":\"16\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group H\",\"away_team_label\":\"Runner-up Group J\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252684,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "1eeffb09-90b4-4494-82d9-4ad9196a1259",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group B",
         "away_team": "3rd Group E/F/G/I/J",
-        "starts_at": 1783022400000,
+        "starts_at": 1783047600000,
         "external_source": "worldcup2026",
         "external_id": "85",
         "season": "2026",
@@ -4410,14 +4494,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e07f\",\"id\":\"85\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"07/02/2026 20:00\",\"persian_date\":\"1405-04-11 20:00\",\"stadium_id\":\"13\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group B\",\"away_team_label\":\"3rd Group E/F/G/I/J\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252692,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Vancouver"
       },
       {
         "id": "f0c1dbda-cbc9-4b0e-a1e1-712790100615",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group J",
         "away_team": "Runner-up Group H",
-        "starts_at": 1783101600000,
+        "starts_at": 1783116000000,
         "external_source": "worldcup2026",
         "external_id": "86",
         "season": "2026",
@@ -4440,14 +4525,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e080\",\"id\":\"86\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"07/03/2026 18:00\",\"persian_date\":\"1405-04-12 18:00\",\"stadium_id\":\"8\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group J\",\"away_team_label\":\"Runner-up Group H\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252700,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "7c408a77-f356-4d12-a75a-0a56267643c1",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Group K",
         "away_team": "3rd Group D/E/I/J/L",
-        "starts_at": 1783110600000,
+        "starts_at": 1783128600000,
         "external_source": "worldcup2026",
         "external_id": "87",
         "season": "2026",
@@ -4470,14 +4556,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e081\",\"id\":\"87\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"07/03/2026 20:30\",\"persian_date\":\"1405-04-12 20:30\",\"stadium_id\":\"6\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Winner Group K\",\"away_team_label\":\"3rd Group D/E/I/J/L\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252708,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "272c4220-7f7b-4944-8da2-0ea047412d78",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Runner-up Group D",
         "away_team": "Runner-up Group G",
-        "starts_at": 1783083600000,
+        "starts_at": 1783101600000,
         "external_source": "worldcup2026",
         "external_id": "88",
         "season": "2026",
@@ -4500,14 +4587,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e082\",\"id\":\"88\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R32\",\"matchday\":\"4\",\"local_date\":\"07/03/2026 13:00\",\"persian_date\":\"1405-04-12 13:00\",\"stadium_id\":\"4\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r32\",\"home_team_label\":\"Runner-up Group D\",\"away_team_label\":\"Runner-up Group G\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252716,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "fd5837b6-ed8f-4ab8-bdac-96fcd7b146ed",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 74",
         "away_team": "Winner Match 77",
-        "starts_at": 1783184400000,
+        "starts_at": 1783198800000,
         "external_source": "worldcup2026",
         "external_id": "89",
         "season": "2026",
@@ -4530,14 +4618,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e083\",\"id\":\"89\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R16\",\"matchday\":\"5\",\"local_date\":\"07/04/2026 17:00\",\"persian_date\":\"1405-04-13 17:00\",\"stadium_id\":\"10\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r16\",\"home_team_label\":\"Winner Match 74\",\"away_team_label\":\"Winner Match 77\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252724,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "49a51a63-0961-4b6f-bef3-d41c3ef14deb",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 73",
         "away_team": "Winner Match 75",
-        "starts_at": 1783166400000,
+        "starts_at": 1783184400000,
         "external_source": "worldcup2026",
         "external_id": "90",
         "season": "2026",
@@ -4560,14 +4649,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e084\",\"id\":\"90\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R16\",\"matchday\":\"5\",\"local_date\":\"07/04/2026 12:00\",\"persian_date\":\"1405-04-13 12:00\",\"stadium_id\":\"5\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r16\",\"home_team_label\":\"Winner Match 73\",\"away_team_label\":\"Winner Match 75\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252731,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "63b5b010-3f2c-40fb-8e33-5af8200b64be",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 76",
         "away_team": "Winner Match 78",
-        "starts_at": 1783267200000,
+        "starts_at": 1783281600000,
         "external_source": "worldcup2026",
         "external_id": "91",
         "season": "2026",
@@ -4590,14 +4680,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e085\",\"id\":\"91\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R16\",\"matchday\":\"5\",\"local_date\":\"07/05/2026 16:00\",\"persian_date\":\"1405-04-14 16:00\",\"stadium_id\":\"11\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r16\",\"home_team_label\":\"Winner Match 76\",\"away_team_label\":\"Winner Match 78\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252739,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "e0a8f9ad-0216-4033-8465-67399e89fea2",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 79",
         "away_team": "Winner Match 80",
-        "starts_at": 1783274400000,
+        "starts_at": 1783296000000,
         "external_source": "worldcup2026",
         "external_id": "92",
         "season": "2026",
@@ -4620,14 +4711,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e086\",\"id\":\"92\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R16\",\"matchday\":\"5\",\"local_date\":\"07/05/2026 18:00\",\"persian_date\":\"1405-04-14 18:00\",\"stadium_id\":\"1\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r16\",\"home_team_label\":\"Winner Match 79\",\"away_team_label\":\"Winner Match 80\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252747,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Mexico_City"
       },
       {
         "id": "151a8c82-3fbb-4626-8f8a-1fec32fef676",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 83",
         "away_team": "Winner Match 84",
-        "starts_at": 1783346400000,
+        "starts_at": 1783364400000,
         "external_source": "worldcup2026",
         "external_id": "93",
         "season": "2026",
@@ -4650,14 +4742,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e087\",\"id\":\"93\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R16\",\"matchday\":\"5\",\"local_date\":\"07/06/2026 14:00\",\"persian_date\":\"1405-04-15 14:00\",\"stadium_id\":\"4\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r16\",\"home_team_label\":\"Winner Match 83\",\"away_team_label\":\"Winner Match 84\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252755,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "da11e1df-3d6b-4909-96de-024ff76938ed",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 81",
         "away_team": "Winner Match 82",
-        "starts_at": 1783357200000,
+        "starts_at": 1783382400000,
         "external_source": "worldcup2026",
         "external_id": "94",
         "season": "2026",
@@ -4680,14 +4773,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e088\",\"id\":\"94\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R16\",\"matchday\":\"5\",\"local_date\":\"07/06/2026 17:00\",\"persian_date\":\"1405-04-15 17:00\",\"stadium_id\":\"14\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r16\",\"home_team_label\":\"Winner Match 81\",\"away_team_label\":\"Winner Match 82\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252765,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "828ff995-abd2-4bf1-b267-df23361764e3",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 86",
         "away_team": "Winner Match 88",
-        "starts_at": 1783425600000,
+        "starts_at": 1783440000000,
         "external_source": "worldcup2026",
         "external_id": "95",
         "season": "2026",
@@ -4710,14 +4804,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e089\",\"id\":\"95\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R16\",\"matchday\":\"5\",\"local_date\":\"07/07/2026 12:00\",\"persian_date\":\"1405-04-16 12:00\",\"stadium_id\":\"7\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r16\",\"home_team_label\":\"Winner Match 86\",\"away_team_label\":\"Winner Match 88\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252773,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "b89b0ff2-6875-46ff-9970-e76e94e85a21",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 85",
         "away_team": "Winner Match 87",
-        "starts_at": 1783429200000,
+        "starts_at": 1783454400000,
         "external_source": "worldcup2026",
         "external_id": "96",
         "season": "2026",
@@ -4740,14 +4835,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e08a\",\"id\":\"96\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"R16\",\"matchday\":\"5\",\"local_date\":\"07/07/2026 13:00\",\"persian_date\":\"1405-04-16 13:00\",\"stadium_id\":\"13\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"r16\",\"home_team_label\":\"Winner Match 85\",\"away_team_label\":\"Winner Match 87\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252781,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Vancouver"
       },
       {
         "id": "6611aae9-8175-42c2-9d57-ba0e0f06dc55",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 89",
         "away_team": "Winner Match 90",
-        "starts_at": 1783612800000,
+        "starts_at": 1783627200000,
         "external_source": "worldcup2026",
         "external_id": "97",
         "season": "2026",
@@ -4770,14 +4866,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e08b\",\"id\":\"97\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"QF\",\"matchday\":\"6\",\"local_date\":\"07/09/2026 16:00\",\"persian_date\":\"1405-04-18 16:00\",\"stadium_id\":\"9\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"qf\",\"home_team_label\":\"Winner Match 89\",\"away_team_label\":\"Winner Match 90\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252790,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "97539128-e4af-42ba-8c05-b81f7c4ee831",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 93",
         "away_team": "Winner Match 94",
-        "starts_at": 1783684800000,
+        "starts_at": 1783710000000,
         "external_source": "worldcup2026",
         "external_id": "98",
         "season": "2026",
@@ -4800,14 +4897,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e08c\",\"id\":\"98\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"QF\",\"matchday\":\"6\",\"local_date\":\"07/10/2026 12:00\",\"persian_date\":\"1405-04-19 12:00\",\"stadium_id\":\"16\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"qf\",\"home_team_label\":\"Winner Match 93\",\"away_team_label\":\"Winner Match 94\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252799,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Los_Angeles"
       },
       {
         "id": "6aec75bb-0891-43a2-a4c1-e05e3c17e4c9",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 91",
         "away_team": "Winner Match 92",
-        "starts_at": 1783789200000,
+        "starts_at": 1783803600000,
         "external_source": "worldcup2026",
         "external_id": "99",
         "season": "2026",
@@ -4830,14 +4928,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e08d\",\"id\":\"99\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"QF\",\"matchday\":\"6\",\"local_date\":\"07/11/2026 17:00\",\"persian_date\":\"1405-04-20 17:00\",\"stadium_id\":\"8\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"qf\",\"home_team_label\":\"Winner Match 91\",\"away_team_label\":\"Winner Match 92\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252807,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "49ab5baa-79ed-4a57-a3ee-dee78f9781ce",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 95",
         "away_team": "Winner Match 96",
-        "starts_at": 1783800000000,
+        "starts_at": 1783818000000,
         "external_source": "worldcup2026",
         "external_id": "100",
         "season": "2026",
@@ -4860,14 +4959,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e08e\",\"id\":\"100\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"QF\",\"matchday\":\"6\",\"local_date\":\"07/11/2026 20:00\",\"persian_date\":\"1405-04-20 20:00\",\"stadium_id\":\"6\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"qf\",\"home_team_label\":\"Winner Match 95\",\"away_team_label\":\"Winner Match 96\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252815,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "2cacc8d5-1ff6-443a-8ac7-09a8f21012ce",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 97",
         "away_team": "Winner Match 98",
-        "starts_at": 1784037600000,
+        "starts_at": 1784055600000,
         "external_source": "worldcup2026",
         "external_id": "101",
         "season": "2026",
@@ -4890,14 +4990,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e08f\",\"id\":\"101\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"SF\",\"matchday\":\"7\",\"local_date\":\"07/14/2026 14:00\",\"persian_date\":\"1405-04-23 14:00\",\"stadium_id\":\"4\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"sf\",\"home_team_label\":\"Winner Match 97\",\"away_team_label\":\"Winner Match 98\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252823,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/Chicago"
       },
       {
         "id": "6f7c03e9-00f9-43ca-bd12-b7cb037e8535",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 99",
         "away_team": "Winner Match 100",
-        "starts_at": 1784127600000,
+        "starts_at": 1784142000000,
         "external_source": "worldcup2026",
         "external_id": "102",
         "season": "2026",
@@ -4920,14 +5021,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e090\",\"id\":\"102\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"SF\",\"matchday\":\"7\",\"local_date\":\"07/15/2026 15:00\",\"persian_date\":\"1405-04-24 15:00\",\"stadium_id\":\"7\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"sf\",\"home_team_label\":\"Winner Match 99\",\"away_team_label\":\"Winner Match 100\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252831,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "bf657378-34a4-492c-b8cd-b0e7f37ca110",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Loser Match 101",
         "away_team": "Loser Match 102",
-        "starts_at": 1784394000000,
+        "starts_at": 1784408400000,
         "external_source": "worldcup2026",
         "external_id": "103",
         "season": "2026",
@@ -4950,14 +5052,15 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e091\",\"id\":\"103\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"3RD\",\"matchday\":\"8\",\"local_date\":\"07/18/2026 17:00\",\"persian_date\":\"1405-04-27 17:00\",\"stadium_id\":\"8\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"third\",\"home_team_label\":\"Loser Match 101\",\"away_team_label\":\"Loser Match 102\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252839,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       },
       {
         "id": "b8d8348c-e951-4278-be51-5c1cb9c193c8",
         "tournament_id": "worldcup2026:2026",
         "home_team": "Winner Match 101",
         "away_team": "Winner Match 102",
-        "starts_at": 1784473200000,
+        "starts_at": 1784487600000,
         "external_source": "worldcup2026",
         "external_id": "104",
         "season": "2026",
@@ -4980,8 +5083,9 @@ export const seedTables = [
         "raw_payload": "{\"_id\":\"679c9c8a5749c4077500e092\",\"id\":\"104\",\"home_team_id\":\"0\",\"away_team_id\":\"0\",\"home_score\":\"0\",\"away_score\":\"0\",\"home_scorers\":\"null\",\"away_scorers\":\"null\",\"group\":\"FINAL\",\"matchday\":\"9\",\"local_date\":\"07/19/2026 15:00\",\"persian_date\":\"1405-04-28 15:00\",\"stadium_id\":\"11\",\"finished\":\"FALSE\",\"time_elapsed\":\"notstarted\",\"type\":\"final\",\"home_team_label\":\"Winner Match 101\",\"away_team_label\":\"Winner Match 102\"}",
         "last_synced_at": 1780504247845,
         "created_at": 1780504252847,
-        "updated_at": 1780504247845
+        "updated_at": 1780504247845,
+        "starts_at_timezone": "America/New_York"
       }
     ]
-  },
+  }
 ];

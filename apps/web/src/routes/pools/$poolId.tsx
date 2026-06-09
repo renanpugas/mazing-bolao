@@ -3,6 +3,7 @@ import { Check, Eye, Plus, RefreshCw, RotateCcw, Save, Trash2, X } from "lucide-
 import { useEffect, useMemo, useState } from "react";
 
 import { PageHeader, PageShell } from "@/components/page-shell";
+import { MatchTime } from "@/components/match-time";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -227,7 +228,7 @@ function PoolOdds({ poolId, canManage }: { poolId: string; canManage: boolean })
       {oddsQuery.data?.length ? (
         <Card className="bg-card/80 backdrop-blur-sm"><CardContent className="pt-6"><Table><TableHeader><TableRow><TableHead>Partida</TableHead><TableHead>Horário</TableHead><TableHead>Mandante</TableHead><TableHead>Empate</TableHead><TableHead>Visitante</TableHead><TableHead>Ação</TableHead></TableRow></TableHeader><TableBody>{oddsQuery.data.map((match) => {
           const isUpdating = updatingMatchId === match.id;
-          return <TableRow key={match.id}><TableCell><div><p className="font-medium">{match.homeTeamLabel ?? match.homeTeam} x {match.awayTeamLabel ?? match.awayTeam}</p><p className="text-xs text-muted-foreground">{[match.stage, match.groupName].filter(Boolean).join(" · ") || "Partida"}</p></div></TableCell><TableCell>{new Date(match.startsAt).toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })}</TableCell><TableCell>{formatOdd(match.oddsHomeTeam)}</TableCell><TableCell>{formatOdd(match.oddsDraw)}</TableCell><TableCell>{formatOdd(match.oddsAwayTeam)}</TableCell><TableCell><Button className="gap-2" size="sm" disabled={!match.oddsApiMatchId || isUpdating} onClick={() => void updateOdds(match.id)}><RefreshCw className={`size-4 ${isUpdating ? "animate-spin" : ""}`} />{isUpdating ? "Atualizando" : match.oddsApiMatchId ? "Atualizar" : "Sem id"}</Button>{successMatchId === match.id ? <p className="text-xs text-emerald-600">Odds atualizadas.</p> : null}{rowError?.matchId === match.id ? <p className="text-xs text-destructive">{rowError.message}</p> : null}</TableCell></TableRow>;
+          return <TableRow key={match.id}><TableCell><div><p className="font-medium">{match.homeTeamLabel ?? match.homeTeam} x {match.awayTeamLabel ?? match.awayTeam}</p><p className="text-xs text-muted-foreground">{[match.stage, match.groupName].filter(Boolean).join(" · ") || "Partida"}</p></div></TableCell><TableCell><MatchTime startsAt={match.startsAt} startsAtTimeZone={match.startsAtTimeZone} /></TableCell><TableCell>{formatOdd(match.oddsHomeTeam)}</TableCell><TableCell>{formatOdd(match.oddsDraw)}</TableCell><TableCell>{formatOdd(match.oddsAwayTeam)}</TableCell><TableCell><Button className="gap-2" size="sm" disabled={!match.oddsApiMatchId || isUpdating} onClick={() => void updateOdds(match.id)}><RefreshCw className={`size-4 ${isUpdating ? "animate-spin" : ""}`} />{isUpdating ? "Atualizando" : match.oddsApiMatchId ? "Atualizar" : "Sem id"}</Button>{successMatchId === match.id ? <p className="text-xs text-emerald-600">Odds atualizadas.</p> : null}{rowError?.matchId === match.id ? <p className="text-xs text-destructive">{rowError.message}</p> : null}</TableCell></TableRow>;
         })}</TableBody></Table></CardContent></Card>
       ) : null}
     </div>

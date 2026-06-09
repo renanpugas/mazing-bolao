@@ -7,6 +7,7 @@ export type Jogo = {
   matchday: number | null;
   horario: string;
   startsAt: Date;
+  startsAtTimeZone: string | null;
   estadio: string | null;
   cidade: string | null;
   mandante: string;

@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { PredictionMatchCard } from "@/components/predictions/prediction-match-card";
 import { PredictionMatchList } from "@/components/predictions/prediction-match-list";
 import type { Jogo, Palpite, PalpiteUpdate, PredictionSaveStatus } from "@/components/predictions/types";
+import { formatMatchDateTime } from "@/components/match-time";
 import { PageShell } from "@/components/page-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -243,8 +244,9 @@ export function ParticipantPage() {
       stageLabel,
       groupName: item.match.groupName,
       matchday: item.match.matchday,
-      horario: startsAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" }),
+      horario: formatMatchDateTime(startsAt),
       startsAt,
+      startsAtTimeZone: item.match.startsAtTimeZone,
       estadio: item.match.stadiumName,
       cidade: item.match.stadiumCity,
       mandante: formatTeamNamePtBr(item.match.homeTeamLabel ?? item.match.homeTeam),
