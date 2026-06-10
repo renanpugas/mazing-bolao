@@ -27,6 +27,21 @@ export const useCreatePoolQuestionMutation = (poolId: string | null) => {
   );
 };
 
+export const useUpdatePoolQuestionMutation = (poolId: string | null) => {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    orpc.poolQuestions.update.mutationOptions({
+      onSuccess: () => {
+        if (!poolId) return;
+        void queryClient.invalidateQueries({ queryKey: orpc.poolQuestions.list.queryOptions({ input: { poolId } }).queryKey });
+        void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.listQuestionScores.queryOptions({ input: { poolId } }).queryKey });
+        void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.ranking.queryOptions({ input: { poolId } }).queryKey });
+      },
+    }),
+  );
+};
+
 export const useAnswerPoolQuestionMutation = (poolId: string | null) => {
   const queryClient = useQueryClient();
 

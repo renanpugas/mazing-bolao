@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useMatchOddsListQuery, useSyncMissingMatchOddsIdsMutation, useUpdateMatchOddsMutation } from "@/hooks/use-match-odds-api";
-import { usePoolQuestionAnswersQuery, useCreatePoolQuestionMutation, usePoolQuestionsListQuery, useReviewPoolQuestionAnswerMutation } from "@/hooks/use-pool-questions-api";
-import { usePoolQuestionScoresQuery, usePoolScoringConfigQuery, usePoolScoringRankingQuery, useUpdatePoolQuestionScoresMutation, useUpdatePoolScoringConfigMutation } from "@/hooks/use-pool-scoring-api";
+import { usePoolQuestionAnswersQuery, useCreatePoolQuestionMutation, usePoolQuestionsListQuery, useReviewPoolQuestionAnswerMutation, useUpdatePoolQuestionMutation } from "@/hooks/use-pool-questions-api";
+import { usePoolScoringConfigQuery, usePoolScoringRankingQuery, useUpdatePoolScoringConfigMutation } from "@/hooks/use-pool-scoring-api";
 import { useAddPoolParticipantMutation, usePoolParticipantsQuery, usePoolsListQuery, useRemovePoolParticipantMutation, useUpdatePoolMutation } from "@/hooks/use-pools-api";
 
 export const Route = createFileRoute("/pools/$poolId")({ component: PoolDetailsPage });
@@ -23,7 +23,7 @@ type Tab = "general" | "participants" | "odds" | "scoring" | "questions";
 type ScoringStage = "group" | "round_of_32" | "round_of_16" | "quarter_final" | "semi_final" | "third_place" | "final";
 type ScoringRule = { stage: ScoringStage; label: string; exactScorePoints: number; outcomePoints: number; brazilMultiplier: number };
 type OddBonusRule = { oddThreshold: number; bonusPercent: number };
-type QuestionScore = { id: string; question: string; points: number; closesAt: Date; createdAt: Date };
+type QuestionEdit = { question: string; points: number; closesAt: string };
 
 const tabs: Array<{ id: Tab; label: string }> = [
   { id: "general", label: "Geral" },
@@ -237,19 +237,15 @@ function PoolOdds({ poolId, canManage }: { poolId: string; canManage: boolean })
 
 function PoolScoring({ poolId }: { poolId: string }) {
   const configQuery = usePoolScoringConfigQuery(poolId);
-  const questionScoresQuery = usePoolQuestionScoresQuery(poolId);
   const updateConfigMutation = useUpdatePoolScoringConfigMutation(poolId);
-  const updateQuestionScoresMutation = useUpdatePoolQuestionScoresMutation(poolId);
   const [rules, setRules] = useState<ScoringRule[]>([]);
   const [oddBonusRules, setOddBonusRules] = useState<OddBonusRule[]>([]);
-  const [questionScores, setQuestionScores] = useState<QuestionScore[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
   const canManage = !!configQuery.data?.canManage;
 
   useEffect(() => { if (configQuery.data?.rules) setRules(configQuery.data.rules.map((rule) => ({ ...rule })) as ScoringRule[]); }, [configQuery.data?.rules]);
   useEffect(() => { if (configQuery.data?.oddBonusRules) setOddBonusRules(configQuery.data.oddBonusRules.map((rule) => ({ ...rule }))); }, [configQuery.data?.oddBonusRules]);
-  useEffect(() => { if (questionScoresQuery.data?.questions) setQuestionScores(questionScoresQuery.data.questions.map((question) => ({ ...question }))); }, [questionScoresQuery.data?.questions]);
 
   const saveConfig = async () => {
     setSuccessMessage(null);
@@ -262,26 +258,14 @@ function PoolScoring({ poolId }: { poolId: string }) {
     }
   };
 
-  const saveQuestionScores = async () => {
-    setSuccessMessage(null);
-    setRequestError(null);
-    try {
-      await updateQuestionScoresMutation.mutateAsync({ poolId, questions: questionScores.map(({ id, points }) => ({ id, points })) });
-      setSuccessMessage("Pontuação das perguntas salva.");
-    } catch (error) {
-      setRequestError(error instanceof Error ? error.message : "Erro ao salvar pontuação das perguntas.");
-    }
-  };
-
   return (
     <div className="space-y-4">
       {successMessage ? <Alert variant="success"><AlertDescription>{successMessage}</AlertDescription></Alert> : null}
       {requestError ? <Alert variant="destructive"><AlertTitle>Não foi possível salvar</AlertTitle><AlertDescription>{requestError}</AlertDescription></Alert> : null}
-      {configQuery.status === "pending" || questionScoresQuery.status === "pending" ? <Alert variant="info"><AlertDescription>Carregando regras de pontuação.</AlertDescription></Alert> : null}
+      {configQuery.status === "pending" ? <Alert variant="info"><AlertDescription>Carregando regras de pontuação.</AlertDescription></Alert> : null}
       <Card className="bg-card/80 backdrop-blur-sm"><CardHeader><div className="flex flex-wrap items-center justify-between gap-3"><div><CardTitle>Regras por fase</CardTitle><p className="mt-1 text-sm text-muted-foreground">Configure placar exato, resultado e bônus do Brasil.</p></div><Badge variant={canManage ? "default" : "secondary"}>{canManage ? "Editável" : "Somente leitura"}</Badge></div></CardHeader><CardContent className="space-y-4"><Table><TableHeader><TableRow><TableHead>Fase</TableHead><TableHead>Placar exato</TableHead><TableHead>Resultado</TableHead><TableHead>Brasil</TableHead></TableRow></TableHeader><TableBody>{rules.map((rule) => <TableRow key={rule.stage}><TableCell className="font-medium">{rule.label}</TableCell><TableCell><Input className="w-24" type="number" min={0} disabled={!canManage} value={rule.exactScorePoints} onChange={(event) => setRules((current) => current.map((item) => item.stage === rule.stage ? { ...item, exactScorePoints: Number(event.target.value) } : item))} /></TableCell><TableCell><Input className="w-24" type="number" min={0} disabled={!canManage} value={rule.outcomePoints} onChange={(event) => setRules((current) => current.map((item) => item.stage === rule.stage ? { ...item, outcomePoints: Number(event.target.value) } : item))} /></TableCell><TableCell><label className="flex items-center gap-2 text-sm"><input type="checkbox" disabled={!canManage} checked={rule.brazilMultiplier > 1} onChange={(event) => setRules((current) => current.map((item) => item.stage === rule.stage ? { ...item, brazilMultiplier: event.target.checked ? 2 : 1 } : item))} />{rule.brazilMultiplier > 1 ? `dobra (${rule.brazilMultiplier}x)` : "sem bônus"}</label></TableCell></TableRow>)}</TableBody></Table>
         <div className="space-y-3 border-t pt-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-sm font-semibold">Bônus por odd</h3><p className="mt-1 text-sm text-muted-foreground">Soma bônus quando a odd vencedora passa da faixa.</p></div>{canManage ? <Button variant="outline" className="gap-2" onClick={() => setOddBonusRules((current) => [...current, { oddThreshold: Math.max(1, ...current.map((rule) => rule.oddThreshold)) + 1, bonusPercent: 50 }])}><Plus className="size-4" />Adicionar faixa</Button> : null}</div>{oddBonusRules.length ? <Table><TableHeader><TableRow><TableHead>Odd acima de</TableHead><TableHead>Bônus (%)</TableHead>{canManage ? <TableHead>Remover</TableHead> : null}</TableRow></TableHeader><TableBody>{oddBonusRules.map((rule, index) => <TableRow key={`${rule.oddThreshold}-${index}`}><TableCell><Input className="w-32" type="number" min={0.01} step={0.01} disabled={!canManage} value={rule.oddThreshold} onChange={(event) => setOddBonusRules((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, oddThreshold: Number(event.target.value) } : item))} /></TableCell><TableCell><Input className="w-32" type="number" min={0} disabled={!canManage} value={rule.bonusPercent} onChange={(event) => setOddBonusRules((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, bonusPercent: Number(event.target.value) } : item))} /></TableCell>{canManage ? <TableCell><Button variant="ghost" size="sm" onClick={() => setOddBonusRules((current) => current.filter((_, itemIndex) => itemIndex !== index))}><Trash2 className="size-4" /></Button></TableCell> : null}</TableRow>)}</TableBody></Table> : <p className="text-sm text-muted-foreground">Nenhum bônus por odd configurado.</p>}</div>
         {canManage ? <div className="flex flex-wrap gap-2"><Button className="gap-2" onClick={() => void saveConfig()} disabled={updateConfigMutation.isPending}><Save className="size-4" />Salvar regras</Button><Button variant="outline" className="gap-2" onClick={() => { if (configQuery.data?.defaults) setRules(configQuery.data.defaults.map((rule) => ({ ...rule })) as ScoringRule[]); setOddBonusRules([]); }}><RotateCcw className="size-4" />Restaurar padrões</Button></div> : null}</CardContent></Card>
-      <Card className="bg-card/80 backdrop-blur-sm"><CardHeader><CardTitle>Pontuação das perguntas</CardTitle></CardHeader><CardContent className="space-y-4">{questionScores.length ? <Table><TableHeader><TableRow><TableHead>Pergunta</TableHead><TableHead>Prazo</TableHead><TableHead>Pontos</TableHead></TableRow></TableHeader><TableBody>{questionScores.map((question) => <TableRow key={question.id}><TableCell>{question.question}</TableCell><TableCell>{new Date(question.closesAt).toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })}</TableCell><TableCell><Input className="w-24" type="number" min={1} disabled={!canManage} value={question.points} onChange={(event) => setQuestionScores((current) => current.map((item) => item.id === question.id ? { ...item, points: Number(event.target.value) } : item))} /></TableCell></TableRow>)}</TableBody></Table> : <p className="text-sm text-muted-foreground">Nenhuma pergunta cadastrada.</p>}{canManage ? <Button className="gap-2" onClick={() => void saveQuestionScores()} disabled={updateQuestionScoresMutation.isPending || !questionScores.length}><Save className="size-4" />Salvar pontuação das perguntas</Button> : null}</CardContent></Card>
     </div>
   );
 }
@@ -289,15 +273,33 @@ function PoolScoring({ poolId }: { poolId: string }) {
 function PoolQuestionsAdmin({ poolId, canManage }: { poolId: string; canManage: boolean }) {
   const questionsQuery = usePoolQuestionsListQuery(poolId);
   const createQuestionMutation = useCreatePoolQuestionMutation(poolId);
+  const updateQuestionMutation = useUpdatePoolQuestionMutation(poolId);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const answersQuery = usePoolQuestionAnswersQuery(selectedQuestionId);
   const reviewMutation = useReviewPoolQuestionAnswerMutation(selectedQuestionId);
   const [newQuestion, setNewQuestion] = useState("");
   const [newPoints, setNewPoints] = useState(1);
   const [newClosesAt, setNewClosesAt] = useState(worldCup2026FinalDeadline);
+  const [questionEdits, setQuestionEdits] = useState<Record<string, QuestionEdit>>({});
+  const [savingQuestionId, setSavingQuestionId] = useState<string | null>(null);
+  const [savedQuestionId, setSavedQuestionId] = useState<string | null>(null);
+  const [questionError, setQuestionError] = useState<{ questionId: string; message: string } | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
   const selectedQuestion = useMemo(() => (questionsQuery.data ?? []).find((question) => question.id === selectedQuestionId), [questionsQuery.data, selectedQuestionId]);
+
+  useEffect(() => {
+    setQuestionEdits(
+      (questionsQuery.data ?? []).reduce<Record<string, QuestionEdit>>((acc, question) => {
+        acc[question.id] = {
+          question: question.question,
+          points: question.points,
+          closesAt: toDateTimeLocalValue(question.closesAt),
+        };
+        return acc;
+      }, {}),
+    );
+  }, [questionsQuery.data]);
 
   const createQuestion = async () => {
     setSuccessMessage(null);
@@ -325,6 +327,32 @@ function PoolQuestionsAdmin({ poolId, canManage }: { poolId: string; canManage: 
     }
   };
 
+  const updateQuestion = async (questionId: string) => {
+    const edit = questionEdits[questionId];
+    if (!edit) return;
+
+    setSuccessMessage(null);
+    setRequestError(null);
+    setSavedQuestionId(null);
+    setQuestionError(null);
+    setSavingQuestionId(questionId);
+    try {
+      await updateQuestionMutation.mutateAsync({
+        questionId,
+        question: edit.question,
+        points: edit.points,
+        closesAt: new Date(edit.closesAt),
+      });
+      setSavedQuestionId(questionId);
+      setSuccessMessage("Pergunta salva.");
+      await questionsQuery.refetch();
+    } catch (error) {
+      setQuestionError({ questionId, message: error instanceof Error ? error.message : "Erro ao salvar pergunta." });
+    } finally {
+      setSavingQuestionId(null);
+    }
+  };
+
   if (!canManage) return <Alert variant="warning"><AlertTitle>Acesso restrito</AlertTitle><AlertDescription>Somente administradores podem cadastrar ou corrigir perguntas.</AlertDescription></Alert>;
 
   return (
@@ -334,9 +362,84 @@ function PoolQuestionsAdmin({ poolId, canManage }: { poolId: string; canManage: 
       {questionsQuery.status === "pending" ? <Alert variant="info"><AlertDescription>Carregando perguntas.</AlertDescription></Alert> : null}
       {questionsQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar perguntas</AlertTitle><AlertDescription>{questionsQuery.error?.message || "Não foi possível carregar as perguntas."}</AlertDescription></Alert> : null}
       <Card className="bg-card/80 backdrop-blur-sm"><CardHeader><CardTitle>Criar pergunta</CardTitle></CardHeader><CardContent className="grid gap-4"><div className="space-y-2"><Label>Pergunta</Label><Textarea value={newQuestion} onChange={(event) => setNewQuestion(event.target.value)} placeholder="Ex.: Quem será o artilheiro da rodada?" /></div><div className="grid gap-4 md:grid-cols-2"><div className="space-y-2"><Label>Pontos</Label><Input type="number" min={1} value={newPoints} onChange={(event) => setNewPoints(Number(event.target.value))} /></div><div className="space-y-2"><Label>Prazo</Label><Input type="datetime-local" value={newClosesAt} onChange={(event) => setNewClosesAt(event.target.value)} /></div></div><Button className="w-fit gap-2" disabled={!newQuestion.trim() || createQuestionMutation.isPending} onClick={() => void createQuestion()}><Plus className="size-4" />Criar</Button></CardContent></Card>
-      <div className="grid gap-4 lg:grid-cols-[1fr_380px]"><div className="space-y-4">{(questionsQuery.data ?? []).map((question) => { const closesAt = new Date(question.closesAt); const closed = closesAt <= new Date(); return <Card key={question.id} className="bg-card/80 backdrop-blur-sm"><CardHeader className="space-y-3"><div className="flex flex-wrap items-start justify-between gap-3"><CardTitle className="text-lg">{question.question}</CardTitle><div className="flex flex-wrap gap-2"><Badge variant={closed ? "secondary" : "default"}>{closed ? "Fechada" : "Aberta"}</Badge><Badge variant="outline">{question.points} ponto(s)</Badge></div></div><p className="text-sm text-muted-foreground">Prazo: {closesAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })}</p></CardHeader><CardContent><Button className="gap-2" variant={selectedQuestionId === question.id ? "secondary" : "outline"} onClick={() => setSelectedQuestionId(question.id)}><Eye className="size-4" />Respostas</Button></CardContent></Card>; })}</div><Card className="h-fit bg-card/80 backdrop-blur-sm"><CardHeader><CardTitle>Correção</CardTitle></CardHeader><CardContent className="space-y-4">{!selectedQuestion ? <p className="text-sm text-muted-foreground">Selecione uma pergunta para ver respostas.</p> : <p className="text-sm font-medium">{selectedQuestion.question}</p>}{answersQuery.status === "pending" && selectedQuestion ? <p className="text-sm text-muted-foreground">Carregando respostas...</p> : null}{answersQuery.status === "success" && !answersQuery.data.length ? <p className="text-sm text-muted-foreground">Nenhuma resposta enviada.</p> : null}{(answersQuery.data ?? []).map((answer) => <div key={answer.id} className="space-y-3 rounded-lg border p-3"><div><p className="text-sm font-medium">{answer.user.name}</p><p className="text-xs text-muted-foreground">{answer.user.email}</p></div><p className="text-sm">{answer.answer}</p><div className="flex flex-wrap items-center justify-between gap-2"><Badge variant={answer.isCorrect === null ? "outline" : answer.isCorrect ? "default" : "destructive"}>{answer.isCorrect === null ? "Pendente" : answer.isCorrect ? "Correta" : "Errada"}</Badge><div className="flex gap-2"><Button size="sm" variant="outline" className="gap-1" disabled={reviewMutation.isPending} onClick={() => void reviewAnswer(answer.id, true)}><Check className="size-4" />Correta</Button><Button size="sm" variant="outline" className="gap-1" disabled={reviewMutation.isPending} onClick={() => void reviewAnswer(answer.id, false)}><X className="size-4" />Errada</Button></div></div></div>)}</CardContent></Card></div>
+      <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
+        <div className="space-y-4">
+          {(questionsQuery.data ?? []).map((question) => {
+            const edit = questionEdits[question.id] ?? {
+              question: question.question,
+              points: question.points,
+              closesAt: toDateTimeLocalValue(question.closesAt),
+            };
+            const closesAt = new Date(question.closesAt);
+            const closed = closesAt <= new Date();
+            const isSaving = savingQuestionId === question.id;
+            const isInvalid = !edit.question.trim() || edit.points <= 0 || !edit.closesAt;
+
+            return (
+              <Card key={question.id} className="bg-card/80 backdrop-blur-sm">
+                <CardHeader className="space-y-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <CardTitle className="text-lg">{question.question}</CardTitle>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant={closed ? "secondary" : "default"}>{closed ? "Fechada" : "Aberta"}</Badge>
+                      <Badge variant="outline">{question.points} ponto(s)</Badge>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Prazo: {closesAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })}</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Pergunta</Label>
+                    <Textarea
+                      value={edit.question}
+                      onChange={(event) => setQuestionEdits((current) => ({ ...current, [question.id]: { ...edit, question: event.target.value } }))}
+                    />
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Pontos</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={edit.points}
+                        onChange={(event) => setQuestionEdits((current) => ({ ...current, [question.id]: { ...edit, points: Number(event.target.value) } }))}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Prazo</Label>
+                      <Input
+                        type="datetime-local"
+                        value={edit.closesAt}
+                        onChange={(event) => setQuestionEdits((current) => ({ ...current, [question.id]: { ...edit, closesAt: event.target.value } }))}
+                      />
+                    </div>
+                  </div>
+                  {questionError?.questionId === question.id ? <p className="text-sm text-destructive">{questionError.message}</p> : null}
+                  {savedQuestionId === question.id ? <p className="text-sm text-emerald-600">Pergunta salva.</p> : null}
+                  <div className="flex flex-wrap gap-2">
+                    <Button className="gap-2" disabled={isInvalid || isSaving || updateQuestionMutation.isPending} onClick={() => void updateQuestion(question.id)}>
+                      <Save className="size-4" />{isSaving ? "Salvando" : "Salvar"}
+                    </Button>
+                    <Button className="gap-2" variant={selectedQuestionId === question.id ? "secondary" : "outline"} onClick={() => setSelectedQuestionId(question.id)}>
+                      <Eye className="size-4" />Respostas
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+        <Card className="h-fit bg-card/80 backdrop-blur-sm"><CardHeader><CardTitle>Correção</CardTitle></CardHeader><CardContent className="space-y-4">{!selectedQuestion ? <p className="text-sm text-muted-foreground">Selecione uma pergunta para ver respostas.</p> : <p className="text-sm font-medium">{selectedQuestion.question}</p>}{answersQuery.status === "pending" && selectedQuestion ? <p className="text-sm text-muted-foreground">Carregando respostas...</p> : null}{answersQuery.status === "success" && !answersQuery.data.length ? <p className="text-sm text-muted-foreground">Nenhuma resposta enviada.</p> : null}{(answersQuery.data ?? []).map((answer) => <div key={answer.id} className="space-y-3 rounded-lg border p-3"><div><p className="text-sm font-medium">{answer.user.name}</p><p className="text-xs text-muted-foreground">{answer.user.email}</p></div><p className="text-sm">{answer.answer}</p><div className="flex flex-wrap items-center justify-between gap-2"><Badge variant={answer.isCorrect === null ? "outline" : answer.isCorrect ? "default" : "destructive"}>{answer.isCorrect === null ? "Pendente" : answer.isCorrect ? "Correta" : "Errada"}</Badge><div className="flex gap-2"><Button size="sm" variant="outline" className="gap-1" disabled={reviewMutation.isPending} onClick={() => void reviewAnswer(answer.id, true)}><Check className="size-4" />Correta</Button><Button size="sm" variant="outline" className="gap-1" disabled={reviewMutation.isPending} onClick={() => void reviewAnswer(answer.id, false)}><X className="size-4" />Errada</Button></div></div></div>)}</CardContent></Card>
+      </div>
     </div>
   );
+}
+
+function toDateTimeLocalValue(value: Date | string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return offsetDate.toISOString().slice(0, 16);
 }
 
 function formatOdd(value: number | null | undefined) {
