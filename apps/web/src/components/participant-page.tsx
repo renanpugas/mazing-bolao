@@ -155,7 +155,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
   return <Button variant={active ? "default" : "outline"} className="h-auto flex-wrap justify-start py-2" onClick={onClick}>{children}</Button>;
 }
 
-function FreeQuestions({ perguntas, respostasLivres, setRespostasLivres, mensagemResposta, answerQuestionPending, onSave }: { perguntas: FreeQuestion[]; respostasLivres: Record<string, string>; setRespostasLivres: React.Dispatch<React.SetStateAction<Record<string, string>>>; mensagemResposta: string | null; answerQuestionPending: boolean; onSave: (questionId: string) => void }) {
+function FreeQuestions({ perguntas, respostasLivres, mensagemResposta, answerQuestionPending, onAnswerChange, onSave }: { perguntas: FreeQuestion[]; respostasLivres: Record<string, string>; mensagemResposta: string | null; answerQuestionPending: boolean; onAnswerChange: (questionId: string, answer: string) => void; onSave: (questionId: string) => void }) {
   return (
     <div className="space-y-4">
       <div><h2 className="text-xl font-semibold">Perguntas livres</h2><p className="text-sm text-muted-foreground">Responda as perguntas do bolão selecionado junto da sua rotina de jogos.</p></div>
@@ -174,7 +174,7 @@ function FreeQuestions({ perguntas, respostasLivres, setRespostasLivres, mensage
             return (
               <Card key={question.id} className="bg-card/80 backdrop-blur-sm">
                 <CardHeader className="space-y-3"><CardTitle className="text-lg">{question.question}</CardTitle><p className="text-sm text-muted-foreground">Prazo: {closesAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })}</p><div className="flex flex-wrap gap-2"><Badge variant={closed ? "secondary" : "default"}>{closed ? "Fechada" : "Aberta"}</Badge><Badge variant="outline">{question.points} ponto(s)</Badge>{!savedAnswer.trim() ? <Badge variant="warning">Sem resposta</Badge> : null}</div></CardHeader>
-                <CardContent className="space-y-3"><Textarea value={currentAnswer} onChange={(event) => setRespostasLivres((current) => ({ ...current, [question.id]: event.target.value }))} disabled={closed || answerQuestionPending} placeholder="Digite sua resposta" /><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-muted-foreground">{closed ? "Prazo encerrado" : "Resposta livre até o prazo"}</p><Button disabled={answerButtonDisabled} onClick={() => onSave(question.id)}>{answerButtonText}</Button></div></CardContent>
+                <CardContent className="space-y-3"><Textarea value={currentAnswer} onChange={(event) => onAnswerChange(question.id, event.target.value)} disabled={closed || answerQuestionPending} placeholder="Digite sua resposta" /><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-muted-foreground">{closed ? "Prazo encerrado" : "Resposta livre até o prazo"}</p><Button disabled={answerButtonDisabled} onClick={() => onSave(question.id)}>{answerButtonText}</Button></div></CardContent>
               </Card>
             );
           })}
@@ -208,6 +208,7 @@ export function ParticipantPage() {
   const [palpitesAlterados, setPalpitesAlterados] = useState<Set<string>>(new Set());
   const [saveStatuses, setSaveStatuses] = useState<Record<string, PredictionSaveStatus>>({});
   const [respostasLivres, setRespostasLivres] = useState<Record<string, string>>({});
+  const [respostasLivresAlteradas, setRespostasLivresAlteradas] = useState<Set<string>>(new Set());
   const [mensagemResposta, setMensagemResposta] = useState<string | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
@@ -231,12 +232,12 @@ export function ParticipantPage() {
   }, [predictionsQuery.data]);
 
   useEffect(() => {
-    const nextRespostas = (questionsQuery.data ?? []).reduce<Record<string, string>>((acc, question) => {
-      acc[question.id] = question.answer?.answer ?? "";
+    setRespostasLivres((current) => (questionsQuery.data ?? []).reduce<Record<string, string>>((acc, question) => {
+      const currentAnswer = current[question.id];
+      acc[question.id] = respostasLivresAlteradas.has(question.id) && currentAnswer !== undefined ? currentAnswer : question.answer?.answer ?? "";
       return acc;
-    }, {});
-    setRespostasLivres(nextRespostas);
-  }, [questionsQuery.data]);
+    }, {}));
+  }, [questionsQuery.data, respostasLivresAlteradas]);
 
   const jogos: Jogo[] = (predictionsQuery.data ?? []).map((item) => {
     const startsAt = new Date(item.match.startsAt);
@@ -363,6 +364,14 @@ export function ParticipantPage() {
   const selecionarBolao = (bolaoId: string) => {
     setBolaoSelecionadoId(bolaoId);
     setSelectedComparisonMatchId(null);
+    setRespostasLivresAlteradas(new Set());
+    setMensagemResposta(null);
+    setRequestError(null);
+  };
+
+  const atualizarRespostaLivre = (questionId: string, answer: string) => {
+    setRespostasLivres((current) => ({ ...current, [questionId]: answer }));
+    setRespostasLivresAlteradas((current) => new Set(current).add(questionId));
     setMensagemResposta(null);
     setRequestError(null);
   };
@@ -371,8 +380,14 @@ export function ParticipantPage() {
     setMensagemResposta(null);
     setRequestError(null);
     try {
-      await answerQuestionMutation.mutateAsync({ questionId, answer: respostasLivres[questionId] ?? "" });
+      const savedAnswer = await answerQuestionMutation.mutateAsync({ questionId, answer: respostasLivres[questionId] ?? "" });
+      setRespostasLivres((current) => ({ ...current, [questionId]: savedAnswer?.answer ?? respostasLivres[questionId] ?? "" }));
       await questionsQuery.refetch();
+      setRespostasLivresAlteradas((current) => {
+        const next = new Set(current);
+        next.delete(questionId);
+        return next;
+      });
       setMensagemResposta("Resposta salva.");
     } catch (error) {
       setRequestError(error instanceof Error ? error.message : "Erro ao salvar resposta.");
@@ -460,7 +475,7 @@ export function ParticipantPage() {
         {jogos.length && viewMode === "groups" ? <GroupedMatches jogos={jogos} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
         {jogos.length && viewMode === "list" ? <ListMatches jogos={jogosFiltrados} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
         {jogos.length && viewMode === "timeline" ? <TimelineMatches jogos={jogos} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
-        {viewMode === "questions" ? <FreeQuestions perguntas={perguntasLivresVisiveis} respostasLivres={respostasLivres} setRespostasLivres={setRespostasLivres} mensagemResposta={mensagemResposta} answerQuestionPending={answerQuestionMutation.isPending} onSave={salvarRespostaLivre} /> : null}
+        {viewMode === "questions" ? <FreeQuestions perguntas={perguntasLivresVisiveis} respostasLivres={respostasLivres} mensagemResposta={mensagemResposta} answerQuestionPending={answerQuestionMutation.isPending} onAnswerChange={atualizarRespostaLivre} onSave={salvarRespostaLivre} /> : null}
         {selectedComparisonMatchId ? <ComparisonModal data={comparisonQuery.data} status={comparisonQuery.status} error={comparisonQuery.error} onClose={() => setSelectedComparisonMatchId(null)} /> : null}
       </PageShell>
     </div>
