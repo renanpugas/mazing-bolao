@@ -14,7 +14,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useAnswerPoolQuestionMutation, usePoolQuestionsListQuery } from "@/hooks/use-pool-questions-api";
-import { usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
+import { usePoolScoringConfigQuery, usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
 import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useCreatePredictionMutation, usePredictionMatchComparisonQuery, usePredictionsListQuery, useUpdatePredictionMutation } from "@/hooks/use-predictions-api";
 import { useSessionQuery } from "@/hooks/use-session-api";
@@ -26,6 +26,7 @@ type ViewMode = "timeline" | "groups" | "list" | "questions";
 type StatusFilter = "all" | Jogo["status"];
 type MatchBlock = { id: string; title: string; description: string; jogos: Jogo[] };
 type FreeQuestion = { id: string; question: string; points: number; closesAt: Date | string; answer: { id: string; answer: string; isCorrect: boolean | null } | null };
+type PredictionEasterEgg = { key: number; variant: "canarinho" | "tsubasa" | "usa-loss" | "japan-loss" } | null;
 
 const stageLabels: Record<string, string> = {
   group: "Fase de grupos",
@@ -59,13 +60,20 @@ function getStatus(jogo: Pick<Jogo, "bloqueado" | "encerrado">, palpite?: Palpit
   return { status: "saved", statusLabel: "Salvo" };
 }
 
-function shouldTriggerCanarinhoEasterEgg(jogo: Jogo, palpite: Palpite & { golsMandante: number; golsVisitante: number }) {
+function getPredictionEasterEgg(jogo: Jogo, palpite: Palpite & { golsMandante: number; golsVisitante: number }): PredictionEasterEgg {
   const homeWins = palpite.golsMandante > palpite.golsVisitante;
   const awayWins = palpite.golsVisitante > palpite.golsMandante;
   const brazilLoses = (jogo.mandante === "Brasil" && awayWins) || (jogo.visitante === "Brasil" && homeWins);
   const argentinaWins = (jogo.mandante === "Argentina" && homeWins) || (jogo.visitante === "Argentina" && awayWins);
+  const japanWins = (jogo.mandante === "Japão" && homeWins) || (jogo.visitante === "Japão" && awayWins);
+  const japanLoses = (jogo.mandante === "Japão" && awayWins) || (jogo.visitante === "Japão" && homeWins);
+  const usaLoses = (jogo.mandante === "Estados Unidos" && awayWins) || (jogo.visitante === "Estados Unidos" && homeWins);
 
-  return brazilLoses || argentinaWins;
+  if (brazilLoses || argentinaWins) return { key: Date.now(), variant: "canarinho" };
+  if (japanWins) return { key: Date.now(), variant: "tsubasa" };
+  if (japanLoses) return { key: Date.now(), variant: "japan-loss" };
+  if (usaLoses) return { key: Date.now(), variant: "usa-loss" };
+  return null;
 }
 
 function groupBy<T>(items: T[], getKey: (item: T) => string) {
@@ -185,6 +193,7 @@ export function ParticipantPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [selectedComparisonMatchId, setSelectedComparisonMatchId] = useState<string | null>(null);
   const predictionsQuery = usePredictionsListQuery(bolaoSelecionadoId);
+  const scoringConfigQuery = usePoolScoringConfigQuery(bolaoSelecionadoId);
   const rankingQuery = usePoolScoringRankingQuery(bolaoSelecionadoId);
   const comparisonQuery = usePredictionMatchComparisonQuery(bolaoSelecionadoId, selectedComparisonMatchId);
   const questionsQuery = usePoolQuestionsListQuery(bolaoSelecionadoId);
@@ -203,7 +212,7 @@ export function ParticipantPage() {
   const [requestError, setRequestError] = useState<string | null>(null);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
-  const [canarinhoAnimationKey, setCanarinhoAnimationKey] = useState(0);
+  const [predictionEasterEgg, setPredictionEasterEgg] = useState<PredictionEasterEgg>(null);
 
   useEffect(() => {
     if (!bolaoSelecionadoId && boloes[0]) setBolaoSelecionadoId(boloes[0].id);
@@ -268,6 +277,7 @@ export function ParticipantPage() {
             multiplicadorBrasil: item.match.scoring.brazilMultiplier,
           }
         : null,
+      oddBonusRules: scoringConfigQuery.data?.oddBonusRules ?? [],
     };
   });
 
@@ -290,9 +300,7 @@ export function ParticipantPage() {
 
         void save
           .then((result) => {
-            if (shouldTriggerCanarinhoEasterEgg(jogo, completePalpite)) {
-              setCanarinhoAnimationKey((current) => current + 1);
-            }
+            setPredictionEasterEgg(getPredictionEasterEgg(jogo, completePalpite));
             setPalpitesLocais((current) => ({
               ...current,
               [jogoId]: { ...(current[jogoId] ?? completePalpite), id: result?.id ?? current[jogoId]?.id ?? null },
@@ -384,7 +392,7 @@ export function ParticipantPage() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-transparent">
-      <CanarinhoEasterEgg animationKey={canarinhoAnimationKey} />
+      <PredictionEasterEggOverlay effect={predictionEasterEgg} />
       <PageShell wide className="space-y-6">
         <Card className="overflow-hidden border-primary/20 bg-primary text-primary-foreground shadow-lg">
           <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_360px] lg:items-end">
@@ -459,20 +467,33 @@ export function ParticipantPage() {
   );
 }
 
-function CanarinhoEasterEgg({ animationKey }: { animationKey: number }) {
+function PredictionEasterEggOverlay({ effect }: { effect: PredictionEasterEgg }) {
   useEffect(() => {
-    if (!animationKey) return;
+    if (!effect) return;
 
-    const audio = new Audio("/aqui-e-o-brasil.mp3");
+    const audioSrc = effect.variant === "canarinho"
+      ? "/aqui-e-o-brasil.mp3"
+      : effect.variant === "usa-loss"
+        ? "/i_dont_remember_asking.mp3"
+        : effect.variant === "japan-loss"
+          ? "/musica-mais-triste-do-naruto-mp3cut.mp3"
+          : null;
+    if (!audioSrc) return;
+
+    const audio = new Audio(audioSrc);
     audio.currentTime = 0;
     void audio.play().catch(() => undefined);
-  }, [animationKey]);
+  }, [effect]);
 
-  if (!animationKey) return null;
+  if (!effect) return null;
+
+  const imageSrc = effect.variant === "canarinho" ? "/canarinho.png" : effect.variant === "tsubasa" ? "/tsubasa.png" : null;
+
+  if (!imageSrc) return null;
 
   return createPortal(
-    <div key={animationKey} className="pointer-events-none fixed inset-0 z-[1000] overflow-hidden">
-      <img src="/canarinho.png" alt="" aria-hidden="true" className="absolute top-[90%] w-[min(88vw,720px)] -translate-y-1/2 animate-[canarinho-slide_7.2s_ease-in-out_forwards] select-none drop-shadow-2xl" />
+    <div key={effect.key} className="pointer-events-none fixed inset-0 z-[1000] overflow-hidden">
+      <img src={imageSrc} alt="" aria-hidden="true" className="absolute top-[90%] w-[min(88vw,720px)] -translate-y-1/2 animate-[canarinho-slide_7.2s_ease-in-out_forwards] select-none drop-shadow-2xl" />
       <style>{`
         @keyframes canarinho-slide {
           0% {

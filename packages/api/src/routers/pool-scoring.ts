@@ -482,7 +482,11 @@ export const poolScoringRouter = {
             awayGoals: showPrediction ? row.predictionAwayGoals : null,
             points: showPrediction ? score?.points ?? 0 : 0,
             resultType: showPrediction ? score?.type ?? "none" : "none",
+            brazilBonusApplied: showPrediction ? score?.multiplied ?? false : false,
+            brazilBonusMultiplier: showPrediction ? score?.rule.brazilMultiplier ?? 1 : 1,
             oddBonusPoints: showPrediction ? score?.oddBonusPoints ?? 0 : 0,
+            oddBonusPercent: showPrediction ? score?.oddBonusPercent ?? 0 : 0,
+            oddUsed: showPrediction ? score?.oddUsed ?? null : null,
             oddBonusApplied: showPrediction ? score?.oddBonusApplied ?? false : false,
           };
         }),

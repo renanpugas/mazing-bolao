@@ -12,6 +12,10 @@ import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useSessionQuery } from "@/hooks/use-session-api";
 import { cn } from "@/lib/utils";
 
+function formatOdd(value: number | null | undefined) {
+  return value === null || value === undefined ? "-" : value.toFixed(2);
+}
+
 export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: string | null }) {
   const poolsQuery = usePoolsListQuery();
   const sessionQuery = useSessionQuery();
@@ -92,11 +96,12 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
                     <TableHead>Posição</TableHead>
                     <TableHead>Participante</TableHead>
                     <TableHead>Pontos</TableHead>
+                    <TableHead>Bônus odds</TableHead>
+                    <TableHead>Bônus Brasil</TableHead>
                     <TableHead>Placares exatos</TableHead>
                     <TableHead>Resultados corretos</TableHead>
                     <TableHead>Perguntas corretas</TableHead>
                     <TableHead>Pontos perguntas</TableHead>
-                    <TableHead>Bônus Brasil</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -125,11 +130,21 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
                           </div>
                         </TableCell>
                         <TableCell className="font-semibold">{entry.points}</TableCell>
+                        <TableCell>
+                          {entry.oddBonuses > 0 ? (
+                            <div>
+                              <p className="font-medium">{entry.oddBonuses}x</p>
+                              <p className="text-xs text-emerald-700">+{entry.oddBonusPoints} pts</p>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">0</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{entry.brazilBonuses}</TableCell>
                         <TableCell>{entry.exactScores}</TableCell>
                         <TableCell>{entry.correctOutcomes}</TableCell>
                         <TableCell>{entry.correctQuestions}</TableCell>
                         <TableCell>{entry.questionPoints}</TableCell>
-                        <TableCell>{entry.brazilBonuses}</TableCell>
                       </TableRow>
                     );
                   })}
@@ -202,8 +217,19 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
                           </TableCell>
                           <TableCell>{item.homeScore !== null && item.awayScore !== null ? <span className="font-semibold">{item.homeScore} x {item.awayScore}</span> : <span className="text-muted-foreground">-</span>}</TableCell>
                           <TableCell className="font-semibold">
-                            {item.points}
-                            {item.oddBonusApplied ? <span className="ml-1 text-xs text-emerald-700">(+{item.oddBonusPoints})</span> : null}
+                            <div>
+                              <p>{item.points}</p>
+                              {item.brazilBonusApplied ? (
+                                <p className="text-xs font-medium text-sky-700">
+                                  Bônus Brasil: {item.brazilBonusMultiplier}x
+                                </p>
+                              ) : null}
+                              {item.oddBonusApplied ? (
+                                <p className="text-xs font-medium text-emerald-700">
+                                  Bônus odd: +{item.oddBonusPoints} pts ({item.oddBonusPercent}% sobre odd {formatOdd(item.oddUsed)})
+                                </p>
+                              ) : null}
+                            </div>
                           </TableCell>
                           <TableCell><Badge variant={resultVariant}>{resultLabel}</Badge></TableCell>
                         </TableRow>

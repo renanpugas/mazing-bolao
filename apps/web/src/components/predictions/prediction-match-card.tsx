@@ -40,6 +40,20 @@ export function PredictionMatchCard({
   compact?: boolean;
   timeline?: boolean;
 }) {
+  const applicableOddBonusRules = Array.from(
+    new Map(
+      [jogo.oddsMandante, jogo.oddsEmpate, jogo.oddsVisitante]
+        .filter((odd): odd is number => odd !== null)
+        .map((odd) =>
+          jogo.oddBonusRules
+            .filter((rule) => odd > rule.oddThreshold)
+            .sort((left, right) => right.oddThreshold - left.oddThreshold)[0],
+        )
+        .filter((rule): rule is (typeof jogo.oddBonusRules)[number] => !!rule)
+        .map((rule) => [`${rule.oddThreshold}-${rule.bonusPercent}`, rule]),
+    ).values(),
+  );
+
   return (
     <Card className={timeline ? "w-full" : undefined}>
       <CardHeader className={compact ? "p-4" : undefined}>
@@ -53,6 +67,11 @@ export function PredictionMatchCard({
               <Badge variant="outline">Placar exato: {jogo.pontuacao.placarExato} pts</Badge>
               <Badge variant="outline">Resultado: {jogo.pontuacao.resultado} pts</Badge>
               {jogo.pontuacao.jogoBrasil ? <Badge>Jogo do Brasil {jogo.pontuacao.multiplicadorBrasil}x</Badge> : null}
+              {applicableOddBonusRules.map((rule) => (
+                <Badge key={`${rule.oddThreshold}-${rule.bonusPercent}`} variant="secondary">
+                  Odd &gt; {formatOdd(rule.oddThreshold)}: +{rule.bonusPercent}%
+                </Badge>
+              ))}
             </div>
           ) : null}
         </div>

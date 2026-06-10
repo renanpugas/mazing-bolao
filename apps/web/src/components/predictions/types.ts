@@ -29,6 +29,10 @@ export type Jogo = {
     jogoBrasil: boolean;
     multiplicadorBrasil: number;
   } | null;
+  oddBonusRules: {
+    oddThreshold: number;
+    bonusPercent: number;
+  }[];
 };
 
 export type Palpite = {
