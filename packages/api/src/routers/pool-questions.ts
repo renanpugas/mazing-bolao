@@ -59,6 +59,52 @@ export const poolQuestionsRouter = {
 
       return newQuestion;
     }),
+  update: protectedProcedure
+    .input(
+      z.object({
+        questionId: z.string().trim().min(1, "Pergunta é obrigatória"),
+        question: questionInput,
+        points: z.number().int().positive("Pontuação deve ser um inteiro positivo"),
+        closesAt: z.coerce.date(),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      const userId = context.session.user.id;
+      const currentQuestion = await db.query.poolQuestion.findFirst({
+        where: eq(poolQuestion.id, input.questionId),
+        columns: { id: true, poolId: true },
+      });
+
+      if (!currentQuestion) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Pergunta não encontrada",
+        });
+      }
+
+      await requirePoolManager(currentQuestion.poolId, userId);
+
+      const result = await db
+        .update(poolQuestion)
+        .set({
+          question: input.question,
+          points: input.points,
+          closesAt: input.closesAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(poolQuestion.id, input.questionId))
+        .returning({
+          id: poolQuestion.id,
+          poolId: poolQuestion.poolId,
+          createdByUserId: poolQuestion.createdByUserId,
+          question: poolQuestion.question,
+          points: poolQuestion.points,
+          closesAt: poolQuestion.closesAt,
+          createdAt: poolQuestion.createdAt,
+          updatedAt: poolQuestion.updatedAt,
+        });
+
+      return result[0];
+    }),
   list: protectedProcedure
     .input(
       z.object({

@@ -50,6 +50,14 @@ describe("Pool questions routes E2E", () => {
     });
     expect(createResponse.status).toBe(401);
 
+    const updateResponse = await rpc(createAgent(), "poolQuestions/update", {
+      questionId: crypto.randomUUID(),
+      question: "Pergunta editada",
+      points: 3,
+      closesAt: new Date().toISOString(),
+    });
+    expect(updateResponse.status).toBe(401);
+
     const listResponse = await rpc(createAgent(), "poolQuestions/list", { poolId: crypto.randomUUID() });
     expect(listResponse.status).toBe(401);
 
@@ -97,6 +105,143 @@ describe("Pool questions routes E2E", () => {
     expect(response.status).toBe(200);
     expect(response.body.question).toBe("Artilheiro?");
     expect(response.body.points).toBe(5);
+  });
+
+  it("should allow admins to update question, points and closesAt", async () => {
+    const { owner, poolId } = await createPoolFixture();
+    const questionId = crypto.randomUUID();
+    const closesAt = new Date(Date.now() + 120_000);
+    await db.insert(poolQuestion).values({
+      id: questionId,
+      poolId,
+      createdByUserId: owner.id,
+      question: "Pergunta original",
+      points: 2,
+      closesAt: new Date(Date.now() + 60_000),
+    });
+
+    const response = await rpc(adminAgent, "poolQuestions/update", {
+      questionId,
+      question: "Pergunta editada",
+      points: 8,
+      closesAt: closesAt.toISOString(),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      id: questionId,
+      poolId,
+      createdByUserId: owner.id,
+      question: "Pergunta editada",
+      points: 8,
+    });
+    expect(new Date(response.body.closesAt).getTime()).toBe(closesAt.getTime());
+
+    const updatedQuestion = await db.query.poolQuestion.findFirst({
+      where: (table, { eq }) => eq(table.id, questionId),
+    });
+    expect(updatedQuestion?.question).toBe("Pergunta editada");
+    expect(updatedQuestion?.points).toBe(8);
+    expect(updatedQuestion?.closesAt.getTime()).toBe(closesAt.getTime());
+  });
+
+  it("should allow only admins to update questions", async () => {
+    const { owner, poolId } = await createPoolFixture();
+    const questionId = crypto.randomUUID();
+    await db.insert(poolQuestion).values({
+      id: questionId,
+      poolId,
+      createdByUserId: owner.id,
+      question: "Pergunta",
+      points: 1,
+      closesAt: new Date(Date.now() + 60_000),
+    });
+
+    const participantResponse = await rpc(participantAgent, "poolQuestions/update", {
+      questionId,
+      question: "Participante tentou editar",
+      points: 3,
+      closesAt: new Date(Date.now() + 120_000).toISOString(),
+    });
+    expect(participantResponse.status).toBe(403);
+
+    const ownerResponse = await rpc(ownerAgent, "poolQuestions/update", {
+      questionId,
+      question: "Dono tentou editar",
+      points: 3,
+      closesAt: new Date(Date.now() + 120_000).toISOString(),
+    });
+    expect(ownerResponse.status).toBe(403);
+  });
+
+  it("should return 404 when updating a missing question", async () => {
+    await createPoolFixture();
+
+    const response = await rpc(adminAgent, "poolQuestions/update", {
+      questionId: crypto.randomUUID(),
+      question: "Pergunta editada",
+      points: 3,
+      closesAt: new Date().toISOString(),
+    });
+
+    expect(response.status).toBe(404);
+  });
+
+  it("should validate update question text and points", async () => {
+    const { owner, poolId } = await createPoolFixture();
+    const questionId = crypto.randomUUID();
+    await db.insert(poolQuestion).values({
+      id: questionId,
+      poolId,
+      createdByUserId: owner.id,
+      question: "Pergunta",
+      points: 1,
+      closesAt: new Date(Date.now() + 60_000),
+    });
+
+    const emptyQuestionResponse = await rpc(adminAgent, "poolQuestions/update", {
+      questionId,
+      question: "   ",
+      points: 3,
+      closesAt: new Date().toISOString(),
+    });
+    expect(emptyQuestionResponse.status).toBe(400);
+
+    const invalidPointsResponse = await rpc(adminAgent, "poolQuestions/update", {
+      questionId,
+      question: "Pergunta válida",
+      points: 0,
+      closesAt: new Date().toISOString(),
+    });
+    expect(invalidPointsResponse.status).toBe(400);
+  });
+
+  it("should accept past closesAt on update and block new answers", async () => {
+    const { owner, poolId } = await createPoolFixture();
+    const questionId = crypto.randomUUID();
+    const pastClosesAt = new Date(Date.now() - 60_000);
+    await db.insert(poolQuestion).values({
+      id: questionId,
+      poolId,
+      createdByUserId: owner.id,
+      question: "Ainda aberta",
+      points: 2,
+      closesAt: new Date(Date.now() + 60_000),
+    });
+
+    const updateResponse = await rpc(adminAgent, "poolQuestions/update", {
+      questionId,
+      question: "Fechada agora",
+      points: 2,
+      closesAt: pastClosesAt.toISOString(),
+    });
+    expect(updateResponse.status).toBe(200);
+
+    const answerResponse = await rpc(participantAgent, "poolQuestions/answer", {
+      questionId,
+      answer: "Tarde demais",
+    });
+    expect(answerResponse.status).toBe(403);
   });
 
   it("should validate positive integer points and future closesAt", async () => {
