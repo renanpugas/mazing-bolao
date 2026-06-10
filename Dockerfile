@@ -29,6 +29,8 @@ RUN pnpm --filter web build
 
 FROM base AS server-runtime
 
+ENV NODE_ENV=production
+
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=build /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
@@ -46,4 +48,7 @@ CMD ["node", "apps/server/dist/index.mjs"]
 FROM nginx:1.27-alpine AS web-runtime
 
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/web-env.sh /docker-entrypoint.d/40-web-env.sh
 COPY --from=build /app/apps/web/dist /usr/share/nginx/html
+
+RUN chmod +x /docker-entrypoint.d/40-web-env.sh

@@ -88,6 +88,7 @@ cp .env.docker.example .env.docker
 
 - `BETTER_AUTH_SECRET`
 - `BETTER_AUTH_URL`
+- `VITE_SERVER_URL` (leave empty to use the same origin as the frontend)
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `ODDS_API_KEY`
@@ -102,6 +103,6 @@ The stack will:
 
 - run the existing `pnpm db:setup` flow in a one-off `setup` service
 - start the API in production mode
-- serve the built frontend through Nginx on [http://localhost:8080](http://localhost:8080)
+- serve the built frontend through Nginx on [http://localhost:3010](http://localhost:3010)
 
 The SQLite database is persisted in the `db_data` Docker volume.

@@ -4,9 +4,11 @@ import { fileURLToPath } from "node:url";
 
 import { seedTables } from "./seed-data.mjs";
 
-dotenv.config({
-  path: fileURLToPath(new URL("../../../apps/server/.env", import.meta.url)),
-});
+if (!process.env.DATABASE_URL) {
+  dotenv.config({
+    path: fileURLToPath(new URL("../../../apps/server/.env", import.meta.url)),
+  });
+}
 
 const databaseUrl = process.env.DATABASE_URL;
 

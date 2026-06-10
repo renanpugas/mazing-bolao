@@ -2,9 +2,11 @@ import { createClient } from "@libsql/client";
 import dotenv from "dotenv";
 import { fileURLToPath } from "node:url";
 
-dotenv.config({
-  path: fileURLToPath(new URL("../../../apps/server/.env", import.meta.url)),
-});
+if (!process.env.DATABASE_URL) {
+  dotenv.config({
+    path: fileURLToPath(new URL("../../../apps/server/.env", import.meta.url)),
+  });
+}
 
 const databaseUrl = process.env.DATABASE_URL;
 

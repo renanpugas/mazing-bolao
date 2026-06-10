@@ -1,5 +1,12 @@
 node_modules
 .git
+.env
+.env.*
+!.env.example
+!.env.docker.example
+**/.env
+**/.env.*
+!**/.env.example
 .turbo
 .agents
 .codex
