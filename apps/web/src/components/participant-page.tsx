@@ -26,7 +26,7 @@ type ViewMode = "timeline" | "groups" | "list" | "questions";
 type StatusFilter = "all" | Jogo["status"];
 type MatchBlock = { id: string; title: string; description: string; jogos: Jogo[] };
 type FreeQuestion = { id: string; question: string; points: number; closesAt: Date | string; answer: { id: string; answer: string; isCorrect: boolean | null } | null };
-type PredictionEasterEgg = { key: number; variant: "canarinho" | "tsubasa" | "usa-loss" | "japan-loss" } | null;
+type PredictionEasterEgg = { key: number; variant: "canarinho" | "tsubasa" | "usa-loss" | "japan-loss" | "cr7" | "memphis" | "germany-audio" | "mexico-loss" | "south-korea-win" | "spain-win" | "france-win" | "colombia-win" } | null;
 
 const stageLabels: Record<string, string> = {
   group: "Fase de grupos",
@@ -65,10 +65,26 @@ function getPredictionEasterEgg(jogo: Jogo, palpite: Palpite & { golsMandante: n
   const awayWins = palpite.golsVisitante > palpite.golsMandante;
   const brazilLoses = (jogo.mandante === "Brasil" && awayWins) || (jogo.visitante === "Brasil" && homeWins);
   const argentinaWins = (jogo.mandante === "Argentina" && homeWins) || (jogo.visitante === "Argentina" && awayWins);
+  const germanyWins = (jogo.mandante === "Alemanha" && homeWins) || (jogo.visitante === "Alemanha" && awayWins);
+  const mexicoLoses = (jogo.mandante === "México" && awayWins) || (jogo.visitante === "México" && homeWins);
+  const southKoreaWins = (jogo.mandante === "Coreia do Sul" && homeWins) || (jogo.visitante === "Coreia do Sul" && awayWins);
+  const spainWins = (jogo.mandante === "Espanha" && homeWins) || (jogo.visitante === "Espanha" && awayWins);
+  const franceWins = (jogo.mandante === "França" && homeWins) || (jogo.visitante === "França" && awayWins);
+  const colombiaWins = (jogo.mandante === "Colômbia" && homeWins) || (jogo.visitante === "Colômbia" && awayWins);
+  const portugalWins = (jogo.mandante === "Portugal" && homeWins) || (jogo.visitante === "Portugal" && awayWins);
+  const netherlandsWins = (jogo.mandante === "Países Baixos" && homeWins) || (jogo.visitante === "Países Baixos" && awayWins);
   const japanWins = (jogo.mandante === "Japão" && homeWins) || (jogo.visitante === "Japão" && awayWins);
   const japanLoses = (jogo.mandante === "Japão" && awayWins) || (jogo.visitante === "Japão" && homeWins);
   const usaLoses = (jogo.mandante === "Estados Unidos" && awayWins) || (jogo.visitante === "Estados Unidos" && homeWins);
 
+  if (germanyWins) return { key: Date.now(), variant: "germany-audio" };
+  if (mexicoLoses) return { key: Date.now(), variant: "mexico-loss" };
+  if (southKoreaWins) return { key: Date.now(), variant: "south-korea-win" };
+  if (spainWins) return { key: Date.now(), variant: "spain-win" };
+  if (franceWins) return { key: Date.now(), variant: "france-win" };
+  if (colombiaWins) return { key: Date.now(), variant: "colombia-win" };
+  if (portugalWins) return { key: Date.now(), variant: "cr7" };
+  if (netherlandsWins) return { key: Date.now(), variant: "memphis" };
   if (brazilLoses || argentinaWins) return { key: Date.now(), variant: "canarinho" };
   if (japanWins) return { key: Date.now(), variant: "tsubasa" };
   if (japanLoses) return { key: Date.now(), variant: "japan-loss" };
@@ -488,6 +504,22 @@ function PredictionEasterEggOverlay({ effect }: { effect: PredictionEasterEgg })
 
     const audioSrc = effect.variant === "canarinho"
       ? "/aqui-e-o-brasil.mp3"
+      : effect.variant === "cr7"
+        ? "/cr7-siuu.mp3"
+      : effect.variant === "germany-audio"
+        ? "/among-us-role-reveal-sound.mp3"
+      : effect.variant === "mexico-loss"
+        ? "/tema-triste-chaves.mp3"
+      : effect.variant === "south-korea-win"
+        ? "/soda-pop-kpop-demon-hunters-saja-boys-mp3.mp3"
+      : effect.variant === "spain-win"
+        ? "/espanha.mp3"
+      : effect.variant === "france-win"
+        ? "/french-music.mp3"
+      : effect.variant === "colombia-win"
+        ? "/waka-fifa.mp3"
+      : effect.variant === "memphis"
+        ? "/tu-tu-tu-du-max-verstappen.mp3"
       : effect.variant === "usa-loss"
         ? "/i_dont_remember_asking.mp3"
         : effect.variant === "japan-loss"
@@ -502,13 +534,27 @@ function PredictionEasterEggOverlay({ effect }: { effect: PredictionEasterEgg })
 
   if (!effect) return null;
 
-  const imageSrc = effect.variant === "canarinho" ? "/canarinho.png" : effect.variant === "tsubasa" ? "/tsubasa.png" : null;
+  const imageSrc = effect.variant === "canarinho"
+    ? "/canarinho.png"
+    : effect.variant === "tsubasa"
+      ? "/tsubasa.png"
+      : effect.variant === "cr7"
+        ? "/cr7.png"
+        : effect.variant === "memphis"
+          ? "/memphis.png"
+        : null;
 
   if (!imageSrc) return null;
 
+  const imageClassName = effect.variant === "cr7"
+    ? "absolute top-0 left-0 w-[min(55vw,520px)] animate-[cr7-slide_1.15s_linear_forwards] select-none drop-shadow-2xl will-change-transform"
+    : effect.variant === "memphis"
+      ? "absolute top-0 left-0 w-[min(52vw,500px)] animate-[memphis-slide_2.4s_linear_forwards] select-none drop-shadow-2xl will-change-transform"
+    : "absolute top-[90%] w-[min(88vw,720px)] -translate-y-1/2 animate-[canarinho-slide_7.2s_ease-in-out_forwards] select-none drop-shadow-2xl";
+
   return createPortal(
     <div key={effect.key} className="pointer-events-none fixed inset-0 z-[1000] overflow-hidden">
-      <img src={imageSrc} alt="" aria-hidden="true" className="absolute top-[90%] w-[min(88vw,720px)] -translate-y-1/2 animate-[canarinho-slide_7.2s_ease-in-out_forwards] select-none drop-shadow-2xl" />
+      <img src={imageSrc} alt="" aria-hidden="true" className={imageClassName} />
       <style>{`
         @keyframes canarinho-slide {
           0% {
@@ -528,6 +574,37 @@ function PredictionEasterEggOverlay({ effect }: { effect: PredictionEasterEgg })
             left: 50%;
             opacity: 0;
             transform: translateY(-50%) translateX(-50%) scale(0.96);
+          }
+        }
+
+        @keyframes cr7-slide {
+          0% {
+            opacity: 0;
+            transform: translate(105vw, 105vh) rotate(12deg) scale(0.92);
+          }
+          10% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 1;
+            transform: translate(-120%, -25vh) rotate(-8deg) scale(1.04);
+          }
+        }
+
+        @keyframes memphis-slide {
+          0% {
+            opacity: 0;
+            transform: translate(105vw, 100vh) rotate(10deg) scale(0.9);
+          }
+          10% {
+            opacity: 1;
+          }
+          85% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0.98;
+            transform: translate(-120%, -18vh) rotate(-6deg) scale(1.02);
           }
         }
       `}</style>
