@@ -3,10 +3,10 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 
-import { serverUrl } from "@/lib/config";
+import { rpcUrl } from "@/lib/config";
 
 const rpcLink = new RPCLink({
-  url: `${serverUrl}/rpc`,
+  url: rpcUrl,
   fetch(url, options) {
     return fetch(url, {
       ...options,

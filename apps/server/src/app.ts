@@ -1,6 +1,7 @@
 import { createContext } from "@mazing-bolao/api/context";
 import { appRouter } from "@mazing-bolao/api/routers/index";
 import { auth } from "@mazing-bolao/auth";
+import { env } from "@mazing-bolao/env/server";
 import { OpenAPIHandler } from "@orpc/openapi/node";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
@@ -10,10 +11,11 @@ import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
 
+const allowedOrigins = new Set(env.CORS_ORIGIN.split(",").map((origin) => origin.trim()).filter(Boolean));
+
 const isAllowedOrigin = (origin: string) => {
   try {
-    const { protocol, hostname } = new URL(origin);
-    return ["http:", "https:"].includes(protocol) && ["localhost", "127.0.0.1", "::1", "[::1]", "192.168.15.11"].includes(hostname);
+    return allowedOrigins.has(new URL(origin).origin);
   } catch {
     return false;
   }
@@ -76,17 +78,21 @@ export function createApp() {
   });
 
   app.use(async (req, res, next) => {
-    const rpcResult = await rpcHandler.handle(req, res, {
-      prefix: "/rpc",
-      context: await createContext({ req }),
-    });
-    if (rpcResult.matched) return;
+    for (const prefix of ["/rpc", "/api/rpc"] as const) {
+      const rpcResult = await rpcHandler.handle(req, res, {
+        prefix,
+        context: await createContext({ req }),
+      });
+      if (rpcResult.matched) return;
+    }
 
-    const apiResult = await apiHandler.handle(req, res, {
-      prefix: "/api-reference",
-      context: await createContext({ req }),
-    });
-    if (apiResult.matched) return;
+    for (const prefix of ["/api-reference", "/api/api-reference"] as const) {
+      const apiResult = await apiHandler.handle(req, res, {
+        prefix,
+        context: await createContext({ req }),
+      });
+      if (apiResult.matched) return;
+    }
 
     next();
   });
