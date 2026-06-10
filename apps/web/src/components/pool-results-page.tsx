@@ -10,10 +10,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { usePoolScoringParticipantPredictionsQuery, usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
 import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useSessionQuery } from "@/hooks/use-session-api";
+import { formatTeamNamePtBr } from "@/lib/team-names";
 import { cn } from "@/lib/utils";
 
 function formatOdd(value: number | null | undefined) {
   return value === null || value === undefined ? "-" : value.toFixed(2);
+}
+
+function TeamNameWithFlag({ emoji, name }: { emoji: string | null | undefined; name: string }) {
+  return (
+    <span className="inline-flex min-w-0 items-center gap-1.5">
+      {emoji ? <span className="text-sm leading-none" aria-hidden="true">{emoji}</span> : null}
+      <span className="truncate">{formatTeamNamePtBr(name)}</span>
+    </span>
+  );
 }
 
 export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: string | null }) {
@@ -203,7 +213,11 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
                         <TableRow key={item.matchId}>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{homeTeam} x {awayTeam}</p>
+                              <p className="flex flex-wrap items-center gap-1.5 font-medium">
+                                <TeamNameWithFlag emoji={item.homeTeamEmoji} name={homeTeam} />
+                                <span className="text-muted-foreground">x</span>
+                                <TeamNameWithFlag emoji={item.awayTeamEmoji} name={awayTeam} />
+                              </p>
                               <p className="text-xs text-muted-foreground">{item.finished ? "Encerrada" : "Pendente"}</p>
                             </div>
                           </TableCell>
