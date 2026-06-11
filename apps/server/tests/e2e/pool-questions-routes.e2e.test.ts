@@ -1,4 +1,5 @@
 import { db, pool, poolQuestion, poolQuestionAnswer, poolUser } from "@mazing-bolao/db";
+import { eq } from "drizzle-orm";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
@@ -69,6 +70,12 @@ describe("Pool questions routes E2E", () => {
 
     const listAnswersResponse = await rpc(createAgent(), "poolQuestions/listAnswers", { questionId: crypto.randomUUID() });
     expect(listAnswersResponse.status).toBe(401);
+
+    const comparisonResponse = await rpc(createAgent(), "poolQuestions/comparison", {
+      poolId: crypto.randomUUID(),
+      questionId: crypto.randomUUID(),
+    });
+    expect(comparisonResponse.status).toBe(401);
 
     const reviewResponse = await rpc(createAgent(), "poolQuestions/reviewAnswer", {
       answerId: crypto.randomUUID(),
@@ -462,6 +469,71 @@ describe("Pool questions routes E2E", () => {
     expect(reviewResponse.body).toMatchObject({
       isCorrect: true,
       reviewedByUserId: admin.id,
+    });
+  });
+
+  it("should hide other participants answers in question comparison until closesAt", async () => {
+    const { owner, participant, poolId } = await createPoolFixture();
+    const questionId = crypto.randomUUID();
+    const ownerAnswerId = crypto.randomUUID();
+    const participantAnswerId = crypto.randomUUID();
+    const ownerPoolUser = await db.query.poolUser.findFirst({
+      where: (table, { and, eq }) => and(eq(table.poolId, poolId), eq(table.userId, owner.id)),
+    });
+    const participantPoolUser = await db.query.poolUser.findFirst({
+      where: (table, { and, eq }) => and(eq(table.poolId, poolId), eq(table.userId, participant.id)),
+    });
+
+    await db.insert(poolQuestion).values({
+      id: questionId,
+      poolId,
+      createdByUserId: owner.id,
+      question: "Quem será campeão?",
+      points: 4,
+      closesAt: new Date(Date.now() + 60_000),
+    });
+    await db.insert(poolQuestionAnswer).values([
+      {
+        id: ownerAnswerId,
+        questionId,
+        poolId,
+        userId: owner.id,
+        poolUserId: ownerPoolUser!.id,
+        answer: "Brasil",
+      },
+      {
+        id: participantAnswerId,
+        questionId,
+        poolId,
+        userId: participant.id,
+        poolUserId: participantPoolUser!.id,
+        answer: "França",
+      },
+    ]);
+
+    const beforeDeadlineResponse = await rpc(participantAgent, "poolQuestions/comparison", { poolId, questionId });
+    expect(beforeDeadlineResponse.status).toBe(200);
+    expect(beforeDeadlineResponse.body.canCompare).toBe(false);
+    expect(beforeDeadlineResponse.body.participants.find((entry: { userId: string }) => entry.userId === participant.id)).toMatchObject({
+      showAnswer: true,
+      answer: "França",
+      hasAnswer: true,
+    });
+    expect(beforeDeadlineResponse.body.participants.find((entry: { userId: string }) => entry.userId === owner.id)).toMatchObject({
+      showAnswer: false,
+      answer: null,
+      hasAnswer: false,
+    });
+
+    await db.update(poolQuestion).set({ closesAt: new Date(Date.now() - 60_000) }).where(eq(poolQuestion.id, questionId));
+
+    const afterDeadlineResponse = await rpc(participantAgent, "poolQuestions/comparison", { poolId, questionId });
+    expect(afterDeadlineResponse.status).toBe(200);
+    expect(afterDeadlineResponse.body.canCompare).toBe(true);
+    expect(afterDeadlineResponse.body.participants.find((entry: { userId: string }) => entry.userId === owner.id)).toMatchObject({
+      showAnswer: true,
+      answer: "Brasil",
+      hasAnswer: true,
     });
   });
 });

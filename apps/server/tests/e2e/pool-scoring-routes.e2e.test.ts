@@ -1,4 +1,4 @@
-import { db, match, pool, poolQuestion, poolUser, prediction, tournament } from "@mazing-bolao/db";
+import { db, match, pool, poolQuestion, poolQuestionAnswer, poolUser, prediction, tournament } from "@mazing-bolao/db";
 import { eq } from "drizzle-orm";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -426,5 +426,72 @@ describe("Pool scoring routes E2E", () => {
       participantUserId: owner.id,
     });
     expect(adminResponse.status).toBe(200);
+  });
+
+  it("should hide question answers from other participants until the question closes", async () => {
+    const { poolId, questionId, owner, participant, ownerPoolUserId, participantPoolUserId } = await createFixture();
+    const tournamentId = crypto.randomUUID();
+
+    await db.insert(tournament).values({
+      id: tournamentId,
+      name: "World Cup 2026",
+      slug: `world-cup-${crypto.randomUUID()}`,
+    });
+    await db.update(pool).set({ tournamentId }).where(eq(pool.id, poolId));
+
+    await db.insert(poolQuestionAnswer).values([
+      {
+        id: crypto.randomUUID(),
+        questionId,
+        poolId,
+        userId: owner.id,
+        poolUserId: ownerPoolUserId,
+        answer: "Brasil",
+      },
+      {
+        id: crypto.randomUUID(),
+        questionId,
+        poolId,
+        userId: participant.id,
+        poolUserId: participantPoolUserId,
+        answer: "França",
+      },
+    ]);
+
+    const ownResponse = await rpc(participantAgent, "poolScoring/participantPredictions", {
+      poolId,
+      participantUserId: participant.id,
+    });
+    expect(ownResponse.status).toBe(200);
+    expect(ownResponse.body.questions[0]).toMatchObject({
+      questionId,
+      showAnswer: true,
+      answer: "França",
+    });
+
+    const otherResponse = await rpc(participantAgent, "poolScoring/participantPredictions", {
+      poolId,
+      participantUserId: owner.id,
+    });
+    expect(otherResponse.status).toBe(200);
+    expect(otherResponse.body.questions[0]).toMatchObject({
+      questionId,
+      showAnswer: false,
+      answer: null,
+      answerId: null,
+    });
+
+    await db.update(poolQuestion).set({ closesAt: new Date(Date.now() - 60_000) }).where(eq(poolQuestion.id, questionId));
+
+    const afterDeadlineResponse = await rpc(participantAgent, "poolScoring/participantPredictions", {
+      poolId,
+      participantUserId: owner.id,
+    });
+    expect(afterDeadlineResponse.status).toBe(200);
+    expect(afterDeadlineResponse.body.questions[0]).toMatchObject({
+      questionId,
+      showAnswer: true,
+      answer: "Brasil",
+    });
   });
 });

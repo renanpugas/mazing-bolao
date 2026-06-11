@@ -261,6 +261,98 @@ export const poolQuestionsRouter = {
         .where(eq(poolQuestionAnswer.questionId, input.questionId))
         .orderBy(asc(poolQuestionAnswer.createdAt));
     }),
+  comparison: protectedProcedure
+    .input(
+      z.object({
+        poolId: z.string().trim().min(1, "Bolão é obrigatório"),
+        questionId: z.string().trim().min(1, "Pergunta é obrigatória"),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      const userId = context.session.user.id;
+      await requireParticipant(input.poolId, userId);
+
+      const currentQuestion = await db.query.poolQuestion.findFirst({
+        where: and(eq(poolQuestion.id, input.questionId), eq(poolQuestion.poolId, input.poolId)),
+        columns: {
+          id: true,
+          poolId: true,
+          question: true,
+          points: true,
+          closesAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      if (!currentQuestion) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Pergunta não encontrada nesse bolão",
+        });
+      }
+
+      const canCompare = currentQuestion.closesAt <= new Date();
+
+      const participantRows = await db
+        .select({
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          answerId: poolQuestionAnswer.id,
+          answer: poolQuestionAnswer.answer,
+          isCorrect: poolQuestionAnswer.isCorrect,
+        })
+        .from(poolUser)
+        .innerJoin(user, eq(user.id, poolUser.userId))
+        .leftJoin(
+          poolQuestionAnswer,
+          and(eq(poolQuestionAnswer.poolId, input.poolId), eq(poolQuestionAnswer.questionId, input.questionId), eq(poolQuestionAnswer.userId, user.id)),
+        )
+        .where(eq(poolUser.poolId, input.poolId))
+        .orderBy(asc(user.name));
+
+      const visibleRows = participantRows.map((row) => {
+        const showAnswer = canCompare || row.userId === userId;
+        const answer = showAnswer ? row.answer : null;
+
+        return {
+          userId: row.userId,
+          name: row.name,
+          email: row.email,
+          isCurrentUser: row.userId === userId,
+          answerId: showAnswer ? row.answerId : null,
+          answer,
+          showAnswer,
+          hasAnswer: Boolean(answer?.trim()),
+          isCorrect: row.isCorrect,
+          points: row.isCorrect === true ? currentQuestion.points : 0,
+        };
+      });
+
+      const currentUserAnswer = visibleRows.find((row) => row.isCurrentUser)?.answer?.trim().toLocaleLowerCase() ?? null;
+      const distribution = visibleRows.reduce(
+        (acc, row) => {
+          if (row.hasAnswer) acc.answeredCount += 1;
+          else acc.missingCount += 1;
+
+          if (currentUserAnswer && row.answer?.trim().toLocaleLowerCase() === currentUserAnswer) {
+            acc.sameAsCurrentUserCount += 1;
+          }
+
+          if (row.isCorrect === true) acc.correctCount += 1;
+          if (row.isCorrect === null) acc.pendingReviewCount += 1;
+          return acc;
+        },
+        { answeredCount: 0, missingCount: 0, sameAsCurrentUserCount: 0, correctCount: 0, pendingReviewCount: 0 },
+      );
+
+      return {
+        question: currentQuestion,
+        canCompare,
+        participants: visibleRows,
+        distribution,
+      };
+    }),
   reviewAnswer: protectedProcedure
     .input(
       z.object({

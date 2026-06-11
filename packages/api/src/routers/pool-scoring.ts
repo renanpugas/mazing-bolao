@@ -280,6 +280,7 @@ export const poolScoringRouter = {
             exactScores: 0,
             correctOutcomes: 0,
             brazilBonuses: 0,
+            brazilBonusPoints: 0,
             oddBonuses: 0,
             oddBonusPoints: 0,
             scoredMatches: 0,
@@ -339,6 +340,7 @@ export const poolScoringRouter = {
         if (score.type === "exact") entry.exactScores += 1;
         if (score.type === "outcome") entry.correctOutcomes += 1;
         if (score.multiplied) entry.brazilBonuses += 1;
+        entry.brazilBonusPoints += score.multiplied ? score.basePoints * (score.rule.brazilMultiplier - 1) : 0;
         entry.oddBonusPoints += score.oddBonusPoints;
         if (score.oddBonusApplied) entry.oddBonuses += 1;
         if (score.points > 0) entry.scoredMatches += 1;
@@ -415,6 +417,7 @@ export const poolScoringRouter = {
             startsAt: match.startsAt,
             startsAtTimeZone: match.startsAtTimeZone,
             stage: match.stage,
+            groupName: match.groupName,
             homeTeam: match.homeTeam,
             awayTeam: match.awayTeam,
             homeTeamLabel: match.homeTeamLabel,
@@ -442,6 +445,26 @@ export const poolScoringRouter = {
         )
         .where(eq(match.tournamentId, currentPool.tournamentId))
         .orderBy(asc(match.startsAt), asc(match.id));
+      const questionRows = await db
+        .select({
+          id: poolQuestion.id,
+          question: poolQuestion.question,
+          closesAt: poolQuestion.closesAt,
+          points: poolQuestion.points,
+          answerId: poolQuestionAnswer.id,
+          answer: poolQuestionAnswer.answer,
+          isCorrect: poolQuestionAnswer.isCorrect,
+        })
+        .from(poolQuestion)
+        .leftJoin(
+          poolQuestionAnswer,
+          and(
+            eq(poolQuestionAnswer.questionId, poolQuestion.id),
+            eq(poolQuestionAnswer.userId, input.participantUserId),
+          ),
+        )
+        .where(eq(poolQuestion.poolId, input.poolId))
+        .orderBy(asc(poolQuestion.closesAt), asc(poolQuestion.createdAt));
 
       return {
         poolId: input.poolId,
@@ -473,6 +496,7 @@ export const poolScoringRouter = {
             startsAt: row.match.startsAt,
             startsAtTimeZone: row.match.startsAtTimeZone,
             stage: row.match.stage,
+            groupName: row.match.groupName,
             homeTeam: row.match.homeTeam,
             awayTeam: row.match.awayTeam,
             homeTeamLabel: row.match.homeTeamLabel,
@@ -496,6 +520,16 @@ export const poolScoringRouter = {
             oddBonusApplied: showPrediction ? score?.oddBonusApplied ?? false : false,
           };
         }),
+        questions: questionRows.map((row) => ({
+          questionId: row.id,
+          question: row.question,
+          closesAt: row.closesAt,
+          showAnswer: row.closesAt <= new Date() || input.participantUserId === userId,
+          answerId: row.closesAt <= new Date() || input.participantUserId === userId ? row.answerId : null,
+          answer: row.closesAt <= new Date() || input.participantUserId === userId ? row.answer : null,
+          isCorrect: row.isCorrect,
+          points: row.isCorrect === true ? row.points : 0,
+        })),
       };
     }),
 };
