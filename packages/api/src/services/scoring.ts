@@ -1,10 +1,10 @@
 export const DEFAULT_POOL_SCORING_RULES = [
   { stage: "group", label: "Fase de grupos", exactScorePoints: 10, outcomePoints: 5, brazilMultiplier: 2 },
-  { stage: "round_of_32", label: "16 avos / mata-mata inicial", exactScorePoints: 12, outcomePoints: 6, brazilMultiplier: 2 },
+  { stage: "round_of_32", label: "16 Avos", exactScorePoints: 12, outcomePoints: 6, brazilMultiplier: 2 },
   { stage: "round_of_16", label: "Oitavas", exactScorePoints: 15, outcomePoints: 8, brazilMultiplier: 2 },
   { stage: "quarter_final", label: "Quartas", exactScorePoints: 20, outcomePoints: 10, brazilMultiplier: 2 },
-  { stage: "semi_final", label: "Semifinal", exactScorePoints: 30, outcomePoints: 15, brazilMultiplier: 2 },
-  { stage: "third_place", label: "3º lugar", exactScorePoints: 20, outcomePoints: 10, brazilMultiplier: 2 },
+  { stage: "semi_final", label: "Seminal", exactScorePoints: 30, outcomePoints: 15, brazilMultiplier: 2 },
+  { stage: "third_place", label: "Terceiro Lugar", exactScorePoints: 20, outcomePoints: 10, brazilMultiplier: 2 },
   { stage: "final", label: "Final", exactScorePoints: 40, outcomePoints: 20, brazilMultiplier: 2 },
 ] as const;
 

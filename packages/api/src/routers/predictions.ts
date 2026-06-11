@@ -127,6 +127,14 @@ export const predictionsRouter = {
         .from(poolMatchScoringRule)
         .where(eq(poolMatchScoringRule.poolId, input.poolId));
       const scoringRules = mergePoolScoringRules(customRules.map((rule) => ({ ...rule, stage: rule.stage as PoolScoringStage })));
+      const oddBonusRules = await db
+        .select({
+          oddThreshold: poolOddBonusRule.oddThreshold,
+          bonusPercent: poolOddBonusRule.bonusPercent,
+        })
+        .from(poolOddBonusRule)
+        .where(eq(poolOddBonusRule.poolId, input.poolId))
+        .orderBy(asc(poolOddBonusRule.oddThreshold));
 
       const rows = await db
         .select({
@@ -175,9 +183,28 @@ export const predictionsRouter = {
       return rows.map((row) => {
         const brazilMatch = isBrazilMatch(row.match);
         const rule = scoringRules.find((item) => item.stage === normalizeScoringStage(row.match.stage)) ?? scoringRules[0];
+        const score = calculateMatchPredictionScore({
+          predictionHomeGoals: row.homeGoals,
+          predictionAwayGoals: row.awayGoals,
+          matchHomeScore: row.match.finished ? row.match.homeScore : null,
+          matchAwayScore: row.match.finished ? row.match.awayScore : null,
+          stage: row.match.stage,
+          isBrazilMatch: brazilMatch,
+          rules: scoringRules,
+          oddBonusRules,
+          oddsHomeTeam: row.match.oddsHomeTeam,
+          oddsAwayTeam: row.match.oddsAwayTeam,
+          oddsDraw: row.match.oddsDraw,
+        });
 
         return {
           ...row,
+          points: score.points,
+          resultType: score.type,
+          oddBonusPoints: score.oddBonusPoints,
+          oddBonusPercent: score.oddBonusPercent,
+          oddUsed: score.oddUsed,
+          oddBonusApplied: score.oddBonusApplied,
           match: {
             ...row.match,
             scoring: rule

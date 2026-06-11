@@ -29,6 +29,7 @@ export type Jogo = {
     jogoBrasil: boolean;
     multiplicadorBrasil: number;
   } | null;
+  pontosGanhos: number;
   oddBonusRules: {
     oddThreshold: number;
     bonusPercent: number;

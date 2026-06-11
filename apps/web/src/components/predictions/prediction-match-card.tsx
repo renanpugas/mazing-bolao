@@ -126,8 +126,11 @@ export function PredictionMatchCard({
           </div>
         </div>
         {jogo.encerrado ? (
-          <div className="mt-3 rounded-lg bg-muted px-3 py-2 text-center text-sm">
-            Resultado final: <span className="font-semibold">{jogo.golsMandanteResultado ?? "-"} x {jogo.golsVisitanteResultado ?? "-"}</span>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2 rounded-lg bg-muted px-3 py-2 text-center text-sm">
+            <span>
+              Resultado final: <span className="font-semibold">{jogo.golsMandanteResultado ?? "-"} x {jogo.golsVisitanteResultado ?? "-"}</span>
+            </span>
+            <Badge variant={jogo.pontosGanhos > 0 ? "success" : "destructive"}>{jogo.pontosGanhos} pts</Badge>
           </div>
         ) : null}
       </CardContent>
