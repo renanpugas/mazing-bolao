@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { BarChart3 } from "lucide-react";
 
+import { ComparisonModal, QuestionComparisonModal } from "@/components/participant-page";
+import { usePoolQuestionComparisonQuery } from "@/hooks/use-pool-questions-api";
 import { PageHeader, PageShell } from "@/components/page-shell";
 import { MatchTime } from "@/components/match-time";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -7,14 +10,36 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { usePredictionMatchComparisonQuery } from "@/hooks/use-predictions-api";
 import { usePoolScoringParticipantPredictionsQuery, usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
 import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useSessionQuery } from "@/hooks/use-session-api";
 import { formatTeamNamePtBr } from "@/lib/team-names";
 import { cn } from "@/lib/utils";
 
+const stageLabels: Record<string, string> = {
+  group: "Fase de grupos",
+  r32: "16 Avos",
+  round_of_32: "16 Avos",
+  r16: "Oitavas",
+  round_of_16: "Oitavas",
+  qf: "Quartas",
+  quarter_final: "Quartas",
+  sf: "Seminal",
+  semi_final: "Seminal",
+  third: "Terceiro Lugar",
+  third_place: "Terceiro Lugar",
+  final: "Final",
+};
+const allowedGroupFilters: string[] = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+
 function formatOdd(value: number | null | undefined) {
   return value === null || value === undefined ? "-" : value.toFixed(2);
+}
+
+function getStageLabel(stage: string | null) {
+  if (!stage) return "Fase";
+  return stageLabels[stage] ?? stage;
 }
 
 function TeamNameWithFlag({ emoji, name }: { emoji: string | null | undefined; name: string }) {
@@ -32,17 +57,35 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
   const pools = poolsQuery.data ?? [];
   const [selectedPoolId, setSelectedPoolId] = useState<string | null>(initialPoolId);
   const [selectedParticipantUserId, setSelectedParticipantUserId] = useState<string | null>(null);
+  const [selectedDetailView, setSelectedDetailView] = useState<"matches" | "questions">("matches");
+  const [selectedStageFilter, setSelectedStageFilter] = useState<string>("all");
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
+  const [selectedComparisonMatchId, setSelectedComparisonMatchId] = useState<string | null>(null);
+  const [selectedComparisonQuestionId, setSelectedComparisonQuestionId] = useState<string | null>(null);
   const rankingQuery = usePoolScoringRankingQuery(selectedPoolId);
   const participantPredictionsQuery = usePoolScoringParticipantPredictionsQuery(selectedPoolId, selectedParticipantUserId);
+  const comparisonQuery = usePredictionMatchComparisonQuery(selectedPoolId, selectedComparisonMatchId);
+  const questionComparisonQuery = usePoolQuestionComparisonQuery(selectedPoolId, selectedComparisonQuestionId);
   const selectedPool = pools.find((pool) => pool.id === selectedPoolId);
   const ranking = rankingQuery.data ?? [];
   const participantPredictions = participantPredictionsQuery.data;
   const currentUserId = sessionQuery.data?.user?.id;
+  const availableStages = Array.from(new Set((participantPredictions?.matches ?? []).map((item) => item.stage).filter((stage): stage is string => Boolean(stage))));
+  const availableGroups = allowedGroupFilters.filter((groupName) =>
+    (participantPredictions?.matches ?? []).some((item) => item.groupName === groupName),
+  );
+  const filteredMatches = (participantPredictions?.matches ?? []).filter((item) => {
+    if (selectedStageFilter !== "all" && item.stage !== selectedStageFilter) return false;
+    if (selectedGroupFilter !== "all" && item.groupName !== selectedGroupFilter) return false;
+    return true;
+  });
 
   useEffect(() => {
     if (initialPoolId && initialPoolId !== selectedPoolId) {
       setSelectedPoolId(initialPoolId);
       setSelectedParticipantUserId(null);
+      setSelectedStageFilter("all");
+      setSelectedGroupFilter("all");
       return;
     }
 
@@ -63,8 +106,20 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
     setSelectedParticipantUserId(currentUserRanking?.userId ?? ranking[0]?.userId ?? null);
   }, [currentUserId, ranking, selectedParticipantUserId]);
 
+  useEffect(() => {
+    if (selectedStageFilter !== "all" && !availableStages.includes(selectedStageFilter)) {
+      setSelectedStageFilter("all");
+    }
+  }, [availableStages, selectedStageFilter]);
+
+  useEffect(() => {
+    if (selectedGroupFilter !== "all" && !availableGroups.includes(selectedGroupFilter)) {
+      setSelectedGroupFilter("all");
+    }
+  }, [availableGroups, selectedGroupFilter]);
+
   return (
-    <PageShell className="space-y-6">
+    <PageShell className="space-y-6" wide>
       <PageHeader title="Ranking" description="Veja a classificação do bolão com pontuação calculada pelas regras configuradas." />
 
       <Card className="bg-card/80 backdrop-blur-sm">
@@ -143,14 +198,21 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
                         <TableCell>
                           {entry.oddBonuses > 0 ? (
                             <div>
-                              <p className="font-medium">{entry.oddBonuses}x</p>
-                              <p className="text-xs text-emerald-700">+{entry.oddBonusPoints} pts</p>
+                              <p className="font-medium">{entry.oddBonusPoints} pts</p>
                             </div>
                           ) : (
                             <span className="text-muted-foreground">0</span>
                           )}
                         </TableCell>
-                        <TableCell>{entry.brazilBonuses}</TableCell>
+                        <TableCell>
+                          {entry.brazilBonusPoints > 0 ? (
+                            <div>
+                              <p className="font-medium">{entry.brazilBonusPoints} pts</p>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">0</span>
+                          )}
+                        </TableCell>
                         <TableCell>{entry.exactScores}</TableCell>
                         <TableCell>{entry.correctOutcomes}</TableCell>
                         <TableCell>{entry.correctQuestions}</TableCell>
@@ -187,75 +249,222 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
                 {participantPredictions?.participant.isCurrentUser ? <Badge variant="secondary">Você</Badge> : null}
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               {participantPredictionsQuery.status === "pending" ? <p className="py-6 text-sm text-muted-foreground">Carregando palpites do participante.</p> : null}
-              {participantPredictionsQuery.status === "success" && !participantPredictions?.matches.length ? <p className="py-6 text-sm text-muted-foreground">Nenhuma partida encontrada neste bolão.</p> : null}
-              {participantPredictions?.matches.length ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Partida</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Palpite</TableHead>
-                      <TableHead>Placar oficial</TableHead>
-                      <TableHead>Pontos</TableHead>
-                      <TableHead>Acerto</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {participantPredictions.matches.map((item) => {
-                      const homeTeam = item.homeTeamLabel ?? item.homeTeam;
-                      const awayTeam = item.awayTeamLabel ?? item.awayTeam;
-                      const resultLabel = item.resultType === "exact" ? "placar exato" : item.resultType === "outcome" ? "resultado" : "sem pontos";
-                      const resultVariant = item.resultType === "exact" ? "success" : item.resultType === "outcome" ? "warning" : "outline";
+              {participantPredictions && (participantPredictions.matches.length || participantPredictions.questions.length) ? (
+                <>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Ver tabela de</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant={selectedDetailView === "matches" ? "default" : "soft"}
+                          size="sm"
+                          onClick={() => setSelectedDetailView("matches")}
+                        >
+                          Palpites
+                        </Button>
+                        <Button
+                          variant={selectedDetailView === "questions" ? "default" : "soft"}
+                          size="sm"
+                          onClick={() => setSelectedDetailView("questions")}
+                        >
+                          Perguntas
+                        </Button>
+                      </div>
+                    </div>
 
-                      return (
-                        <TableRow key={item.matchId}>
-                          <TableCell>
-                            <div>
-                              <p className="flex flex-wrap items-center gap-1.5 font-medium">
-                                <TeamNameWithFlag emoji={item.homeTeamEmoji} name={homeTeam} />
-                                <span className="text-muted-foreground">x</span>
-                                <TeamNameWithFlag emoji={item.awayTeamEmoji} name={awayTeam} />
-                              </p>
-                              <p className="text-xs text-muted-foreground">{item.finished ? "Encerrada" : "Pendente"}</p>
+                    {selectedDetailView === "matches" ? (
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium">Filtrar por fase</p>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant={selectedStageFilter === "all" ? "default" : "soft"}
+                              size="sm"
+                              onClick={() => {
+                                setSelectedStageFilter("all");
+                                setSelectedGroupFilter("all");
+                              }}
+                            >
+                              Todas
+                            </Button>
+                            {availableStages.map((stage) => (
+                              <Button
+                                key={stage}
+                                variant={selectedStageFilter === stage ? "default" : "soft"}
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedStageFilter(stage);
+                                  if (stage !== "group") setSelectedGroupFilter("all");
+                                }}
+                              >
+                                {getStageLabel(stage)}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {availableGroups.length ? (
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium">Ou por grupo</p>
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                variant={selectedGroupFilter === "all" ? "default" : "soft"}
+                                size="sm"
+                                onClick={() => setSelectedGroupFilter("all")}
+                              >
+                                Todos
+                              </Button>
+                              {availableGroups.map((groupName) => (
+                                <Button
+                                  key={groupName}
+                                  variant={selectedGroupFilter === groupName ? "default" : "soft"}
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedGroupFilter(groupName);
+                                    setSelectedStageFilter("group");
+                                  }}
+                                >
+                                  Grupo {groupName}
+                                </Button>
+                              ))}
                             </div>
-                          </TableCell>
-                          <TableCell><MatchTime startsAt={item.startsAt} startsAtTimeZone={item.startsAtTimeZone} /></TableCell>
-                          <TableCell>
-                            {item.showPrediction ? (
-                              item.hasPrediction ? <span className="font-semibold">{item.homeGoals} x {item.awayGoals}</span> : <span className="text-muted-foreground">Sem palpite</span>
-                            ) : (
-                              <span className="text-muted-foreground">Palpite oculto até a partida encerrar</span>
-                            )}
-                          </TableCell>
-                          <TableCell>{item.homeScore !== null && item.awayScore !== null ? <span className="font-semibold">{item.homeScore} x {item.awayScore}</span> : <span className="text-muted-foreground">-</span>}</TableCell>
-                          <TableCell className="font-semibold">
-                            <div>
-                              <p>{item.points}</p>
-                              {item.brazilBonusApplied ? (
-                                <p className="text-xs font-medium text-sky-700">
-                                  Bônus Brasil: {item.brazilBonusMultiplier}x
-                                </p>
-                              ) : null}
-                              {item.oddBonusApplied ? (
-                                <p className="text-xs font-medium text-emerald-700">
-                                  Bônus odd: +{item.oddBonusPoints} pts ({item.oddBonusPercent}% sobre odd {formatOdd(item.oddUsed)})
-                                </p>
-                              ) : null}
-                            </div>
-                          </TableCell>
-                          <TableCell><Badge variant={resultVariant}>{resultLabel}</Badge></TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {selectedDetailView === "matches" ? (
+                    participantPredictions.matches.length ? (
+                      <>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Partida</TableHead>
+                              <TableHead>Data</TableHead>
+                              <TableHead>Palpite</TableHead>
+                              <TableHead>Placar oficial</TableHead>
+                              <TableHead>Pontos</TableHead>
+                              <TableHead>Acerto</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {filteredMatches.map((item) => {
+                              const homeTeam = item.homeTeamLabel ?? item.homeTeam;
+                              const awayTeam = item.awayTeamLabel ?? item.awayTeam;
+                              const resultLabel = item.resultType === "exact" ? "placar exato" : item.resultType === "outcome" ? "resultado" : "sem pontos";
+                              const resultVariant = item.resultType === "exact" ? "success" : item.resultType === "outcome" ? "warning" : "outline";
+                              const detailLabel = item.groupName ? `Grupo ${item.groupName}` : getStageLabel(item.stage);
+
+                              return (
+                                <TableRow key={item.matchId}>
+                                  <TableCell>
+                                    <div>
+                                      <p className="flex flex-wrap items-center gap-1.5 font-medium">
+                                        <TeamNameWithFlag emoji={item.homeTeamEmoji} name={homeTeam} />
+                                        <span className="text-muted-foreground">x</span>
+                                        <TeamNameWithFlag emoji={item.awayTeamEmoji} name={awayTeam} />
+                                        <Button type="button" variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs" onClick={() => setSelectedComparisonMatchId(item.matchId)}>
+                                          <BarChart3 className="size-3" /> Comparar
+                                        </Button>
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">{detailLabel} · {item.finished ? "Encerrada" : "Pendente"}</p>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell><MatchTime startsAt={item.startsAt} startsAtTimeZone={item.startsAtTimeZone} /></TableCell>
+                                  <TableCell>
+                                    {item.showPrediction ? (
+                                      item.hasPrediction ? <span className="font-semibold">{item.homeGoals} x {item.awayGoals}</span> : <span className="text-muted-foreground">Sem palpite</span>
+                                    ) : (
+                                      <span className="text-muted-foreground">Palpite oculto até a partida encerrar</span>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>{item.homeScore !== null && item.awayScore !== null ? <span className="font-semibold">{item.homeScore} x {item.awayScore}</span> : <span className="text-muted-foreground">-</span>}</TableCell>
+                                  <TableCell className="font-semibold">
+                                    <div>
+                                      <p>{item.points}</p>
+                                      {item.brazilBonusApplied ? (
+                                        <p className="text-xs font-medium text-sky-700">
+                                          Bônus Brasil: {item.brazilBonusMultiplier}x
+                                        </p>
+                                      ) : null}
+                                      {item.oddBonusApplied ? (
+                                        <p className="text-xs font-medium text-emerald-700">
+                                          Bônus odd: +{item.oddBonusPoints} pts ({item.oddBonusPercent}% sobre odd {formatOdd(item.oddUsed)})
+                                        </p>
+                                      ) : null}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell><Badge variant={resultVariant}>{resultLabel}</Badge></TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+
+                        {!filteredMatches.length ? <p className="py-2 text-sm text-muted-foreground">Nenhuma partida encontrada com esse filtro.</p> : null}
+                      </>
+                    ) : (
+                      <p className="py-2 text-sm text-muted-foreground">Nenhuma partida encontrada neste bolão.</p>
+                    )
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm font-medium">Perguntas respondidas</p>
+                        <p className="text-sm text-muted-foreground">Resumo simples das respostas e da pontuação de cada pergunta.</p>
+                      </div>
+
+                      {participantPredictions?.questions.length ? (
+                        <div className="flex flex-wrap gap-2">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Pergunta</TableHead>
+                                <TableHead>Resposta</TableHead>
+                                <TableHead>Pontuação</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {participantPredictions.questions.map((item) => (
+                                <TableRow key={item.questionId}>
+                                  <TableCell>
+                                    <p className="flex flex-wrap items-center gap-2 font-medium">
+                                      <span>{item.question}</span>
+                                      <Button type="button" variant="ghost" size="sm" className="h-7 gap-1 px-2 text-xs" onClick={() => setSelectedComparisonQuestionId(item.questionId)}>
+                                        <BarChart3 className="size-3" /> Comparar
+                                      </Button>
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {item.isCorrect === null ? "Pendente" : "Finalizada"}
+                                    </p>
+                                  </TableCell>
+                                  <TableCell>
+                                    {item.showAnswer ? item.answer?.trim() ? item.answer : <span className="text-muted-foreground">Sem resposta</span> : <span className="text-muted-foreground">Resposta oculta até o prazo encerrar</span>}
+                                  </TableCell>
+                                  <TableCell className="font-semibold">
+                                    {item.isCorrect === null ? <span className="text-muted-foreground">Aguardando correção</span> : item.points}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Nenhuma pergunta cadastrada neste bolão.</p>
+                      )}
+                    </div>
+                  )}
+                </>
               ) : null}
+              {participantPredictionsQuery.status === "success" && !participantPredictions?.matches.length && !participantPredictions?.questions.length ? <p className="py-6 text-sm text-muted-foreground">Nenhuma partida ou pergunta encontrada neste bolão.</p> : null}
             </CardContent>
           </Card>
         </>
       ) : null}
+      {selectedComparisonMatchId ? <ComparisonModal data={comparisonQuery.data} status={comparisonQuery.status} error={comparisonQuery.error} onClose={() => setSelectedComparisonMatchId(null)} /> : null}
+      {selectedComparisonQuestionId ? <QuestionComparisonModal data={questionComparisonQuery.data} status={questionComparisonQuery.status} error={questionComparisonQuery.error} onClose={() => setSelectedComparisonQuestionId(null)} /> : null}
     </PageShell>
   );
 }

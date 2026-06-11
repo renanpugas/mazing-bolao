@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 const items = [
   { label: "Meu bolão", to: "/" },
   { label: "Bolões", to: "/pools" },
+  { label: "Ranking", to: "/pool-results" },
 ] as const;
 
 export function Header() {

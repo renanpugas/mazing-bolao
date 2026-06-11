@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { AlertTriangle, BarChart3 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -12,8 +13,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { useAnswerPoolQuestionMutation, usePoolQuestionsListQuery } from "@/hooks/use-pool-questions-api";
+import { Input } from "@/components/ui/input";
+import { useAnswerPoolQuestionMutation, usePoolQuestionComparisonQuery, usePoolQuestionsListQuery } from "@/hooks/use-pool-questions-api";
 import { usePoolScoringConfigQuery, usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
 import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useCreatePredictionMutation, usePredictionMatchComparisonQuery, usePredictionsListQuery, useUpdatePredictionMutation } from "@/hooks/use-predictions-api";
@@ -30,11 +31,11 @@ type PredictionEasterEgg = { key: number; variant: "canarinho" | "tsubasa" | "us
 
 const stageLabels: Record<string, string> = {
   group: "Fase de grupos",
-  r32: "16 avos",
+  r32: "16 Avos",
   r16: "Oitavas",
   qf: "Quartas",
-  sf: "Semifinal",
-  third: "3º lugar",
+  sf: "Seminal",
+  third: "Terceiro Lugar",
   final: "Final",
 };
 
@@ -171,14 +172,67 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
   return <Button variant={active ? "default" : "outline"} className="h-auto flex-wrap justify-start py-2" onClick={onClick}>{children}</Button>;
 }
 
-function FreeQuestions({ perguntas, respostasLivres, mensagemResposta, answerQuestionPending, onAnswerChange, onSave }: { perguntas: FreeQuestion[]; respostasLivres: Record<string, string>; mensagemResposta: string | null; answerQuestionPending: boolean; onAnswerChange: (questionId: string, answer: string) => void; onSave: (questionId: string) => void }) {
+function PendingHomeAlert({
+  missingTodayPredictions,
+  missingTomorrowPredictions,
+  unansweredQuestions,
+  onOpenPredictions,
+  onOpenQuestions,
+}: {
+  missingTodayPredictions: number;
+  missingTomorrowPredictions: number;
+  unansweredQuestions: number;
+  onOpenPredictions: () => void;
+  onOpenQuestions: () => void;
+}) {
+  const hasPendingPredictions = missingTodayPredictions > 0 || missingTomorrowPredictions > 0;
+  const hasUnansweredQuestions = unansweredQuestions > 0;
+
+  if (!hasPendingPredictions && !hasUnansweredQuestions) return null;
+
+  return (
+    <Alert variant="destructive" className="border-red-500/70 bg-linear-to-r from-red-200 via-red-300 to-red-200 text-red-950 shadow-md shadow-red-500/20">
+      <AlertTitle className="flex items-center gap-2">
+        <AlertTriangle className="size-5 shrink-0" />
+        <span>Aviso importante</span>
+      </AlertTitle>
+      <AlertDescription className="space-y-3">
+        <div className="space-y-1">
+          {hasPendingPredictions ? (
+            <p>
+              Ainda faltam {missingTodayPredictions} palpite(s) de jogo(s) de hoje e {missingTomorrowPredictions} de amanhã.
+            </p>
+          ) : null}
+          {hasUnansweredQuestions ? (
+            <p>
+              Existem {unansweredQuestions} pergunta(s) ainda não finalizada(s) sem resposta.
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {hasPendingPredictions ? <Button size="sm" variant="outline" onClick={onOpenPredictions}>Ver palpites pendentes</Button> : null}
+          {hasUnansweredQuestions ? <Button size="sm" variant="outline" onClick={onOpenQuestions}>Ver perguntas pendentes</Button> : null}
+        </div>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function FreeQuestions({ perguntas, respostasLivres, mensagemResposta, answerQuestionPending, onAnswerChange, onSave, onCompare }: { perguntas: FreeQuestion[]; respostasLivres: Record<string, string>; mensagemResposta: string | null; answerQuestionPending: boolean; onAnswerChange: (questionId: string, answer: string) => void; onSave: (questionId: string) => void; onCompare: (questionId: string) => void }) {
+  const sortedPerguntas = [...perguntas].sort((a, b) => {
+    const aHasAnswer = !!a.answer?.answer?.trim();
+    const bHasAnswer = !!b.answer?.answer?.trim();
+    if (aHasAnswer === bHasAnswer) return 0;
+    return aHasAnswer ? 1 : -1;
+  });
+
   return (
     <div className="space-y-4">
       <div><h2 className="text-xl font-semibold">Perguntas livres</h2><p className="text-sm text-muted-foreground">Responda as perguntas do bolão selecionado junto da sua rotina de jogos.</p></div>
       {mensagemResposta ? <Alert variant="success"><AlertDescription>{mensagemResposta}</AlertDescription></Alert> : null}
-      {perguntas.length ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {perguntas.map((question) => {
+      {sortedPerguntas.length ? (
+        <div className="space-y-4">
+          {sortedPerguntas.map((question) => {
             const closesAt = new Date(question.closesAt);
             const closed = closesAt <= new Date();
             const savedAnswer = question.answer?.answer ?? "";
@@ -189,8 +243,27 @@ function FreeQuestions({ perguntas, respostasLivres, mensagemResposta, answerQue
             const answerButtonDisabled = closed || !currentAnswer.trim() || answerQuestionPending || (hasSavedAnswer && !answerChanged);
             return (
               <Card key={question.id} className="bg-card/80 backdrop-blur-sm">
-                <CardHeader className="space-y-3"><CardTitle className="text-lg">{question.question}</CardTitle><p className="text-sm text-muted-foreground">Prazo: {closesAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })}</p><div className="flex flex-wrap gap-2"><Badge variant={closed ? "secondary" : "default"}>{closed ? "Fechada" : "Aberta"}</Badge><Badge variant="outline">{question.points} ponto(s)</Badge>{!savedAnswer.trim() ? <Badge variant="warning">Sem resposta</Badge> : null}</div></CardHeader>
-                <CardContent className="space-y-3"><Textarea value={currentAnswer} onChange={(event) => onAnswerChange(question.id, event.target.value)} disabled={closed || answerQuestionPending} placeholder="Digite sua resposta" /><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-muted-foreground">{closed ? "Prazo encerrado" : "Resposta livre até o prazo"}</p><Button disabled={answerButtonDisabled} onClick={() => onSave(question.id)}>{answerButtonText}</Button></div></CardContent>
+                <CardHeader className="space-y-3 pb-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CardTitle className="text-lg">{question.question}</CardTitle>
+                      <Badge variant={closed ? "secondary" : "default"}>{closed ? "Fechada" : "Aberta"}</Badge>
+                      <Badge variant="outline">{question.points} ponto(s)</Badge>
+                      {!savedAnswer.trim() ? <Badge variant="warning">Sem resposta</Badge> : null}
+                    </div>
+                    <Button type="button" variant="ghost" size="sm" className="h-8 gap-1 px-2 text-xs" onClick={() => onCompare(question.id)}>
+                      <BarChart3 className="size-3" /> Comparar
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Prazo: {closesAt.toLocaleString("pt-BR", { dateStyle: "medium", timeStyle: "short" })}</p>
+                </CardHeader>
+                <CardContent className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">{closed ? "Prazo encerrado" : "Resposta livre até o prazo"}</p>
+                    <Input value={currentAnswer} onChange={(event) => onAnswerChange(question.id, event.target.value)} disabled={closed || answerQuestionPending} placeholder="Digite sua resposta" />
+                  </div>
+                  <Button className="w-full md:w-auto" disabled={answerButtonDisabled} onClick={() => onSave(question.id)}>{answerButtonText}</Button>
+                </CardContent>
               </Card>
             );
           })}
@@ -208,11 +281,13 @@ export function ParticipantPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("timeline");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [selectedComparisonMatchId, setSelectedComparisonMatchId] = useState<string | null>(null);
+  const [selectedComparisonQuestionId, setSelectedComparisonQuestionId] = useState<string | null>(null);
   const predictionsQuery = usePredictionsListQuery(bolaoSelecionadoId);
   const scoringConfigQuery = usePoolScoringConfigQuery(bolaoSelecionadoId);
   const rankingQuery = usePoolScoringRankingQuery(bolaoSelecionadoId);
   const comparisonQuery = usePredictionMatchComparisonQuery(bolaoSelecionadoId, selectedComparisonMatchId);
   const questionsQuery = usePoolQuestionsListQuery(bolaoSelecionadoId);
+  const questionComparisonQuery = usePoolQuestionComparisonQuery(bolaoSelecionadoId, selectedComparisonQuestionId);
   const tournamentsQuery = useTournamentsListQuery();
   const createPredictionMutation = useCreatePredictionMutation();
   const updatePredictionMutation = useUpdatePredictionMutation();
@@ -294,6 +369,7 @@ export function ParticipantPage() {
             multiplicadorBrasil: item.match.scoring.brazilMultiplier,
           }
         : null,
+      pontosGanhos: item.points,
       oddBonusRules: scoringConfigQuery.data?.oddBonusRules ?? [],
     };
   });
@@ -353,6 +429,13 @@ export function ParticipantPage() {
   const bloqueados = jogos.filter((jogo) => jogo.status === "locked").length;
   const perguntasLivresVisiveis = (questionsQuery.data ?? []).filter((question) => question.answer?.isCorrect === null || question.answer?.isCorrect === undefined);
   const perguntasSemResposta = perguntasLivresVisiveis.filter((question) => !question.answer?.answer?.trim()).length;
+  const now = new Date();
+  const todayKey = getDateKey(now);
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  const tomorrowKey = getDateKey(tomorrow);
+  const missingTodayPredictions = jogos.filter((jogo) => !jogo.encerrado && !hasCompletePrediction(palpitesLocais[jogo.id]) && getDateKey(jogo.startsAt) === todayKey).length;
+  const missingTomorrowPredictions = jogos.filter((jogo) => !jogo.encerrado && !hasCompletePrediction(palpitesLocais[jogo.id]) && getDateKey(jogo.startsAt) === tomorrowKey).length;
   const jogosHoje = jogos.filter((jogo) => getDateKey(jogo.startsAt) === getDateKey(new Date())).length;
   const jogosSemPontuacao = jogos.filter((jogo) => !jogo.pontuacao).length;
   const currentUserId = sessionQuery.data?.user?.id;
@@ -380,6 +463,7 @@ export function ParticipantPage() {
   const selecionarBolao = (bolaoId: string) => {
     setBolaoSelecionadoId(bolaoId);
     setSelectedComparisonMatchId(null);
+    setSelectedComparisonQuestionId(null);
     setRespostasLivresAlteradas(new Set());
     setMensagemResposta(null);
     setRequestError(null);
@@ -469,6 +553,13 @@ export function ParticipantPage() {
         {requestError ? <Alert variant="destructive"><AlertTitle>Não foi possível salvar</AlertTitle><AlertDescription>{requestError}</AlertDescription></Alert> : null}
         {syncMessage ? <Alert variant="success"><AlertTitle>Jogos atualizados</AlertTitle><AlertDescription>{syncMessage}</AlertDescription></Alert> : null}
         {syncError ? <Alert variant="destructive"><AlertTitle>Não foi possível atualizar jogos</AlertTitle><AlertDescription>{syncError}</AlertDescription></Alert> : null}
+        <PendingHomeAlert
+          missingTodayPredictions={missingTodayPredictions}
+          missingTomorrowPredictions={missingTomorrowPredictions}
+          unansweredQuestions={perguntasSemResposta}
+          onOpenPredictions={() => setViewMode("timeline")}
+          onOpenQuestions={() => setViewMode("questions")}
+        />
         {poolsQuery.status === "success" && !boloes.length ? <Alert variant="warning"><AlertTitle>Você ainda não está em um bolão</AlertTitle><AlertDescription>Entre em um bolão disponível para começar a palpitar.</AlertDescription></Alert> : null}
         {poolsQuery.status === "pending" || predictionsQuery.status === "pending" || questionsQuery.status === "pending" || rankingQuery.status === "pending" ? <Alert variant="info"><AlertTitle>Carregando painel</AlertTitle><AlertDescription>Buscando bolões, partidas, perguntas, ranking e palpites salvos.</AlertDescription></Alert> : null}
         {predictionsQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar partidas</AlertTitle><AlertDescription>{predictionsQuery.error?.message || "Não foi possível carregar os dados."}</AlertDescription></Alert> : null}
@@ -491,8 +582,9 @@ export function ParticipantPage() {
         {jogos.length && viewMode === "groups" ? <GroupedMatches jogos={jogos} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
         {jogos.length && viewMode === "list" ? <ListMatches jogos={jogosFiltrados} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
         {jogos.length && viewMode === "timeline" ? <TimelineMatches jogos={jogos} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
-        {viewMode === "questions" ? <FreeQuestions perguntas={perguntasLivresVisiveis} respostasLivres={respostasLivres} mensagemResposta={mensagemResposta} answerQuestionPending={answerQuestionMutation.isPending} onAnswerChange={atualizarRespostaLivre} onSave={salvarRespostaLivre} /> : null}
+        {viewMode === "questions" ? <FreeQuestions perguntas={perguntasLivresVisiveis} respostasLivres={respostasLivres} mensagemResposta={mensagemResposta} answerQuestionPending={answerQuestionMutation.isPending} onAnswerChange={atualizarRespostaLivre} onSave={salvarRespostaLivre} onCompare={setSelectedComparisonQuestionId} /> : null}
         {selectedComparisonMatchId ? <ComparisonModal data={comparisonQuery.data} status={comparisonQuery.status} error={comparisonQuery.error} onClose={() => setSelectedComparisonMatchId(null)} /> : null}
+        {selectedComparisonQuestionId ? <QuestionComparisonModal data={questionComparisonQuery.data} status={questionComparisonQuery.status} error={questionComparisonQuery.error} onClose={() => setSelectedComparisonQuestionId(null)} /> : null}
       </PageShell>
     </div>
   );
@@ -814,7 +906,7 @@ function MatchesModal({ title, description, children, onClose }: { title: string
   );
 }
 
-function ComparisonModal({ data, status, error, onClose }: { data: ReturnType<typeof usePredictionMatchComparisonQuery>["data"]; status: string; error: Error | null; onClose: () => void }) {
+export function ComparisonModal({ data, status, error, onClose }: { data: ReturnType<typeof usePredictionMatchComparisonQuery>["data"]; status: string; error: Error | null; onClose: () => void }) {
   return (
     <ModalShell onClose={onClose} className="max-w-4xl">
       <CardHeader>
@@ -842,6 +934,47 @@ function ComparisonModal({ data, status, error, onClose }: { data: ReturnType<ty
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={participant.hasPrediction ? "default" : "secondary"}>{participant.hasPrediction ? `${participant.homeGoals} x ${participant.awayGoals}` : "Sem palpite visível"}</Badge>
                     <Badge variant={participant.resultType === "exact" ? "success" : participant.resultType === "outcome" ? "warning" : "outline"}>{participant.points} pts</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
+      </CardContent>
+    </ModalShell>
+  );
+}
+
+export function QuestionComparisonModal({ data, status, error, onClose }: { data: ReturnType<typeof usePoolQuestionComparisonQuery>["data"]; status: string; error: Error | null; onClose: () => void }) {
+  return (
+    <ModalShell onClose={onClose} className="max-w-4xl">
+      <CardHeader>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div><CardTitle>Comparação da pergunta</CardTitle><p className="mt-1 text-sm text-muted-foreground">As respostas dos outros participantes só aparecem depois que o prazo encerra.</p></div>
+          <Button variant="outline" size="sm" onClick={onClose}>Fechar</Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {status === "pending" ? <Alert variant="info"><AlertTitle>Carregando comparação</AlertTitle><AlertDescription>Buscando respostas e status de correção por participante.</AlertDescription></Alert> : null}
+        {status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao comparar</AlertTitle><AlertDescription>{error?.message ?? "Não foi possível carregar a comparação."}</AlertDescription></Alert> : null}
+        {data ? (
+          <>
+            {!data.canCompare ? <Alert variant="warning"><AlertTitle>Comparação bloqueada</AlertTitle><AlertDescription>Antes do prazo encerrar, apenas a sua própria resposta fica visível.</AlertDescription></Alert> : null}
+            <div className="grid gap-3 md:grid-cols-4">
+              <Metric label="Responderam" value={data.distribution.answeredCount} />
+              <Metric label="Sem resposta" value={data.distribution.missingCount} />
+              <Metric label="Mesmo texto" value={data.distribution.sameAsCurrentUserCount} />
+              <Metric label="Corretas" value={data.distribution.correctCount} />
+            </div>
+            <div className="space-y-2">
+              {data.participants.map((participant) => (
+                <div key={participant.userId} className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 ${participant.isCurrentUser ? "border-primary bg-primary/5" : ""}`}>
+                  <div><p className="font-medium">{participant.name}{participant.isCurrentUser ? " (você)" : ""}</p><p className="text-xs text-muted-foreground">{participant.email}</p></div>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Badge variant={participant.hasAnswer ? "default" : "secondary"}>{participant.showAnswer ? participant.answer?.trim() || "Sem resposta" : "Resposta oculta"}</Badge>
+                    <Badge variant={participant.isCorrect === null ? "outline" : participant.isCorrect ? "success" : "destructive"}>
+                      {participant.isCorrect === null ? "Pendente" : participant.isCorrect ? `${participant.points} pts` : "0 pts"}
+                    </Badge>
                   </div>
                 </div>
               ))}

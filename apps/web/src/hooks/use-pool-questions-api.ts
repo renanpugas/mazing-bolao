@@ -14,6 +14,12 @@ export const usePoolQuestionAnswersQuery = (questionId: string | null) =>
     enabled: !!questionId,
   });
 
+export const usePoolQuestionComparisonQuery = (poolId: string | null, questionId: string | null) =>
+  useQuery({
+    ...orpc.poolQuestions.comparison.queryOptions({ input: { poolId: poolId ?? "", questionId: questionId ?? "" } }),
+    enabled: !!poolId && !!questionId,
+  });
+
 export const useCreatePoolQuestionMutation = (poolId: string | null) => {
   const queryClient = useQueryClient();
 
