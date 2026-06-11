@@ -120,6 +120,20 @@
       "when": 1786263000000,
       "tag": "0016_add_match_starts_at_timezone",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1786349400000,
+      "tag": "0017_create_password_login_authorizations",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1786349700000,
+      "tag": "0018_allow_bootstrap_password_authorizations",
+      "breakpoints": true
     }
   ]
 }

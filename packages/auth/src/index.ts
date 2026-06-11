@@ -1,8 +1,13 @@
 import { createDb } from "@mazing-bolao/db";
+import { passwordLoginAuthorization } from "@mazing-bolao/db/schema/auth";
 import * as schema from "@mazing-bolao/db/schema/auth";
 import { env } from "@mazing-bolao/env/server";
 import { betterAuth } from "better-auth";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { and, eq, isNull } from "drizzle-orm";
+
+const normalizeEmail = (value: unknown) => (typeof value === "string" ? value.trim().toLowerCase() : "");
 
 export function createAuth() {
   const db = createDb();
@@ -27,7 +32,7 @@ export function createAuth() {
       "https://192.168.15.11:*",
     ],
     emailAndPassword: {
-      enabled: false,
+      enabled: true,
     },
     socialProviders: {
       google: {
@@ -46,6 +51,64 @@ export function createAuth() {
         secure: isProduction,
         httpOnly: true,
       },
+    },
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== "/sign-up/email") return;
+
+        const body = ctx.body as { email?: unknown } | undefined;
+        const email = normalizeEmail(body?.email);
+        if (!email) {
+          throw new APIError("BAD_REQUEST", {
+            message: "Informe um e-mail válido.",
+          });
+        }
+
+        if (body) {
+          body.email = email;
+        }
+
+        const authorization = await db.query.passwordLoginAuthorization.findFirst({
+          where: and(eq(passwordLoginAuthorization.email, email), isNull(passwordLoginAuthorization.revokedAt)),
+          columns: {
+            id: true,
+            usedAt: true,
+            usedByUserId: true,
+          },
+        });
+
+        if (!authorization) {
+          throw new APIError("FORBIDDEN", {
+            message: "Este e-mail não está autorizado para cadastro com senha.",
+          });
+        }
+
+        if (authorization.usedAt || authorization.usedByUserId) {
+          throw new APIError("FORBIDDEN", {
+            message: "Esta autorização de cadastro já foi utilizada.",
+          });
+        }
+      }),
+      after: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== "/sign-up/email") return;
+
+        const body = ctx.body as { email?: unknown } | undefined;
+        const email = normalizeEmail(body?.email);
+        const userId = ctx.context.newSession?.user.id;
+
+        if (!email || !userId) return;
+
+        await db
+          .update(passwordLoginAuthorization)
+          .set({ usedByUserId: userId, usedAt: new Date() })
+          .where(
+            and(
+              eq(passwordLoginAuthorization.email, email),
+              isNull(passwordLoginAuthorization.usedAt),
+              isNull(passwordLoginAuthorization.revokedAt),
+            ),
+          );
+      }),
     },
     plugins: [],
   });

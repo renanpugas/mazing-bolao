@@ -5,6 +5,7 @@ import {
   db,
   groupStanding,
   match,
+  passwordLoginAuthorization,
   pool,
   poolMatchScoringRule,
   poolOddBonusRule,
@@ -77,6 +78,7 @@ export async function cleanupDatabase() {
   await db.delete(session);
   await db.delete(account);
   await db.delete(verification);
+  await db.delete(passwordLoginAuthorization);
   await db.delete(user);
 }
 

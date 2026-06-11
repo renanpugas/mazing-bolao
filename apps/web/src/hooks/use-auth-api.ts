@@ -16,6 +16,35 @@ export const useAuthApi = () => {
     );
   };
 
+  const signInWithEmail = async (input: { email: string; password: string; callbackURL?: string }) => {
+    const { data, error } = await authClient.signIn.email({
+      email: input.email,
+      password: input.password,
+      callbackURL: resolveCallbackUrl(input.callbackURL ?? "/"),
+    });
+
+    if (error) {
+      throw new Error(error.message || "Não foi possível entrar.");
+    }
+
+    return data;
+  };
+
+  const signUpWithEmail = async (input: { name: string; email: string; password: string; callbackURL?: string }) => {
+    const { data, error } = await authClient.signUp.email({
+      name: input.name,
+      email: input.email,
+      password: input.password,
+      callbackURL: resolveCallbackUrl(input.callbackURL ?? "/"),
+    });
+
+    if (error) {
+      throw new Error(error.message || "Não foi possível criar a conta.");
+    }
+
+    return data;
+  };
+
   const signOut = (onSuccess?: () => Promise<void> | void, onError?: (error: any) => void) => {
     return authClient.signOut({
       fetchOptions: {
@@ -25,5 +54,5 @@ export const useAuthApi = () => {
     });
   };
 
-  return { signInWithGoogle, signOut, useSession: authClient.useSession };
+  return { signInWithGoogle, signInWithEmail, signUpWithEmail, signOut, useSession: authClient.useSession };
 };

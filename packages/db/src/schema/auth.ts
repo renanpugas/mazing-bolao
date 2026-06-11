@@ -86,6 +86,27 @@ export const verification = sqliteTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const passwordLoginAuthorization = sqliteTable(
+  "password_login_authorization",
+  {
+    id: text("id").primaryKey(),
+    email: text("email").notNull().unique(),
+    createdByUserId: text("created_by_user_id").references(() => user.id, { onDelete: "set null" }),
+    usedByUserId: text("used_by_user_id").references(() => user.id, { onDelete: "set null" }),
+    revokedByUserId: text("revoked_by_user_id").references(() => user.id, { onDelete: "set null" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    usedAt: integer("used_at", { mode: "timestamp_ms" }),
+    revokedAt: integer("revoked_at", { mode: "timestamp_ms" }),
+  },
+  (table) => [
+    index("password_login_authorization_created_by_user_id_idx").on(table.createdByUserId),
+    index("password_login_authorization_used_by_user_id_idx").on(table.usedByUserId),
+    index("password_login_authorization_revoked_by_user_id_idx").on(table.revokedByUserId),
+  ],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),

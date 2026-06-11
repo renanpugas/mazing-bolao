@@ -1,19 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuthApi } from "@/hooks/use-auth-api";
 
 export const Route = createFileRoute("/login")({ component: LoginPage });
 
 function LoginPage() {
-  const { signInWithGoogle } = useAuthApi();
-  const [loading, setLoading] = useState(false);
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuthApi();
+  const [authMode, setAuthMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const passwordActionDisabled = passwordLoading || !email.trim() || !password || (authMode === "sign-up" && !name.trim());
 
-  const handleSignIn = async () => {
-    setLoading(true);
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
     setError(null);
     try {
       await signInWithGoogle("/", (apiError) => {
@@ -22,7 +30,27 @@ function LoginPage() {
     } catch (unknownError) {
       setError(unknownError instanceof Error ? unknownError.message : "Tente novamente.");
     } finally {
-      setLoading(false);
+      setGoogleLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPasswordLoading(true);
+    setError(null);
+
+    try {
+      if (authMode === "sign-up") {
+        await signUpWithEmail({ name: name.trim(), email: email.trim(), password, callbackURL: "/" });
+      } else {
+        await signInWithEmail({ email: email.trim(), password, callbackURL: "/" });
+      }
+
+      window.location.assign("/");
+    } catch (unknownError) {
+      setError(unknownError instanceof Error ? unknownError.message : "Tente novamente.");
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -36,9 +64,58 @@ function LoginPage() {
               <h2 className="mt-3 text-3xl font-extrabold">Entrar na conta</h2>
               <p className="mt-2 text-sm text-emerald-100/80">Continue de onde parou e acompanhe seus palpites em tempo real.</p>
               {error ? <p className="mt-4 rounded-md bg-red-500/15 p-3 text-sm text-red-100">{error}</p> : null}
-              <Button className="mt-6 w-full" size="lg" variant="secondary" onClick={handleSignIn} disabled={loading}>
-                {loading ? "Entrando..." : "Entrar com Google"}
+              <Button className="mt-6 w-full" size="lg" variant="secondary" onClick={handleGoogleSignIn} disabled={googleLoading || passwordLoading}>
+                {googleLoading ? "Entrando..." : "Entrar com Google"}
               </Button>
+              <div className="my-6 h-px bg-emerald-200/15" />
+              <div className="grid grid-cols-2 gap-2 rounded-lg bg-emerald-950/80 p-1">
+                <Button type="button" size="sm" variant={authMode === "sign-in" ? "secondary" : "ghost"} onClick={() => setAuthMode("sign-in")}>
+                  Entrar
+                </Button>
+                <Button type="button" size="sm" variant={authMode === "sign-up" ? "secondary" : "ghost"} onClick={() => setAuthMode("sign-up")}>
+                  Criar senha
+                </Button>
+              </div>
+              <form className="mt-5 space-y-4" onSubmit={handlePasswordSubmit}>
+                {authMode === "sign-up" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome</Label>
+                    <Input
+                      id="name"
+                      autoComplete="name"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      className="border-emerald-200/20 bg-emerald-950/70 text-emerald-50"
+                    />
+                  </div>
+                ) : null}
+                <div className="space-y-2">
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    className="border-emerald-200/20 bg-emerald-950/70 text-emerald-50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    minLength={8}
+                    autoComplete={authMode === "sign-up" ? "new-password" : "current-password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    className="border-emerald-200/20 bg-emerald-950/70 text-emerald-50"
+                  />
+                </div>
+                <Button className="w-full" size="lg" type="submit" disabled={passwordActionDisabled}>
+                  {passwordLoading ? "Carregando..." : authMode === "sign-up" ? "Criar conta com senha" : "Entrar com e-mail"}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </div>
