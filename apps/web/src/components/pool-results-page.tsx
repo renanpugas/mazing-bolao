@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BarChart3 } from "lucide-react";
 
 import { ComparisonModal, QuestionComparisonModal } from "@/components/participant-page";
@@ -56,6 +56,7 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
   const poolsQuery = usePoolsListQuery();
   const sessionQuery = useSessionQuery();
   const pools = poolsQuery.data ?? [];
+  const playedLastPlaceAudioPoolsRef = useRef(new Set<string>());
   const [selectedPoolId, setSelectedPoolId] = useState<string | null>(initialPoolId);
   const [selectedParticipantUserId, setSelectedParticipantUserId] = useState<string | null>(null);
   const [selectedDetailView, setSelectedDetailView] = useState<"matches" | "questions">("matches");
@@ -118,6 +119,33 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
       setSelectedGroupFilter("all");
     }
   }, [availableGroups, selectedGroupFilter]);
+
+  useEffect(() => {
+    if (!selectedPoolId || !currentUserId || !ranking.length) return;
+
+    const lastEntry = ranking[ranking.length - 1];
+    const isCurrentUserLast = lastEntry?.userId === currentUserId;
+    if (!isCurrentUserLast || playedLastPlaceAudioPoolsRef.current.has(selectedPoolId)) return;
+
+    const playAudio = () => {
+      if (document.visibilityState !== "visible") return;
+      if (playedLastPlaceAudioPoolsRef.current.has(selectedPoolId)) return;
+
+      playedLastPlaceAudioPoolsRef.current.add(selectedPoolId);
+      const audio = new Audio("/nao-sobrou-nada.mp3");
+      audio.currentTime = 0;
+      void audio.play().catch(() => {
+        playedLastPlaceAudioPoolsRef.current.delete(selectedPoolId);
+      });
+    };
+
+    playAudio();
+    document.addEventListener("visibilitychange", playAudio);
+
+    return () => {
+      document.removeEventListener("visibilitychange", playAudio);
+    };
+  }, [currentUserId, ranking, selectedPoolId]);
 
   return (
     <PageShell className="space-y-6" wide>
