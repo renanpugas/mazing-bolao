@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Termo de Ciência, Aceite e Cobrança Automática</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      body {
+        margin: 0;
+        background: #d9dde3;
+        color: #111827;
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.55;
+      }
+
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        padding: 12px;
+        background: #111827;
+        color: #fff;
+        font-family: Arial, sans-serif;
+      }
+
+      .toolbar button {
+        border: 1px solid #ffffff55;
+        border-radius: 8px;
+        background: #fff;
+        color: #111827;
+        cursor: pointer;
+        font-weight: 700;
+        padding: 8px 14px;
+      }
+
+      .page {
+        width: min(794px, calc(100vw - 32px));
+        min-height: 1123px;
+        box-sizing: border-box;
+        margin: 28px auto;
+        padding: 72px 78px;
+        background: #fff;
+        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
+      }
+
+      .seal {
+        display: grid;
+        width: 92px;
+        height: 92px;
+        margin: 0 auto 22px;
+        place-items: center;
+        border: 3px double #1f2937;
+        border-radius: 999px;
+        color: #1f2937;
+        font: 700 12px Arial, sans-serif;
+        letter-spacing: 0.08em;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 24px;
+        line-height: 1.2;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .subtitle {
+        margin: 0 0 34px;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        margin: 26px 0 10px;
+        font-size: 16px;
+        text-transform: uppercase;
+      }
+
+      p {
+        margin: 10px 0;
+        text-align: justify;
+      }
+
+      .amount {
+        margin: 24px 0;
+        border: 2px solid #111827;
+        padding: 16px 18px;
+        font-family: Arial, sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .signature {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        margin-top: 72px;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .signature div {
+        border-top: 1px solid #111827;
+        padding-top: 10px;
+      }
+
+      footer {
+        margin-top: 34px;
+        border-top: 1px solid #d1d5db;
+        padding-top: 12px;
+        color: #4b5563;
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        text-align: center;
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          padding: 42px 28px;
+        }
+
+        .signature {
+          grid-template-columns: 1fr;
+          gap: 42px;
+        }
+      }
+
+      @media print {
+        body {
+          background: #fff;
+        }
+
+        .toolbar {
+          display: none;
+        }
+
+        .page {
+          width: auto;
+          min-height: auto;
+          margin: 0;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <span>Documento oficial de aceite</span>
+      <button type="button" onclick="window.print()">Salvar/Imprimir PDF</button>
+    </div>
+    <main class="page">
+      <div class="seal">Bolão<br />Oficial</div>
+      <h1>Termo de Ciência, Aceite e Cobrança Automática</h1>
+      <p class="subtitle">Instrumento particular de adesão irrevogável e irretratável</p>
+
+      <p>Pelo presente instrumento, todo usuário, participante, convidado, observador, palpiteiro eventual ou pessoa que simplesmente ingressar no sistema declara, para todos os fins de direito e de brincadeira, ter lido, compreendido e aceitado integralmente estes termos.</p>
+
+      <h2>Cláusula 1 - Do aceite automático</h2>
+      <p>O simples acesso ao sistema, ainda que por curiosidade, distração, pressão social, promessa de churrasco ou tentativa de conferir a classificação, constitui manifestação inequívoca de vontade e aceite pleno das condições aqui estabelecidas.</p>
+
+      <h2>Cláusula 2 - Da cobrança</h2>
+      <p>Fica instituída cobrança automática no valor de R$ 500,00 (quinhentos reais) para participantes localizados no Brasil ou em qualquer jurisdição que utilize a paciência dos organizadores como moeda moral.</p>
+
+      <div class="amount">Participantes nos Estados Unidos da América: US$ 500.00 (five hundred dollars)</div>
+
+      <p>O valor será descontado automaticamente em folha de pagamento, holerite, contracheque, coffee badge, planilha informal do RH, promessa futura de pix ou qualquer mecanismo equivalente que venha a ser inventado.</p>
+
+      <h2>Cláusula 3 - Da taxa especial por piadinhas no nome</h2>
+      <p>Participantes que inserirem apelidos, codinomes, gracinhas, títulos autoproclamados ou piadinhas no nome, incluindo, sem limitação, expressões como "Conquistador", ficam sujeitos à cobrança adicional de 15% sobre o valor total aplicável.</p>
+
+      <h2>Cláusula 4 - Da irrevogabilidade</h2>
+      <p>Não serão aceitas alegações de desconhecimento, clique sem querer, checkbox travada, leitura dinâmica, falta de óculos, bloqueio emocional pós-rodada ou qualquer outra justificativa criativa para afastar a cobrança.</p>
+
+      <h2>Cláusula 5 - Disposição final</h2>
+      <p>Ao permanecer no sistema, o participante confirma que aceita os termos acima com a seriedade compatível com um bolão entre pessoas altamente responsáveis.</p>
+
+      <div class="signature">
+        <div>Participante automaticamente aderente</div>
+        <div>O Comitê</div>
+      </div>
+      <footer>Documento gerado eletronicamente. Assinatura automática vinculada autorizada pelo R do RH.</footer>
+    </main>
+  </body>
+</html>

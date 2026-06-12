@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, BarChart3 } from "lucide-react";
-import type { ReactNode } from "react";
+import { AlertTriangle, BarChart3, FileText } from "lucide-react";
+import type { KeyboardEvent, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -216,6 +216,37 @@ function PendingHomeAlert({
         </div>
       </AlertDescription>
     </Alert>
+  );
+}
+
+function TermsAcceptance() {
+  const openTerms = () => window.open("/termos-cobranca.html", "_blank", "noopener,noreferrer");
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    openTerms();
+  };
+
+  return (
+    <div
+      role="link"
+      tabIndex={0}
+      className="flex w-full items-start gap-3 rounded-xl border border-border bg-card/80 p-4 text-left shadow-sm transition hover:border-primary/50 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      onClick={openTerms}
+      onKeyDown={handleKeyDown}
+    >
+      <input
+        type="checkbox"
+        checked
+        readOnly
+        aria-label="Termos de uso aceitos"
+        className="mt-1 size-4 accent-primary"
+      />
+      <span className="flex-1 text-sm leading-6">
+        <span className="font-semibold">Eu concordo com os termos de uso e cobrança</span>
+      </span>
+      <FileText className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+    </div>
   );
 }
 
@@ -553,6 +584,7 @@ export function ParticipantPage() {
             </div>
           </CardContent>
         </Card>
+        <TermsAcceptance />
         {requestError ? <Alert variant="destructive"><AlertTitle>Não foi possível salvar</AlertTitle><AlertDescription>{requestError}</AlertDescription></Alert> : null}
         {syncMessage ? <Alert variant="success"><AlertTitle>Jogos atualizados</AlertTitle><AlertDescription>{syncMessage}</AlertDescription></Alert> : null}
         {syncError ? <Alert variant="destructive"><AlertTitle>Não foi possível atualizar jogos</AlertTitle><AlertDescription>{syncError}</AlertDescription></Alert> : null}
