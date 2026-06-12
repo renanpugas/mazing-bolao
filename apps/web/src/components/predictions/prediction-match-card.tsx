@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input";
 import { MatchTime } from "@/components/match-time";
 import type { Jogo, Palpite, PalpiteUpdate, PredictionSaveStatus } from "@/components/predictions/types";
+import { TeamFlag } from "@/components/team-flag";
 
 const parseGols = (value: string) => {
   if (value === "") return null;
@@ -91,7 +92,7 @@ export function PredictionMatchCard({
           <div className="flex flex-col items-center gap-1">
             <div className="flex h-10 items-center justify-center gap-2">
               {jogo.oddsMandante !== null ? <span className="text-xs font-semibold text-muted-foreground">Odd {formatOdd(jogo.oddsMandante)}</span> : null}
-              <span className="text-4xl leading-none">{jogo.mandanteEmoji}</span>
+              <TeamFlag emoji={jogo.mandanteEmoji} name={jogo.mandante} className="text-4xl leading-none" />
             </div>
             <Input
               value={palpite.golsMandante ?? ""}
@@ -111,7 +112,7 @@ export function PredictionMatchCard({
           </div>
           <div className="flex flex-col items-center gap-1">
             <div className="flex h-10 items-center justify-center gap-2">
-              <span className="text-4xl leading-none">{jogo.visitanteEmoji}</span>
+              <TeamFlag emoji={jogo.visitanteEmoji} name={jogo.visitante} className="text-4xl leading-none" />
               {jogo.oddsVisitante !== null ? <span className="text-xs font-semibold text-muted-foreground">Odd {formatOdd(jogo.oddsVisitante)}</span> : null}
             </div>
             <Input
@@ -136,7 +137,7 @@ export function PredictionMatchCard({
         {jogo.encerrado ? (
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 rounded-lg bg-muted px-3 py-2 text-center text-sm">
             <span>
-              Resultado final: <span className="font-semibold"><span aria-hidden="true">{jogo.mandanteEmoji}</span> {jogo.golsMandanteResultado ?? "-"} x {jogo.golsVisitanteResultado ?? "-"} <span aria-hidden="true">{jogo.visitanteEmoji}</span></span>
+              Resultado final: <span className="inline-flex items-center gap-1 font-semibold"><TeamFlag emoji={jogo.mandanteEmoji} name={jogo.mandante} /> {jogo.golsMandanteResultado ?? "-"} x {jogo.golsVisitanteResultado ?? "-"} <TeamFlag emoji={jogo.visitanteEmoji} name={jogo.visitante} /></span>
             </span>
             <Badge variant={jogo.pontosGanhos > 0 ? "success" : "destructive"}>{jogo.pontosGanhos} pts</Badge>
           </div>

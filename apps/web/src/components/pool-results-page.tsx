@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TeamFlag } from "@/components/team-flag";
 import { usePredictionMatchComparisonQuery } from "@/hooks/use-predictions-api";
 import { usePoolScoringParticipantPredictionsQuery, usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
 import { usePoolsListQuery } from "@/hooks/use-pools-api";
@@ -45,7 +46,7 @@ function getStageLabel(stage: string | null) {
 function TeamNameWithFlag({ emoji, name }: { emoji: string | null | undefined; name: string }) {
   return (
     <span className="inline-flex min-w-0 items-center gap-1.5">
-      {emoji ? <span className="text-sm leading-none" aria-hidden="true">{emoji}</span> : null}
+      <TeamFlag emoji={emoji} name={name} />
       <span className="truncate">{formatTeamNamePtBr(name)}</span>
     </span>
   );
