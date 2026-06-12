@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { PredictionMatchCard } from "@/components/predictions/prediction-match-card";
 import { PredictionMatchList } from "@/components/predictions/prediction-match-list";
 import type { Jogo, Palpite, PalpiteUpdate, PredictionSaveStatus } from "@/components/predictions/types";
+import { TeamFlag } from "@/components/team-flag";
 import { formatMatchDateTime } from "@/components/match-time";
 import { PageShell } from "@/components/page-shell";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -909,11 +910,24 @@ function MatchesModal({ title, description, children, onClose }: { title: string
 }
 
 export function ComparisonModal({ data, status, error, onClose }: { data: ReturnType<typeof usePredictionMatchComparisonQuery>["data"]; status: string; error: Error | null; onClose: () => void }) {
+  const homeTeamName = data?.match.homeTeamLabel ?? data?.match.homeTeam ?? "";
+  const awayTeamName = data?.match.awayTeamLabel ?? data?.match.awayTeam ?? "";
+
   return (
     <ModalShell onClose={onClose} className="max-w-4xl">
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div><CardTitle>Comparação do jogo</CardTitle><p className="mt-1 text-sm text-muted-foreground">Palpites dos participantes ficam visíveis após o início do jogo.</p></div>
+          <div className="space-y-1">
+            <CardTitle>Comparação do jogo</CardTitle>
+            {data ? (
+              <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                <TeamNameWithFlag emoji={data.match.homeTeamEmoji} name={homeTeamName} />
+                <span className="text-muted-foreground">x</span>
+                <TeamNameWithFlag emoji={data.match.awayTeamEmoji} name={awayTeamName} />
+              </div>
+            ) : null}
+            <p className="text-sm text-muted-foreground">Palpites dos participantes ficam visíveis após o início do jogo.</p>
+          </div>
           <Button variant="outline" size="sm" onClick={onClose}>Fechar</Button>
         </div>
       </CardHeader>
@@ -924,9 +938,9 @@ export function ComparisonModal({ data, status, error, onClose }: { data: Return
           <>
             {!data.canCompare ? <Alert variant="warning"><AlertTitle>Comparação bloqueada</AlertTitle><AlertDescription>Antes do início da partida, apenas o seu palpite fica visível.</AlertDescription></Alert> : null}
             <div className="grid gap-3 md:grid-cols-4">
-              <Metric label="Mandante" value={data.distribution.homeWinCount} />
+              <Metric label={<TeamNameWithFlag emoji={data.match.homeTeamEmoji} name={homeTeamName} />} value={data.distribution.homeWinCount} />
               <Metric label="Empate" value={data.distribution.drawCount} />
-              <Metric label="Visitante" value={data.distribution.awayWinCount} />
+              <Metric label={<TeamNameWithFlag emoji={data.match.awayTeamEmoji} name={awayTeamName} />} value={data.distribution.awayWinCount} />
               <Metric label="Mesmo palpite" value={data.distribution.sameAsCurrentUserCount} />
             </div>
             <div className="space-y-2">
@@ -934,7 +948,15 @@ export function ComparisonModal({ data, status, error, onClose }: { data: Return
                 <div key={participant.userId} className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 ${participant.isCurrentUser ? "border-primary bg-primary/5" : ""}`}>
                   <div><p className="font-medium">{participant.name}{participant.isCurrentUser ? " (você)" : ""}</p><p className="text-xs text-muted-foreground">{participant.email}</p></div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={participant.hasPrediction ? "default" : "secondary"}>{participant.hasPrediction ? `${participant.homeGoals} x ${participant.awayGoals}` : "Sem palpite visível"}</Badge>
+                    <Badge variant={participant.hasPrediction ? "default" : "secondary"}>
+                      {participant.hasPrediction ? (
+                        <span className="inline-flex items-center gap-1">
+                          <TeamFlag emoji={data.match.homeTeamEmoji} name={homeTeamName} />
+                          <span>{participant.homeGoals} x {participant.awayGoals}</span>
+                          <TeamFlag emoji={data.match.awayTeamEmoji} name={awayTeamName} />
+                        </span>
+                      ) : "Sem palpite visível"}
+                    </Badge>
                     <Badge variant={participant.resultType === "exact" ? "success" : participant.resultType === "outcome" ? "warning" : "outline"}>{participant.points} pts</Badge>
                   </div>
                 </div>
@@ -997,6 +1019,15 @@ function ModalShell({ children, onClose, className = "" }: { children: ReactNode
   );
 }
 
-function Metric({ label, value, compact = false }: { label: string; value: number; compact?: boolean }) {
+function TeamNameWithFlag({ emoji, name }: { emoji: string | null | undefined; name: string }) {
+  return (
+    <span className="inline-flex min-w-0 items-center gap-1.5">
+      <TeamFlag emoji={emoji} name={name} />
+      <span className="truncate">{formatTeamNamePtBr(name)}</span>
+    </span>
+  );
+}
+
+function Metric({ label, value, compact = false }: { label: ReactNode; value: number; compact?: boolean }) {
   return <div className={`rounded-lg border border-accent bg-accent text-accent-foreground shadow-sm ${compact ? "p-2" : "p-3"}`}><p className="text-xs text-accent-foreground/70">{label}</p><p className={compact ? "text-lg font-semibold" : "text-2xl font-semibold"}>{value}</p></div>;
 }
