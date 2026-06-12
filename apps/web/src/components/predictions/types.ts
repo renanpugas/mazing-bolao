@@ -14,6 +14,8 @@ export type Jogo = {
   visitante: string;
   mandanteEmoji: string | null;
   visitanteEmoji: string | null;
+  mandanteRankingFifa: number | null;
+  visitanteRankingFifa: number | null;
   golsMandanteResultado: number | null;
   golsVisitanteResultado: number | null;
   oddsMandante: number | null;

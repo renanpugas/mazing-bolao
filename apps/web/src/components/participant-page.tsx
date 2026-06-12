@@ -354,6 +354,8 @@ export function ParticipantPage() {
       visitante: formatTeamNamePtBr(item.match.awayTeamLabel ?? item.match.awayTeam),
       mandanteEmoji: item.match.homeTeamEmoji,
       visitanteEmoji: item.match.awayTeamEmoji,
+      mandanteRankingFifa: item.match.homeTeamFifaRankingPosition,
+      visitanteRankingFifa: item.match.awayTeamFifaRankingPosition,
       golsMandanteResultado: item.match.homeScore,
       golsVisitanteResultado: item.match.awayScore,
       oddsMandante: item.match.oddsHomeTeam,

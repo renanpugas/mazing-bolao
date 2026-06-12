@@ -10,6 +10,58 @@ const RAW_BASE = "https://raw.githubusercontent.com/rezarahiminia/worldcup2026/m
 
 const defaultMatchTimeZone = "UTC";
 
+export const fifaMenRankingReferenceDate = "2026-06-11";
+
+export const fifaMenRankingByCode: Record<string, number> = {
+  ARG: 1,
+  ESP: 2,
+  FRA: 3,
+  ENG: 4,
+  POR: 5,
+  BRA: 6,
+  MAR: 7,
+  NED: 8,
+  BEL: 9,
+  GER: 10,
+  CRO: 11,
+  COL: 13,
+  MEX: 14,
+  SEN: 15,
+  URU: 16,
+  USA: 17,
+  JPN: 18,
+  SUI: 19,
+  IRN: 20,
+  AUT: 22,
+  ECU: 24,
+  TUR: 25,
+  AUS: 26,
+  SWE: 28,
+  NOR: 29,
+  CAN: 30,
+  PAN: 31,
+  EGY: 32,
+  ALG: 36,
+  CZE: 39,
+  CIV: 41,
+  PAR: 43,
+  SCO: 45,
+  TUN: 46,
+  QAT: 53,
+  RSA: 56,
+  UZB: 57,
+  KSA: 58,
+  IRQ: 59,
+  COD: 60,
+  JOR: 64,
+  CPV: 70,
+  BIH: 74,
+  GHA: 75,
+  CUW: 82,
+  HAI: 83,
+  NZL: 86,
+};
+
 export const worldCup2026StadiumTimeZones = {
   "1": "America/Mexico_City",
   "2": "America/Mexico_City",
@@ -157,16 +209,18 @@ export function getFlagEmoji(iso2: unknown) {
 
 export function normalizeTeam(payload: AnyRecord, syncedAt = new Date()) {
   const iso2 = toNullableString(payload.iso2);
+  const fifaCode = toNullableString(payload.fifa_code);
   return {
     id: `${SOURCE}:team:${payload.id}`,
     externalSource: SOURCE,
     externalId: String(payload.id),
     name: toNullableString(payload.name_en ?? payload.name) ?? String(payload.id),
-    fifaCode: toNullableString(payload.fifa_code),
+    fifaCode,
+    fifaRankingPosition: fifaCode ? fifaMenRankingByCode[fifaCode] ?? null : null,
     iso2,
     groupName: toNullableString(payload.groups ?? payload.group),
     emoji: getFlagEmoji(iso2),
-    rawPayload: payload,
+    rawPayload: { ...payload, fifa_ranking_reference_date: fifaMenRankingReferenceDate },
     lastSyncedAt: syncedAt,
     updatedAt: syncedAt,
   };
@@ -243,6 +297,8 @@ export function normalizeGame(
     awayTeamLabel: awayLabel,
     homeTeamEmoji: homeTeam?.emoji ?? null,
     awayTeamEmoji: awayTeam?.emoji ?? null,
+    homeTeamFifaRankingPosition: homeTeam?.fifaRankingPosition ?? null,
+    awayTeamFifaRankingPosition: awayTeam?.fifaRankingPosition ?? null,
     startsAt: parseWorldCupDate(payload.local_date, startsAtTimeZone),
     startsAtTimeZone,
     stadiumExternalId: toNullableString(payload.stadium_id),

@@ -9,6 +9,7 @@ export const team = sqliteTable(
     externalId: text("external_id").notNull(),
     name: text("name").notNull(),
     fifaCode: text("fifa_code"),
+    fifaRankingPosition: integer("fifa_ranking_position"),
     iso2: text("iso2"),
     groupName: text("group_name"),
     emoji: text("emoji"),

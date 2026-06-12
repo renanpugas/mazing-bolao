@@ -23,6 +23,8 @@ const statusVariant = {
 
 const formatOdd = (odd: number | null) => odd?.toFixed(2) ?? "-";
 
+const FifaRankingBadge = ({ ranking }: { ranking: number | null }) => ranking ? <Badge variant="outline" className="px-1.5 py-0 text-[10px] leading-5">#{ranking}</Badge> : null;
+
 export function PredictionMatchCard({
   jogo,
   palpite,
@@ -79,8 +81,11 @@ export function PredictionMatchCard({
       <CardContent className={compact ? "px-4 pb-4" : undefined}>
         <div className={`grid grid-cols-[minmax(0,1fr)_4rem_auto_4rem_minmax(0,1fr)] items-end gap-3 ${timeline ? "w-full" : ""}`}>
           <div className="min-w-0 self-end pb-2 text-right">
-            <div className="truncate font-medium">
-            {jogo.mandante}
+            <div className="flex items-center justify-end gap-2">
+              <div className="truncate font-medium">
+                {jogo.mandante}
+              </div>
+              <FifaRankingBadge ranking={jogo.mandanteRankingFifa} />
             </div>
           </div>
           <div className="flex flex-col items-center gap-1">
@@ -120,15 +125,18 @@ export function PredictionMatchCard({
             />
           </div>
           <div className="min-w-0 self-end pb-2">
-            <div className="truncate font-medium">
-            {jogo.visitante}
+            <div className="flex items-center gap-2">
+              <FifaRankingBadge ranking={jogo.visitanteRankingFifa} />
+              <div className="truncate font-medium">
+                {jogo.visitante}
+              </div>
             </div>
           </div>
         </div>
         {jogo.encerrado ? (
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 rounded-lg bg-muted px-3 py-2 text-center text-sm">
             <span>
-              Resultado final: <span className="font-semibold">{jogo.golsMandanteResultado ?? "-"} x {jogo.golsVisitanteResultado ?? "-"}</span>
+              Resultado final: <span className="font-semibold"><span aria-hidden="true">{jogo.mandanteEmoji}</span> {jogo.golsMandanteResultado ?? "-"} x {jogo.golsVisitanteResultado ?? "-"} <span aria-hidden="true">{jogo.visitanteEmoji}</span></span>
             </span>
             <Badge variant={jogo.pontosGanhos > 0 ? "success" : "destructive"}>{jogo.pontosGanhos} pts</Badge>
           </div>

@@ -30,6 +30,8 @@ export const match = sqliteTable(
     awayTeamLabel: text("away_team_label"),
     homeTeamEmoji: text("home_team_emoji"),
     awayTeamEmoji: text("away_team_emoji"),
+    homeTeamFifaRankingPosition: integer("home_team_fifa_ranking_position"),
+    awayTeamFifaRankingPosition: integer("away_team_fifa_ranking_position"),
     stadiumExternalId: text("stadium_external_id"),
     stadiumName: text("stadium_name"),
     stadiumCity: text("stadium_city"),

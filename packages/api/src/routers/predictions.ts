@@ -154,6 +154,8 @@ export const predictionsRouter = {
             awayTeamLabel: match.awayTeamLabel,
             homeTeamEmoji: match.homeTeamEmoji,
             awayTeamEmoji: match.awayTeamEmoji,
+            homeTeamFifaRankingPosition: match.homeTeamFifaRankingPosition,
+            awayTeamFifaRankingPosition: match.awayTeamFifaRankingPosition,
             homeTeamExternalId: match.homeTeamExternalId,
             awayTeamExternalId: match.awayTeamExternalId,
             startsAt: match.startsAt,
