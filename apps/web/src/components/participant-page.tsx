@@ -534,7 +534,7 @@ export function ParticipantPage() {
     try {
       const result = await syncWorldCupMutation.mutateAsync(undefined);
       const skippedPastMatchesMessage = result.skippedPastMatches
-        ? ` ${result.skippedPastMatches} partida(s) anterior(es) a hoje foram ignorada(s).`
+        ? ` ${result.skippedPastMatches} partida(s) passada(s) já encerrada(s) foram ignorada(s).`
         : "";
       setSyncMessage(`${result.matches} partidas atualizadas.${skippedPastMatchesMessage} Última atualização: ${new Date(result.syncedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}.`);
     } catch (error) {

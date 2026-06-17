@@ -193,6 +193,10 @@ function isOnOrAfterCurrentDay(date: Date, now: Date, timeZone = worldCupSyncRef
   return matchDay.day >= currentDay.day;
 }
 
+function shouldSyncMatch(item: { startsAt: Date; finished: boolean | null | undefined }, now: Date) {
+  return isOnOrAfterCurrentDay(item.startsAt, now) || item.finished === false;
+}
+
 export function getWorldCup2026StadiumTimeZone(stadiumId: unknown) {
   const id = toNullableString(stadiumId);
   return id ? worldCup2026StadiumTimeZones[id as keyof typeof worldCup2026StadiumTimeZones] ?? defaultMatchTimeZone : defaultMatchTimeZone;
@@ -344,7 +348,7 @@ export async function syncWorldCup2026Tournament() {
   const teamsById = new Map(normalizedTeams.map((item) => [item.externalId, item]));
   const stadiumsById = new Map(normalizedStadiums.map((item) => [item.externalId, item]));
   const normalizedGames = gamePayloads.map((payload) => normalizeGame(payload, teamsById, stadiumsById, syncedAt));
-  const syncableGames = normalizedGames.filter((item) => isOnOrAfterCurrentDay(item.startsAt, syncedAt));
+  const syncableGames = normalizedGames.filter((item) => shouldSyncMatch(item, syncedAt));
   const skippedPastMatches = normalizedGames.length - syncableGames.length;
   const tournamentData = getWorldCup2026Tournament(syncedAt);
 
@@ -386,7 +390,7 @@ export async function syncWorldCup2026Tournament() {
       ...item,
     };
 
-    if (isOnOrAfterCurrentDay(item.startsAt, syncedAt)) {
+    if (shouldSyncMatch(item, syncedAt)) {
       await db
         .insert(match)
         .values(matchData)

@@ -71,7 +71,7 @@ describe("World Cup routes E2E", () => {
     expect(syncedMatch?.startsAt.toISOString()).toBe("2026-06-11T19:00:00.000Z");
   });
 
-  it("should not update matches scheduled before the current day", async () => {
+  it("should not update finished matches scheduled before the current day", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-17T12:00:00.000Z"));
 
@@ -139,6 +139,80 @@ describe("World Cup routes E2E", () => {
     expect(unchangedMatch).toMatchObject({
       homeTeam: "Brazil Antigo",
       awayTeam: "Argentina Antiga",
+      homeScore: null,
+      awayScore: null,
+      finished: false,
+    });
+  });
+
+  it("should update unfinished matches scheduled before the current day", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-17T12:00:00.000Z"));
+
+    const adminAgent = createAgent();
+    await signInTestUser(adminAgent, { isAdmin: true });
+
+    await db.insert(tournament).values({
+      id: "worldcup2026:2026",
+      name: "Copa do Mundo 2026",
+      slug: "copa-do-mundo-2026",
+      externalSource: "worldcup2026",
+      season: "2026",
+    });
+
+    await db.insert(match).values({
+      id: crypto.randomUUID(),
+      tournamentId: "worldcup2026:2026",
+      externalSource: "worldcup2026",
+      externalId: "1",
+      season: "2026",
+      homeTeam: "Brazil Antigo",
+      awayTeam: "Argentina Antiga",
+      homeTeamLabel: "Brasil antigo",
+      awayTeamLabel: "Argentina antiga",
+      startsAt: new Date("2026-06-16T19:00:00.000Z"),
+      startsAtTimeZone: "America/Mexico_City",
+      finished: false,
+    });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string | URL | Request) => {
+        const href = String(url);
+        const data = href.includes("teams")
+          ? [
+              { id: "9", name_en: "Brazil", fifa_code: "BRA", iso2: "BR", groups: "C" },
+              { id: "10", name_en: "Argentina", fifa_code: "ARG", iso2: "AR", groups: "C" },
+            ]
+          : href.includes("stadiums")
+            ? [{ id: "1", name_en: "Estadio Azteca", city_en: "Mexico City" }]
+            : href.includes("groups")
+              ? [{ group: "C", teams: [{ team_id: "9", mp: "0", w: "0", d: "0", l: "0", pts: "0", gf: "0", ga: "0", gd: "0" }] }]
+              : [{ id: "1", home_team_id: "9", away_team_id: "10", local_date: "06/16/2026 13:00", stadium_id: "1", finished: "FALSE", home_score: null, away_score: null, type: "group", group: "C", matchday: "1" }];
+
+        return { ok: true, json: async () => data };
+      }),
+    );
+
+    const response = await rpc(adminAgent, "worldCup/sync");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ matches: 1, skippedPastMatches: 0 });
+
+    const updatedMatch = await db.query.match.findFirst({
+      where: eq(match.externalId, "1"),
+      columns: {
+        homeTeam: true,
+        awayTeam: true,
+        homeScore: true,
+        awayScore: true,
+        finished: true,
+      },
+    });
+
+    expect(updatedMatch).toMatchObject({
+      homeTeam: "Brazil",
+      awayTeam: "Argentina",
       homeScore: null,
       awayScore: null,
       finished: false,
