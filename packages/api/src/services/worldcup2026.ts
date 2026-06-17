@@ -9,6 +9,7 @@ const API_BASE = "https://worldcup26.ir/get";
 const RAW_BASE = "https://raw.githubusercontent.com/rezarahiminia/worldcup2026/main";
 
 const defaultMatchTimeZone = "UTC";
+const worldCupSyncReferenceTimeZone = "America/Sao_Paulo";
 
 export const fifaMenRankingReferenceDate = "2026-06-11";
 
@@ -178,6 +179,20 @@ function getDateTimeFormatParts(date: Date, timeZone: string): { year: number; m
   } as { year: number; month: number; day: number; hour: number; minute: number; second: number };
 }
 
+function getDateParts(date: Date, timeZone: string): { year: number; month: number; day: number } {
+  const { year, month, day } = getDateTimeFormatParts(date, timeZone);
+  return { year, month, day };
+}
+
+function isOnOrAfterCurrentDay(date: Date, now: Date, timeZone = worldCupSyncReferenceTimeZone) {
+  const currentDay = getDateParts(now, timeZone);
+  const matchDay = getDateParts(date, timeZone);
+
+  if (matchDay.year !== currentDay.year) return matchDay.year > currentDay.year;
+  if (matchDay.month !== currentDay.month) return matchDay.month > currentDay.month;
+  return matchDay.day >= currentDay.day;
+}
+
 export function getWorldCup2026StadiumTimeZone(stadiumId: unknown) {
   const id = toNullableString(stadiumId);
   return id ? worldCup2026StadiumTimeZones[id as keyof typeof worldCup2026StadiumTimeZones] ?? defaultMatchTimeZone : defaultMatchTimeZone;
@@ -329,6 +344,8 @@ export async function syncWorldCup2026Tournament() {
   const teamsById = new Map(normalizedTeams.map((item) => [item.externalId, item]));
   const stadiumsById = new Map(normalizedStadiums.map((item) => [item.externalId, item]));
   const normalizedGames = gamePayloads.map((payload) => normalizeGame(payload, teamsById, stadiumsById, syncedAt));
+  const syncableGames = normalizedGames.filter((item) => isOnOrAfterCurrentDay(item.startsAt, syncedAt));
+  const skippedPastMatches = normalizedGames.length - syncableGames.length;
   const tournamentData = getWorldCup2026Tournament(syncedAt);
 
   await db.insert(tournament).values(tournamentData).onConflictDoUpdate({
@@ -363,16 +380,28 @@ export async function syncWorldCup2026Tournament() {
   }
 
   for (const item of normalizedGames) {
+    const matchData = {
+      id: crypto.randomUUID(),
+      tournamentId: tournamentData.id,
+      ...item,
+    };
+
+    if (isOnOrAfterCurrentDay(item.startsAt, syncedAt)) {
+      await db
+        .insert(match)
+        .values(matchData)
+        .onConflictDoUpdate({
+          target: [match.tournamentId, match.externalSource, match.externalId],
+          set: item,
+        });
+      continue;
+    }
+
     await db
       .insert(match)
-      .values({
-        id: crypto.randomUUID(),
-        tournamentId: tournamentData.id,
-        ...item,
-      })
-      .onConflictDoUpdate({
+      .values(matchData)
+      .onConflictDoNothing({
         target: [match.tournamentId, match.externalSource, match.externalId],
-        set: item,
       });
   }
 
@@ -381,7 +410,8 @@ export async function syncWorldCup2026Tournament() {
     teams: normalizedTeams.length,
     stadiums: normalizedStadiums.length,
     standings: normalizedStandings.length,
-    matches: normalizedGames.length,
+    matches: syncableGames.length,
+    skippedPastMatches,
     syncedAt,
   };
 }

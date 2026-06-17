@@ -533,7 +533,10 @@ export function ParticipantPage() {
     setSyncError(null);
     try {
       const result = await syncWorldCupMutation.mutateAsync(undefined);
-      setSyncMessage(`${result.matches} partidas atualizadas. Última atualização: ${new Date(result.syncedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}.`);
+      const skippedPastMatchesMessage = result.skippedPastMatches
+        ? ` ${result.skippedPastMatches} partida(s) anterior(es) a hoje foram ignorada(s).`
+        : "";
+      setSyncMessage(`${result.matches} partidas atualizadas.${skippedPastMatchesMessage} Última atualização: ${new Date(result.syncedAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}.`);
     } catch (error) {
       setSyncError(error instanceof Error ? error.message : "Erro ao atualizar jogos.");
     }
