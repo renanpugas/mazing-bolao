@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { calculateMatchPredictionScore, DEFAULT_POOL_SCORING_RULES, isBrazilMatch } from "@mazing-bolao/api/services/scoring";
+import { calculateMatchPredictionScore, DEFAULT_POOL_SCORING_RULES, isBrazilMatch, normalizeScoringStage } from "@mazing-bolao/api/services/scoring";
 
 describe("Scoring service", () => {
   it("should calculate exact score points with Brazil multiplier", () => {
@@ -173,6 +173,14 @@ describe("Scoring service", () => {
 
     expect(wrongScore).toMatchObject({ points: 0, type: "none", multiplied: false });
     expect(incompleteScore).toMatchObject({ points: 0, type: "none", multiplied: false });
+  });
+
+  it("should normalize short knockout stage aliases from synced matches", () => {
+    expect(normalizeScoringStage("r32")).toBe("round_of_32");
+    expect(normalizeScoringStage("r16")).toBe("round_of_16");
+    expect(normalizeScoringStage("qf")).toBe("quarter_final");
+    expect(normalizeScoringStage("sf")).toBe("semi_final");
+    expect(normalizeScoringStage("third")).toBe("third_place");
   });
 
   it("should detect Brazil matches by team names and labels", () => {

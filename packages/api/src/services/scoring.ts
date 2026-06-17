@@ -40,11 +40,11 @@ export function normalizeScoringStage(stage: string | null): PoolScoringStage {
   const normalized = (stage ?? "").toLowerCase().replaceAll("-", "_").replaceAll(" ", "_");
 
   if (["group", "groups", "group_stage", "fase_de_grupos"].includes(normalized)) return "group";
-  if (["round_of_32", "last_32", "32", "sixteenth", "sixteenths", "16_avos", "mata_mata_inicial"].includes(normalized)) return "round_of_32";
-  if (["round_of_16", "last_16", "16", "oitavas"].includes(normalized)) return "round_of_16";
-  if (["quarter_final", "quarterfinal", "quarter_finals", "quarterfinals", "quartas"].includes(normalized)) return "quarter_final";
-  if (["semi_final", "semifinal", "semi_finals", "semifinals", "semifinal"].includes(normalized)) return "semi_final";
-  if (["third_place", "third_place_playoff", "3rd_place", "3_lugar", "terceiro_lugar"].includes(normalized)) return "third_place";
+  if (["round_of_32", "last_32", "32", "r32", "sixteenth", "sixteenths", "16_avos", "mata_mata_inicial"].includes(normalized)) return "round_of_32";
+  if (["round_of_16", "last_16", "16", "r16", "oitavas"].includes(normalized)) return "round_of_16";
+  if (["quarter_final", "quarterfinal", "quarter_finals", "quarterfinals", "qf", "quartas"].includes(normalized)) return "quarter_final";
+  if (["semi_final", "semifinal", "semi_finals", "semifinals", "sf", "semifinal"].includes(normalized)) return "semi_final";
+  if (["third_place", "third_place_playoff", "3rd_place", "3_lugar", "third", "terceiro_lugar"].includes(normalized)) return "third_place";
   if (["final", "finals"].includes(normalized)) return "final";
 
   return "group";
