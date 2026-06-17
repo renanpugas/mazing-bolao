@@ -14,6 +14,12 @@ export const usePoolScoringRankingQuery = (poolId: string | null) =>
     enabled: !!poolId,
   });
 
+export const usePoolScoringRankingHistoryQuery = (poolId: string | null) =>
+  useQuery({
+    ...orpc.poolScoring.rankingHistory.queryOptions({ input: { poolId: poolId ?? "" } }),
+    enabled: !!poolId,
+  });
+
 export const usePoolScoringParticipantPredictionsQuery = (poolId: string | null, participantUserId: string | null) =>
   useQuery({
     ...orpc.poolScoring.participantPredictions.queryOptions({
@@ -37,6 +43,7 @@ export const useUpdatePoolScoringConfigMutation = (poolId: string | null) => {
         if (!poolId) return;
         void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.getConfig.queryOptions({ input: { poolId } }).queryKey });
         void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.ranking.queryOptions({ input: { poolId } }).queryKey });
+        void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.rankingHistory.queryOptions({ input: { poolId } }).queryKey });
       },
     }),
   );
@@ -51,6 +58,7 @@ export const useUpdatePoolQuestionScoresMutation = (poolId: string | null) => {
         if (!poolId) return;
         void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.listQuestionScores.queryOptions({ input: { poolId } }).queryKey });
         void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.ranking.queryOptions({ input: { poolId } }).queryKey });
+        void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.rankingHistory.queryOptions({ input: { poolId } }).queryKey });
       },
     }),
   );

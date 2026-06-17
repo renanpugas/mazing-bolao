@@ -1,6 +1,6 @@
 import { db, match, poolMatchScoringRule, poolOddBonusRule, poolQuestion, poolQuestionAnswer, poolUser, prediction, user } from "@mazing-bolao/db";
 import { ORPCError } from "@orpc/server";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNotNull } from "drizzle-orm";
 import { z } from "zod";
 
 import { protectedProcedure } from "../index";
@@ -371,6 +371,143 @@ export const poolScoringRouter = {
           b.correctOutcomes - a.correctOutcomes ||
           a.name.localeCompare(b.name),
       );
+    }),
+  rankingHistory: protectedProcedure
+    .input(
+      z.object({
+        poolId: z.string().trim().min(1, "Bolão é obrigatório"),
+      }),
+    )
+    .handler(async ({ context, input }) => {
+      const userId = context.session.user.id;
+      const currentPool = await requirePoolParticipantOrAdmin(input.poolId, userId);
+
+      if (!currentPool.tournamentId) {
+        throw new ORPCError("NOT_FOUND", {
+          message: "Bolão não possui torneio vinculado",
+        });
+      }
+
+      const rules = await getMergedRules(input.poolId);
+      const oddBonusRules = await getOddBonusRules(input.poolId);
+      const participants = await db
+        .select({
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+        })
+        .from(poolUser)
+        .innerJoin(user, eq(user.id, poolUser.userId))
+        .where(eq(poolUser.poolId, input.poolId))
+        .orderBy(asc(user.name));
+
+      const dailyPointsByUserId = new Map<string, Map<string, number>>();
+      const eventDayKeys = new Set<string>();
+      const getDateKey = (date: Date | null) => {
+        if (!date) return null;
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+      const registerEventDay = (date: Date | null) => {
+        const dateKey = getDateKey(date);
+        if (!dateKey) return;
+        eventDayKeys.add(dateKey);
+      };
+      const registerPoints = (userId: string, date: Date | null, points: number) => {
+        const dateKey = getDateKey(date);
+        if (!dateKey) return;
+        eventDayKeys.add(dateKey);
+        if (points <= 0) return;
+        const dayPoints = dailyPointsByUserId.get(dateKey) ?? new Map<string, number>();
+        dayPoints.set(userId, (dayPoints.get(userId) ?? 0) + points);
+        dailyPointsByUserId.set(dateKey, dayPoints);
+      };
+
+      const predictionRows = await db
+        .select({
+          userId: prediction.userId,
+          homeGoals: prediction.homeGoals,
+          awayGoals: prediction.awayGoals,
+          match: {
+            startsAt: match.startsAt,
+            stage: match.stage,
+            homeTeam: match.homeTeam,
+            awayTeam: match.awayTeam,
+            homeTeamLabel: match.homeTeamLabel,
+            awayTeamLabel: match.awayTeamLabel,
+            homeTeamEmoji: match.homeTeamEmoji,
+            awayTeamEmoji: match.awayTeamEmoji,
+            homeTeamExternalId: match.homeTeamExternalId,
+            awayTeamExternalId: match.awayTeamExternalId,
+            homeScore: match.homeScore,
+            awayScore: match.awayScore,
+            oddsHomeTeam: match.oddsHomeTeam,
+            oddsAwayTeam: match.oddsAwayTeam,
+            oddsDraw: match.oddsDraw,
+          },
+        })
+        .from(prediction)
+        .innerJoin(match, eq(match.id, prediction.matchId))
+        .where(and(eq(prediction.poolId, input.poolId), eq(match.tournamentId, currentPool.tournamentId), eq(match.finished, true)));
+
+      for (const row of predictionRows) {
+        registerEventDay(row.match.startsAt);
+        const score = calculateMatchPredictionScore({
+          predictionHomeGoals: row.homeGoals,
+          predictionAwayGoals: row.awayGoals,
+          matchHomeScore: row.match.homeScore,
+          matchAwayScore: row.match.awayScore,
+          stage: row.match.stage,
+          isBrazilMatch: isBrazilMatch(row.match),
+          rules,
+          oddBonusRules,
+          oddsHomeTeam: row.match.oddsHomeTeam,
+          oddsAwayTeam: row.match.oddsAwayTeam,
+          oddsDraw: row.match.oddsDraw,
+        });
+
+        registerPoints(row.userId, row.match.startsAt, score.points);
+      }
+
+      const reviewedQuestionRows = await db
+        .select({
+          userId: poolQuestionAnswer.userId,
+          points: poolQuestion.points,
+          isCorrect: poolQuestionAnswer.isCorrect,
+          reviewedAt: poolQuestionAnswer.reviewedAt,
+        })
+        .from(poolQuestionAnswer)
+        .innerJoin(poolQuestion, eq(poolQuestion.id, poolQuestionAnswer.questionId))
+        .where(and(eq(poolQuestionAnswer.poolId, input.poolId), isNotNull(poolQuestionAnswer.reviewedAt)));
+
+      for (const row of reviewedQuestionRows) {
+        registerEventDay(row.reviewedAt);
+        registerPoints(row.userId, row.reviewedAt, row.isCorrect === true ? row.points : 0);
+      }
+
+      const days = [...eventDayKeys].sort((a, b) => a.localeCompare(b));
+      const series = participants.map((participant) => {
+        let cumulativePoints = 0;
+        const values = days.map((day) => {
+          cumulativePoints += dailyPointsByUserId.get(day)?.get(participant.userId) ?? 0;
+          return cumulativePoints;
+        });
+
+        return {
+          userId: participant.userId,
+          name: participant.name,
+          email: participant.email,
+          values,
+          totalPoints: cumulativePoints,
+        };
+      });
+
+      return {
+        days,
+        series: series.sort((a, b) => b.totalPoints - a.totalPoints || a.name.localeCompare(b.name)),
+      };
     }),
   participantPredictions: protectedProcedure
     .input(

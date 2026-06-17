@@ -59,6 +59,7 @@ export const useAddPoolParticipantMutation = (poolId: string | null) => {
         if (!poolId) return;
         void queryClient.invalidateQueries({ queryKey: orpc.pools.participants.queryOptions({ input: { poolId } }).queryKey });
         void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.ranking.queryOptions({ input: { poolId } }).queryKey });
+        void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.rankingHistory.queryOptions({ input: { poolId } }).queryKey });
       },
     }),
   );
@@ -73,6 +74,7 @@ export const useRemovePoolParticipantMutation = (poolId: string | null) => {
         if (!poolId) return;
         void queryClient.invalidateQueries({ queryKey: orpc.pools.participants.queryOptions({ input: { poolId } }).queryKey });
         void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.ranking.queryOptions({ input: { poolId } }).queryKey });
+        void queryClient.invalidateQueries({ queryKey: orpc.poolScoring.rankingHistory.queryOptions({ input: { poolId } }).queryKey });
       },
     }),
   );

@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TeamFlag } from "@/components/team-flag";
 import { usePredictionMatchComparisonQuery } from "@/hooks/use-predictions-api";
-import { usePoolScoringParticipantPredictionsQuery, usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
+import { usePoolScoringParticipantPredictionsQuery, usePoolScoringRankingHistoryQuery, usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
 import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useSessionQuery } from "@/hooks/use-session-api";
 import { formatTeamNamePtBr } from "@/lib/team-names";
@@ -43,12 +43,215 @@ function getStageLabel(stage: string | null) {
   return stageLabels[stage] ?? stage;
 }
 
+function parseDateKey(dateKey: string) {
+  const [yearPart = "1970", monthPart = "1", dayPart = "1"] = dateKey.split("-");
+  const year = Number(yearPart);
+  const month = Number(monthPart);
+  const day = Number(dayPart);
+  return new Date(year, month - 1, day);
+}
+
+function formatHistoryDay(dateKey: string) {
+  return parseDateKey(dateKey).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+function formatHistoryYAxisValue(value: number) {
+  return String(Math.round(value));
+}
+
+const historySeriesColors = [
+  "#2563eb",
+  "#dc2626",
+  "#16a34a",
+  "#d97706",
+  "#7c3aed",
+  "#0891b2",
+  "#db2777",
+  "#4f46e5",
+  "#65a30d",
+  "#ea580c",
+  "#0f766e",
+  "#9333ea",
+];
+
 function TeamNameWithFlag({ emoji, name }: { emoji: string | null | undefined; name: string }) {
   return (
     <span className="inline-flex min-w-0 items-center gap-1.5">
       <TeamFlag emoji={emoji} name={name} />
       <span className="truncate">{formatTeamNamePtBr(name)}</span>
     </span>
+  );
+}
+
+function RankingHistoryChart({
+  history,
+}: {
+  history: {
+    days: string[];
+    series: Array<{ userId: string; name: string; email: string; values: number[]; totalPoints: number }>;
+  };
+}) {
+  const [hoveredSeriesUserId, setHoveredSeriesUserId] = useState<string | null>(null);
+  const [hoveredPoint, setHoveredPoint] = useState<{ userId: string; day: string; value: number } | null>(null);
+
+  if (!history.days.length) {
+    return (
+      <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
+        Ainda não há pontos distribuídos em dias diferentes para montar a evolução.
+      </div>
+    );
+  }
+
+  const chartWidth = 960;
+  const chartHeight = 360;
+  const padding = { top: 20, right: 20, bottom: 64, left: 48 };
+  const plotWidth = chartWidth - padding.left - padding.right;
+  const plotHeight = chartHeight - padding.top - padding.bottom;
+  const seriesWithColors = history.series.map((entry, index) => ({
+    ...entry,
+    color: historySeriesColors[index % historySeriesColors.length],
+  }));
+  const hoveredSeries = seriesWithColors.find((entry) => entry.userId === hoveredSeriesUserId) ?? null;
+  const hoveredPointSeries = hoveredPoint ? seriesWithColors.find((entry) => entry.userId === hoveredPoint.userId) ?? null : null;
+  const maxPoints = Math.max(1, ...seriesWithColors.flatMap((entry) => entry.values));
+  const yTickCount = 5;
+  const yTicks = Array.from({ length: yTickCount }, (_, index) => (
+    Math.round((maxPoints * (yTickCount - 1 - index)) / (yTickCount - 1))
+  ));
+  const xStep = history.days.length > 1 ? plotWidth / (history.days.length - 1) : 0;
+  const yFor = (value: number) => padding.top + plotHeight - (value / maxPoints) * plotHeight;
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border bg-background/60 p-3">
+        <div className="mb-3 flex min-h-6 items-center justify-end">
+          {hoveredPoint && hoveredPointSeries ? (
+            <Badge variant="secondary" className="gap-2 px-3 py-1">
+              <span className="size-2 rounded-full" style={{ backgroundColor: hoveredPointSeries.color }} />
+              <span>{hoveredPointSeries.name}</span>
+              <span className="text-muted-foreground">{hoveredPoint.value} pts em {formatHistoryDay(hoveredPoint.day)}</span>
+            </Badge>
+          ) : hoveredSeries ? (
+            <Badge variant="secondary" className="gap-2 px-3 py-1">
+              <span className="size-2 rounded-full" style={{ backgroundColor: hoveredSeries.color }} />
+              <span>{hoveredSeries.name}</span>
+            </Badge>
+          ) : null}
+        </div>
+        <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-auto w-full">
+          {yTicks.map((tick) => {
+            const y = yFor(tick);
+            return (
+              <g key={tick}>
+                <line x1={padding.left} y1={y} x2={chartWidth - padding.right} y2={y} stroke="currentColor" strokeOpacity="0.12" />
+                <text x={padding.left - 8} y={y + 4} textAnchor="end" fontSize="12" fill="currentColor" opacity="0.7">
+                  {formatHistoryYAxisValue(tick)}
+                </text>
+              </g>
+            );
+          })}
+
+          {history.days.map((day, index) => {
+            const x = history.days.length === 1 ? padding.left + plotWidth / 2 : padding.left + xStep * index;
+            return (
+              <text
+                key={day}
+                x={x}
+                y={chartHeight - 14}
+                textAnchor="end"
+                fontSize="11"
+                fill="currentColor"
+                opacity="0.7"
+                transform={`rotate(-35 ${x} ${chartHeight - 14})`}
+              >
+                {formatHistoryDay(day)}
+              </text>
+            );
+          })}
+
+          {seriesWithColors.map((entry) => {
+            const points = entry.values.map((value, index) => {
+              const x = history.days.length === 1 ? padding.left + plotWidth / 2 : padding.left + xStep * index;
+              return `${x},${yFor(value)}`;
+            }).join(" ");
+
+            const isHovered = hoveredSeriesUserId === entry.userId;
+
+            return (
+              <g key={entry.userId}>
+                <polyline
+                  fill="none"
+                  stroke={entry.color}
+                  strokeWidth={isHovered ? "4" : "3"}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  points={points}
+                  opacity={hoveredSeriesUserId && !isHovered ? 0.35 : 1}
+                />
+                <polyline
+                  fill="none"
+                  stroke="transparent"
+                  strokeWidth="16"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  points={points}
+                  onMouseEnter={() => setHoveredSeriesUserId(entry.userId)}
+                  onMouseLeave={() => {
+                    setHoveredSeriesUserId((current) => current === entry.userId ? null : current);
+                    setHoveredPoint((current) => current?.userId === entry.userId ? null : current);
+                  }}
+                  onFocus={() => setHoveredSeriesUserId(entry.userId)}
+                  onBlur={() => {
+                    setHoveredSeriesUserId((current) => current === entry.userId ? null : current);
+                    setHoveredPoint((current) => current?.userId === entry.userId ? null : current);
+                  }}
+                  tabIndex={0}
+                >
+                  <title>{entry.name}</title>
+                </polyline>
+                {entry.values.map((value, index) => {
+                  const x = history.days.length === 1 ? padding.left + plotWidth / 2 : padding.left + xStep * index;
+                  const y = yFor(value);
+                  const isPointHovered = hoveredPoint?.userId === entry.userId && hoveredPoint.day === history.days[index];
+
+                  return (
+                    <circle
+                      key={`${entry.userId}-${history.days[index]}`}
+                      cx={x}
+                      cy={y}
+                      r={isPointHovered || (isHovered && index === entry.values.length - 1) ? "5" : "4"}
+                      fill={entry.color}
+                      stroke="white"
+                      strokeWidth="1.5"
+                      opacity={hoveredSeriesUserId && !isHovered ? 0.35 : 1}
+                      onMouseEnter={() => {
+                        setHoveredSeriesUserId(entry.userId);
+                        setHoveredPoint({ userId: entry.userId, day: history.days[index] ?? "", value });
+                      }}
+                      onMouseLeave={() => {
+                        setHoveredPoint((current) => current?.userId === entry.userId && current.day === history.days[index] ? null : current);
+                      }}
+                    >
+                      <title>{`${entry.name}: ${value} pts em ${formatHistoryDay(history.days[index] ?? "")}`}</title>
+                    </circle>
+                  );
+                })}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {seriesWithColors.map((entry) => (
+          <Badge key={entry.userId} variant="outline" className="gap-2 px-3 py-1.5">
+            <span className="size-2 rounded-full" style={{ backgroundColor: entry.color }} />
+            <span>{entry.name}</span>
+            <span className="text-muted-foreground">{entry.totalPoints} pts</span>
+          </Badge>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -60,11 +263,13 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
   const [selectedPoolId, setSelectedPoolId] = useState<string | null>(initialPoolId);
   const [selectedParticipantUserId, setSelectedParticipantUserId] = useState<string | null>(null);
   const [selectedDetailView, setSelectedDetailView] = useState<"matches" | "questions">("matches");
+  const [selectedRankingView, setSelectedRankingView] = useState<"table" | "chart">("table");
   const [selectedStageFilter, setSelectedStageFilter] = useState<string>("all");
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
   const [selectedComparisonMatchId, setSelectedComparisonMatchId] = useState<string | null>(null);
   const [selectedComparisonQuestionId, setSelectedComparisonQuestionId] = useState<string | null>(null);
   const rankingQuery = usePoolScoringRankingQuery(selectedPoolId);
+  const rankingHistoryQuery = usePoolScoringRankingHistoryQuery(selectedPoolId);
   const participantPredictionsQuery = usePoolScoringParticipantPredictionsQuery(selectedPoolId, selectedParticipantUserId);
   const comparisonQuery = usePredictionMatchComparisonQuery(selectedPoolId, selectedComparisonMatchId);
   const questionComparisonQuery = usePoolQuestionComparisonQuery(selectedPoolId, selectedComparisonQuestionId);
@@ -161,6 +366,7 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
               onClick={() => {
                 setSelectedPoolId(pool.id);
                 setSelectedParticipantUserId(null);
+                setSelectedRankingView("table");
               }}
             >
               {pool.name}
@@ -171,6 +377,7 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
 
       {poolsQuery.status === "pending" || rankingQuery.status === "pending" ? <Alert variant="info"><AlertTitle>Carregando ranking</AlertTitle><AlertDescription>Buscando participantes, palpites, perguntas e resultados.</AlertDescription></Alert> : null}
       {rankingQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar ranking</AlertTitle><AlertDescription>{rankingQuery.error?.message || "Não foi possível carregar o ranking."}</AlertDescription></Alert> : null}
+      {rankingHistoryQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar evolução</AlertTitle><AlertDescription>{rankingHistoryQuery.error?.message || "Não foi possível carregar a evolução diária."}</AlertDescription></Alert> : null}
       {participantPredictionsQuery.status === "error" ? <Alert variant="destructive"><AlertTitle>Erro ao carregar palpites</AlertTitle><AlertDescription>{participantPredictionsQuery.error?.message || "Não foi possível carregar os palpites do participante."}</AlertDescription></Alert> : null}
       {poolsQuery.status === "success" && !pools.length ? <Alert variant="warning"><AlertTitle>Nenhum bolão encontrado</AlertTitle><AlertDescription>Crie ou entre em um bolão para ver o ranking.</AlertDescription></Alert> : null}
 
@@ -179,79 +386,109 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
           <Card className="bg-card/80 backdrop-blur-sm">
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <CardTitle>{selectedPool.name}</CardTitle>
+                <div className="space-y-2">
+                  <CardTitle>{selectedPool.name}</CardTitle>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={selectedRankingView === "table" ? "default" : "soft"}
+                      size="sm"
+                      onClick={() => setSelectedRankingView("table")}
+                    >
+                      Ranking
+                    </Button>
+                    <Button
+                      variant={selectedRankingView === "chart" ? "default" : "soft"}
+                      size="sm"
+                      onClick={() => setSelectedRankingView("chart")}
+                    >
+                      Evolução diária
+                    </Button>
+                  </div>
+                </div>
                 <Badge>Líder: {ranking[0]?.name ?? "-"}</Badge>
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Posição</TableHead>
-                    <TableHead>Participante</TableHead>
-                    <TableHead>Pontos</TableHead>
-                    <TableHead>Bônus odds</TableHead>
-                    <TableHead>Bônus Brasil</TableHead>
-                    <TableHead>Placares exatos</TableHead>
-                    <TableHead>Resultados corretos</TableHead>
-                    <TableHead>Perguntas corretas</TableHead>
-                    <TableHead>Pontos perguntas</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {ranking.map((entry, index) => {
-                    const selected = entry.userId === selectedParticipantUserId;
-
-                    return (
-                      <TableRow
-                        key={entry.userId}
-                        aria-selected={selected}
-                        className={cn("cursor-pointer", selected && "bg-primary/10 hover:bg-primary/15")}
-                        tabIndex={0}
-                        onClick={() => setSelectedParticipantUserId(entry.userId)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            setSelectedParticipantUserId(entry.userId);
-                          }
-                        }}
-                      >
-                        <TableCell>{index + 1}º</TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{entry.name}</p>
-                            <p className="text-xs text-muted-foreground">{entry.email}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-semibold">{entry.points}</TableCell>
-                        <TableCell>
-                          {entry.oddBonuses > 0 ? (
-                            <div>
-                              <p className="font-medium">{entry.oddBonusPoints} pts</p>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">0</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {entry.brazilBonusPoints > 0 ? (
-                            <div>
-                              <p className="font-medium">{entry.brazilBonusPoints} pts</p>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">0</span>
-                          )}
-                        </TableCell>
-                        <TableCell>{entry.exactScores}</TableCell>
-                        <TableCell>{entry.correctOutcomes}</TableCell>
-                        <TableCell>{entry.correctQuestions}</TableCell>
-                        <TableCell>{entry.questionPoints}</TableCell>
+              {selectedRankingView === "table" ? (
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Posição</TableHead>
+                        <TableHead>Participante</TableHead>
+                        <TableHead>Pontos</TableHead>
+                        <TableHead>Bônus odds</TableHead>
+                        <TableHead>Bônus Brasil</TableHead>
+                        <TableHead>Placares exatos</TableHead>
+                        <TableHead>Resultados corretos</TableHead>
+                        <TableHead>Perguntas corretas</TableHead>
+                        <TableHead>Pontos perguntas</TableHead>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              {rankingQuery.status === "success" && !ranking.length ? <p className="py-6 text-sm text-muted-foreground">Nenhum participante encontrado neste bolão.</p> : null}
+                    </TableHeader>
+                    <TableBody>
+                      {ranking.map((entry, index) => {
+                        const selected = entry.userId === selectedParticipantUserId;
+
+                        return (
+                          <TableRow
+                            key={entry.userId}
+                            aria-selected={selected}
+                            className={cn("cursor-pointer", selected && "bg-primary/10 hover:bg-primary/15")}
+                            tabIndex={0}
+                            onClick={() => setSelectedParticipantUserId(entry.userId)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                setSelectedParticipantUserId(entry.userId);
+                              }
+                            }}
+                          >
+                            <TableCell>{index + 1}º</TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{entry.name}</p>
+                                <p className="text-xs text-muted-foreground">{entry.email}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-semibold">{entry.points}</TableCell>
+                            <TableCell>
+                              {entry.oddBonuses > 0 ? (
+                                <div>
+                                  <p className="font-medium">{entry.oddBonusPoints} pts</p>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">0</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {entry.brazilBonusPoints > 0 ? (
+                                <div>
+                                  <p className="font-medium">{entry.brazilBonusPoints} pts</p>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">0</span>
+                              )}
+                            </TableCell>
+                            <TableCell>{entry.exactScores}</TableCell>
+                            <TableCell>{entry.correctOutcomes}</TableCell>
+                            <TableCell>{entry.correctQuestions}</TableCell>
+                            <TableCell>{entry.questionPoints}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                  {rankingQuery.status === "success" && !ranking.length ? <p className="py-6 text-sm text-muted-foreground">Nenhum participante encontrado neste bolão.</p> : null}
+                </>
+              ) : (
+                <>
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm text-muted-foreground">Gráfico acumulado por dia, somando pontos de jogos finalizados e perguntas corrigidas.</p>
+                    {rankingHistoryQuery.status === "pending" ? <Badge variant="secondary">Carregando gráfico</Badge> : null}
+                  </div>
+                  {rankingHistoryQuery.data ? <RankingHistoryChart history={rankingHistoryQuery.data} /> : null}
+                </>
+              )}
             </CardContent>
           </Card>
 
