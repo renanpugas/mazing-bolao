@@ -9,7 +9,6 @@ const API_BASE = "https://worldcup26.ir/get";
 const RAW_BASE = "https://raw.githubusercontent.com/rezarahiminia/worldcup2026/main";
 
 const defaultMatchTimeZone = "UTC";
-const worldCupSyncReferenceTimeZone = "America/Sao_Paulo";
 
 export const fifaMenRankingReferenceDate = "2026-06-11";
 
@@ -179,22 +178,8 @@ function getDateTimeFormatParts(date: Date, timeZone: string): { year: number; m
   } as { year: number; month: number; day: number; hour: number; minute: number; second: number };
 }
 
-function getDateParts(date: Date, timeZone: string): { year: number; month: number; day: number } {
-  const { year, month, day } = getDateTimeFormatParts(date, timeZone);
-  return { year, month, day };
-}
-
-function isOnOrAfterCurrentDay(date: Date, now: Date, timeZone = worldCupSyncReferenceTimeZone) {
-  const currentDay = getDateParts(now, timeZone);
-  const matchDay = getDateParts(date, timeZone);
-
-  if (matchDay.year !== currentDay.year) return matchDay.year > currentDay.year;
-  if (matchDay.month !== currentDay.month) return matchDay.month > currentDay.month;
-  return matchDay.day >= currentDay.day;
-}
-
-function shouldSyncMatch(item: { startsAt: Date; finished: boolean | null | undefined }, now: Date) {
-  return isOnOrAfterCurrentDay(item.startsAt, now) || item.finished === false;
+function shouldSyncMatch(existingFinished?: boolean | number | string | null) {
+  return existingFinished !== true && existingFinished !== 1 && existingFinished !== "1";
 }
 
 export function getWorldCup2026StadiumTimeZone(stadiumId: unknown) {
@@ -348,9 +333,16 @@ export async function syncWorldCup2026Tournament() {
   const teamsById = new Map(normalizedTeams.map((item) => [item.externalId, item]));
   const stadiumsById = new Map(normalizedStadiums.map((item) => [item.externalId, item]));
   const normalizedGames = gamePayloads.map((payload) => normalizeGame(payload, teamsById, stadiumsById, syncedAt));
-  const syncableGames = normalizedGames.filter((item) => shouldSyncMatch(item, syncedAt));
-  const skippedPastMatches = normalizedGames.length - syncableGames.length;
   const tournamentData = getWorldCup2026Tournament(syncedAt);
+
+  const existingMatches = await db.query.match.findMany({
+    where: (table, { eq }) => eq(table.tournamentId, tournamentData.id),
+    columns: { externalId: true, finished: true },
+  });
+  const existingMatchesByExternalId = new Map(existingMatches.map((item) => [item.externalId, item]));
+
+  const syncableGames = normalizedGames.filter((item) => shouldSyncMatch(existingMatchesByExternalId.get(item.externalId)?.finished));
+  const skippedPastMatches = normalizedGames.length - syncableGames.length;
 
   await db.insert(tournament).values(tournamentData).onConflictDoUpdate({
     target: [tournament.externalSource, tournament.season],
@@ -390,7 +382,7 @@ export async function syncWorldCup2026Tournament() {
       ...item,
     };
 
-    if (shouldSyncMatch(item, syncedAt)) {
+    if (shouldSyncMatch(existingMatchesByExternalId.get(item.externalId)?.finished)) {
       await db
         .insert(match)
         .values(matchData)
