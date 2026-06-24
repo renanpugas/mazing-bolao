@@ -21,6 +21,7 @@ import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useCreatePredictionMutation, usePredictionMatchComparisonQuery, usePredictionsListQuery, useUpdatePredictionMutation } from "@/hooks/use-predictions-api";
 import { useSessionQuery } from "@/hooks/use-session-api";
 import { useSyncWorldCupMutation, useTournamentsListQuery } from "@/hooks/use-tournaments-api";
+import { getMatchTeamDisplayName } from "@/lib/match-team-display";
 import { formatTeamNamePtBr } from "@/lib/team-names";
 import { cn } from "@/lib/utils";
 
@@ -382,8 +383,16 @@ export function ParticipantPage() {
       startsAtTimeZone: item.match.startsAtTimeZone,
       estadio: item.match.stadiumName,
       cidade: item.match.stadiumCity,
-      mandante: formatTeamNamePtBr(item.match.homeTeamLabel ?? item.match.homeTeam),
-      visitante: formatTeamNamePtBr(item.match.awayTeamLabel ?? item.match.awayTeam),
+      mandante: formatTeamNamePtBr(getMatchTeamDisplayName({
+        teamName: item.match.homeTeam,
+        teamLabel: item.match.homeTeamLabel,
+        teamExternalId: item.match.homeTeamExternalId,
+      })),
+      visitante: formatTeamNamePtBr(getMatchTeamDisplayName({
+        teamName: item.match.awayTeam,
+        teamLabel: item.match.awayTeamLabel,
+        teamExternalId: item.match.awayTeamExternalId,
+      })),
       mandanteEmoji: item.match.homeTeamEmoji,
       visitanteEmoji: item.match.awayTeamEmoji,
       mandanteRankingFifa: item.match.homeTeamFifaRankingPosition,
@@ -945,8 +954,16 @@ function MatchesModal({ title, description, children, onClose }: { title: string
 }
 
 export function ComparisonModal({ data, status, error, onClose }: { data: ReturnType<typeof usePredictionMatchComparisonQuery>["data"]; status: string; error: Error | null; onClose: () => void }) {
-  const homeTeamName = data?.match.homeTeamLabel ?? data?.match.homeTeam ?? "";
-  const awayTeamName = data?.match.awayTeamLabel ?? data?.match.awayTeam ?? "";
+  const homeTeamName = getMatchTeamDisplayName({
+    teamName: data?.match.homeTeam,
+    teamLabel: data?.match.homeTeamLabel,
+    teamExternalId: data?.match.homeTeamExternalId,
+  });
+  const awayTeamName = getMatchTeamDisplayName({
+    teamName: data?.match.awayTeam,
+    teamLabel: data?.match.awayTeamLabel,
+    teamExternalId: data?.match.awayTeamExternalId,
+  });
 
   return (
     <ModalShell onClose={onClose} className="max-w-4xl">

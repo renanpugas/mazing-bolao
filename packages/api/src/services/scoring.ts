@@ -58,11 +58,11 @@ export function isBrazilMatch(matchData: {
   homeTeamExternalId?: string | null;
   awayTeamExternalId?: string | null;
 }) {
+  const resolvedHomeValue = matchData.homeTeamExternalId ? matchData.homeTeam : matchData.homeTeamLabel ?? matchData.homeTeam;
+  const resolvedAwayValue = matchData.awayTeamExternalId ? matchData.awayTeam : matchData.awayTeamLabel ?? matchData.awayTeam;
   const values = [
-    matchData.homeTeam,
-    matchData.awayTeam,
-    matchData.homeTeamLabel,
-    matchData.awayTeamLabel,
+    resolvedHomeValue,
+    resolvedAwayValue,
     matchData.homeTeamExternalId,
     matchData.awayTeamExternalId,
   ];

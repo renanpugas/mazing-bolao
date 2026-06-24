@@ -15,6 +15,7 @@ import { usePredictionMatchComparisonQuery } from "@/hooks/use-predictions-api";
 import { usePoolScoringParticipantPredictionsQuery, usePoolScoringRankingHistoryQuery, usePoolScoringRankingQuery } from "@/hooks/use-pool-scoring-api";
 import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useSessionQuery } from "@/hooks/use-session-api";
+import { getMatchTeamDisplayName } from "@/lib/match-team-display";
 import { formatTeamNamePtBr } from "@/lib/team-names";
 import { cn } from "@/lib/utils";
 
@@ -618,8 +619,16 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
                           </TableHeader>
                           <TableBody>
                             {filteredMatches.map((item) => {
-                              const homeTeam = item.homeTeamLabel ?? item.homeTeam;
-                              const awayTeam = item.awayTeamLabel ?? item.awayTeam;
+                              const homeTeam = getMatchTeamDisplayName({
+                                teamName: item.homeTeam,
+                                teamLabel: item.homeTeamLabel,
+                                teamExternalId: item.homeTeamExternalId,
+                              });
+                              const awayTeam = getMatchTeamDisplayName({
+                                teamName: item.awayTeam,
+                                teamLabel: item.awayTeamLabel,
+                                teamExternalId: item.awayTeamExternalId,
+                              });
                               const resultLabel = item.resultType === "exact" ? "placar exato" : item.resultType === "outcome" ? "resultado" : "sem pontos";
                               const resultVariant = item.resultType === "exact" ? "success" : item.resultType === "outcome" ? "warning" : "outline";
                               const detailLabel = item.groupName ? `Grupo ${item.groupName}` : getStageLabel(item.stage);

@@ -187,4 +187,28 @@ describe("Scoring service", () => {
     expect(isBrazilMatch({ homeTeam: "Brasil", awayTeam: "Argentina", homeTeamLabel: null, awayTeamLabel: null })).toBe(true);
     expect(isBrazilMatch({ homeTeam: "France", awayTeam: "Germany", homeTeamLabel: null, awayTeamLabel: null })).toBe(false);
   });
+
+  it("should ignore stale labels when the actual team has already been resolved", () => {
+    expect(
+      isBrazilMatch({
+        homeTeam: "Germany",
+        awayTeam: "Argentina",
+        homeTeamLabel: "Brasil",
+        awayTeamLabel: null,
+        homeTeamExternalId: "17",
+        awayTeamExternalId: "37",
+      }),
+    ).toBe(false);
+
+    expect(
+      isBrazilMatch({
+        homeTeam: "Winner Group C",
+        awayTeam: "Argentina",
+        homeTeamLabel: "Brasil",
+        awayTeamLabel: null,
+        homeTeamExternalId: null,
+        awayTeamExternalId: "37",
+      }),
+    ).toBe(true);
+  });
 });
