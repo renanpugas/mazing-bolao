@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, X } from "lucide-react";
 
 import { ComparisonModal, QuestionComparisonModal } from "@/components/participant-page";
 import { usePoolQuestionComparisonQuery } from "@/hooks/use-pool-questions-api";
@@ -73,6 +73,14 @@ const historySeriesColors = [
   "#ea580c",
   "#0f766e",
   "#9333ea",
+];
+
+const rankingAnnouncementImages = [
+  { src: "/deploy-sexta.png", alt: "Anúncio deploy sexta" },
+  { src: "/mazing-bet.png", alt: "Anúncio Mazing Bet" },
+  { src: "/mazing-custom.png", alt: "Anúncio Mazing Custom" },
+  { src: "/mazing-escalada.png", alt: "Anúncio Mazing Escalada" },
+  { src: "/mazing-usa.png", alt: "Anúncio Mazing USA" },
 ];
 
 function TeamNameWithFlag({ emoji, name }: { emoji: string | null | undefined; name: string }) {
@@ -269,6 +277,8 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
   const [selectedComparisonMatchId, setSelectedComparisonMatchId] = useState<string | null>(null);
   const [selectedComparisonQuestionId, setSelectedComparisonQuestionId] = useState<string | null>(null);
+  const [selectedAnnouncementImage, setSelectedAnnouncementImage] = useState<(typeof rankingAnnouncementImages)[number] | null>(null);
+  const [announcementClosed, setAnnouncementClosed] = useState(false);
   const rankingQuery = usePoolScoringRankingQuery(selectedPoolId);
   const rankingHistoryQuery = usePoolScoringRankingHistoryQuery(selectedPoolId);
   const participantPredictionsQuery = usePoolScoringParticipantPredictionsQuery(selectedPoolId, selectedParticipantUserId);
@@ -287,6 +297,12 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
     if (selectedGroupFilter !== "all" && item.groupName !== selectedGroupFilter) return false;
     return true;
   });
+
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * rankingAnnouncementImages.length);
+    setSelectedAnnouncementImage(rankingAnnouncementImages[randomIndex] ?? null);
+    setAnnouncementClosed(false);
+  }, []);
 
   useEffect(() => {
     if (initialPoolId && initialPoolId !== selectedPoolId) {
@@ -356,6 +372,28 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
   return (
     <PageShell className="space-y-6" wide>
       <PageHeader title="Ranking" description="Veja a classificação do bolão com pontuação calculada pelas regras configuradas." />
+
+      {selectedAnnouncementImage && !announcementClosed ? (
+        <Card className="overflow-hidden border-primary/20 bg-card/90 shadow-sm">
+          <CardContent className="relative p-0">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="absolute right-3 top-3 z-10 h-8 w-8 rounded-full p-0 shadow-sm"
+              onClick={() => setAnnouncementClosed(true)}
+              aria-label="Fechar anúncio"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            <img
+              src={selectedAnnouncementImage.src}
+              alt={selectedAnnouncementImage.alt}
+              className="block max-h-[420px] w-full object-contain bg-muted/30"
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card className="bg-card/80 backdrop-blur-sm">
         <CardHeader><CardTitle>Selecione o bolão</CardTitle></CardHeader>
