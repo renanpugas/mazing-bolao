@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BarChart3, X } from "lucide-react";
+import { BarChart3, RefreshCw, X } from "lucide-react";
 
 import { ComparisonModal, QuestionComparisonModal } from "@/components/participant-page";
 import { usePoolQuestionComparisonQuery } from "@/hooks/use-pool-questions-api";
@@ -81,7 +81,20 @@ const rankingAnnouncementImages = [
   { src: "/mazing-custom.png", alt: "Anúncio Mazing Custom" },
   { src: "/mazing-escalada.png", alt: "Anúncio Mazing Escalada" },
   { src: "/mazing-usa.png", alt: "Anúncio Mazing USA" },
+  { src: "/mazing-dev-tv.png", alt: "Anúncio Mazing Dev TV" },
+  { src: "/copa-nargas-01.png", alt: "Anúncio Copa Nargas 01" },
+  { src: "/copa-nargas-02.png", alt: "Anúncio Copa Nargas 02" },
+  { src: "/copa-nargas-03.png", alt: "Anúncio Copa Nargas 03" },
+  { src: "/copa-nargas-04.png", alt: "Anúncio Copa Nargas 04" },
 ];
+
+function getRandomAnnouncementImage(currentImage: (typeof rankingAnnouncementImages)[number] | null) {
+  if (rankingAnnouncementImages.length <= 1) return rankingAnnouncementImages[0] ?? null;
+
+  const availableImages = rankingAnnouncementImages.filter((image) => image.src !== currentImage?.src);
+  const randomIndex = Math.floor(Math.random() * availableImages.length);
+  return availableImages[randomIndex] ?? rankingAnnouncementImages[0] ?? null;
+}
 
 function TeamNameWithFlag({ emoji, name }: { emoji: string | null | undefined; name: string }) {
   return (
@@ -299,8 +312,7 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
   });
 
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * rankingAnnouncementImages.length);
-    setSelectedAnnouncementImage(rankingAnnouncementImages[randomIndex] ?? null);
+    setSelectedAnnouncementImage(getRandomAnnouncementImage(null));
     setAnnouncementClosed(false);
   }, []);
 
@@ -376,16 +388,31 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
       {selectedAnnouncementImage && !announcementClosed ? (
         <Card className="overflow-hidden border-primary/20 bg-card/90 shadow-sm">
           <CardContent className="relative p-0">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="absolute right-3 top-3 z-10 h-8 w-8 rounded-full p-0 shadow-sm"
-              onClick={() => setAnnouncementClosed(true)}
-              aria-label="Fechar anúncio"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="absolute right-3 top-3 z-10 flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-8 rounded-full px-3 shadow-sm"
+                onClick={() => {
+                  setSelectedAnnouncementImage((currentImage) => getRandomAnnouncementImage(currentImage));
+                  setAnnouncementClosed(false);
+                }}
+                aria-label="Trocar anúncio"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-8 w-8 rounded-full p-0 shadow-sm"
+                onClick={() => setAnnouncementClosed(true)}
+                aria-label="Fechar anúncio"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
             <img
               src={selectedAnnouncementImage.src}
               alt={selectedAnnouncementImage.alt}
