@@ -640,6 +640,8 @@ export const poolScoringRouter = {
             awayTeamLabel: row.match.awayTeamLabel,
             homeTeamEmoji: row.match.homeTeamEmoji,
             awayTeamEmoji: row.match.awayTeamEmoji,
+            homeTeamExternalId: row.match.homeTeamExternalId,
+            awayTeamExternalId: row.match.awayTeamExternalId,
             homeScore: row.match.finished ? row.match.homeScore : null,
             awayScore: row.match.finished ? row.match.awayScore : null,
             finished: row.match.finished === true,

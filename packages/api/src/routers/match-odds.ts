@@ -33,6 +33,8 @@ const matchOddsSelection = {
   awayTeamLabel: match.awayTeamLabel,
   homeTeamEmoji: match.homeTeamEmoji,
   awayTeamEmoji: match.awayTeamEmoji,
+  homeTeamExternalId: match.homeTeamExternalId,
+  awayTeamExternalId: match.awayTeamExternalId,
   startsAt: match.startsAt,
   startsAtTimeZone: match.startsAtTimeZone,
   stage: match.stage,
