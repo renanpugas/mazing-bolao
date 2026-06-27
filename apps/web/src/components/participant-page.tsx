@@ -25,30 +25,64 @@ import { getMatchTeamDisplayName } from "@/lib/match-team-display";
 import { formatTeamNamePtBr } from "@/lib/team-names";
 import { cn } from "@/lib/utils";
 
-type ViewMode = "timeline" | "groups" | "list" | "questions";
+type ViewMode = "timeline" | "knockout" | "groups" | "list" | "questions";
 type StatusFilter = "all" | Jogo["status"];
 type MatchBlock = { id: string; title: string; description: string; jogos: Jogo[] };
+type KnockoutStage = "r32" | "r16" | "qf" | "sf" | "final" | "third";
 type FreeQuestion = { id: string; question: string; points: number; closesAt: Date | string; answer: { id: string; answer: string; isCorrect: boolean | null } | null };
 type PredictionEasterEgg = { key: number; variant: "canarinho" | "tsubasa" | "usa-loss" | "japan-loss" | "cr7" | "memphis" | "germany-audio" | "mexico-loss" | "south-korea-win" | "spain-win" | "france-win" | "colombia-win" } | null;
 
 const stageLabels: Record<string, string> = {
   group: "Fase de grupos",
   r32: "16 Avos",
+  round_of_32: "16 Avos",
   r16: "Oitavas",
+  round_of_16: "Oitavas",
   qf: "Quartas",
-  sf: "Seminal",
+  quarter_final: "Quartas",
+  sf: "Semifinal",
+  semi_final: "Semifinal",
   third: "Terceiro Lugar",
+  third_place: "Terceiro Lugar",
   final: "Final",
 };
 
 const stageOrder = ["group", "r32", "r16", "qf", "sf", "third", "final"];
+const knockoutStages: KnockoutStage[] = ["r32", "r16", "qf", "sf", "final"];
+const knockoutDefaultDate = new Date(2026, 5, 28);
 const timelineColumnWidth = 640;
 const timelineColumnGap = 20;
 const timelineColumnStep = timelineColumnWidth + timelineColumnGap;
 const timelineBufferColumns = 2;
+const bracketColumnWidth = 220;
+const bracketColumnGap = 72;
+const bracketRowHeight = 104;
+const bracketCardHeight = 88;
 
 function getStageLabel(stage: string | null) {
+  const normalizedStage = normalizeKnockoutStage(stage);
+  if (normalizedStage) return stageLabels[normalizedStage] ?? normalizedStage.toUpperCase();
   return stage ? stageLabels[stage] ?? stage.toUpperCase() : "Fase";
+}
+
+function getDefaultViewMode(): ViewMode {
+  return new Date() >= knockoutDefaultDate ? "knockout" : "timeline";
+}
+
+function normalizeKnockoutStage(stage: string | null): KnockoutStage | null {
+  const normalized = (stage ?? "").toLowerCase().replaceAll("-", "_").replaceAll(" ", "_");
+  if (["round_of_32", "last_32", "32", "r32", "sixteenth", "sixteenths", "16_avos", "mata_mata_inicial"].includes(normalized)) return "r32";
+  if (["round_of_16", "last_16", "16", "r16", "oitavas"].includes(normalized)) return "r16";
+  if (["quarter_final", "quarterfinal", "quarter_finals", "quarterfinals", "qf", "quartas"].includes(normalized)) return "qf";
+  if (["semi_final", "semifinal", "semi_finals", "semifinals", "sf"].includes(normalized)) return "sf";
+  if (["third_place", "third_place_playoff", "3rd_place", "3_lugar", "third", "terceiro_lugar"].includes(normalized)) return "third";
+  if (["final", "finals"].includes(normalized)) return "final";
+  return null;
+}
+
+function getKnockoutStageOrder(stage: string | null) {
+  const normalizedStage = normalizeKnockoutStage(stage);
+  return normalizedStage ? stageOrder.indexOf(normalizedStage) : Number.MAX_SAFE_INTEGER;
 }
 
 function hasCompletePrediction(palpite?: Palpite) {
@@ -136,10 +170,11 @@ function NavigationPanel({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-sm font-medium">Área de jogo</p>
-            <p className="text-sm text-muted-foreground">Navegue por calendário, grupos, lista completa ou perguntas livres.</p>
+            <p className="text-sm text-muted-foreground">Navegue por calendário, chave do mata-mata, grupos, lista completa ou perguntas livres.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <TabButton active={viewMode === "timeline"} onClick={() => setViewMode("timeline")}>Timeline <Badge variant="secondary">{jogosHoje} hoje</Badge></TabButton>
+            <TabButton active={viewMode === "knockout"} onClick={() => setViewMode("knockout")}>Mata-mata</TabButton>
             <TabButton active={viewMode === "groups"} onClick={() => setViewMode("groups")}>Grupos e fases <Badge variant={jogosSemPontuacao ? "warning" : "secondary"}>{jogosSemPontuacao} sem pontuação</Badge></TabButton>
             <TabButton active={viewMode === "list"} onClick={() => setViewMode("list")}>Lista</TabButton>
             <TabButton active={viewMode === "questions"} onClick={() => setViewMode("questions")}>Perguntas <Badge variant={perguntasSemResposta ? "warning" : "secondary"}>{perguntasSemResposta} sem resposta</Badge></TabButton>
@@ -311,7 +346,7 @@ export function ParticipantPage() {
   const sessionQuery = useSessionQuery();
   const boloes = poolsQuery.data ?? [];
   const [bolaoSelecionadoId, setBolaoSelecionadoId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("timeline");
+  const [viewMode, setViewMode] = useState<ViewMode>(getDefaultViewMode);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [selectedComparisonMatchId, setSelectedComparisonMatchId] = useState<string | null>(null);
   const [selectedComparisonQuestionId, setSelectedComparisonQuestionId] = useState<string | null>(null);
@@ -626,6 +661,7 @@ export function ParticipantPage() {
         {predictionsQuery.status !== "pending" && !jogos.length ? <Alert variant="warning"><AlertTitle>Nenhuma partida importada</AlertTitle><AlertDescription>Importe a Copa do Mundo 2026 e crie um bolão ligado a esse torneio antes de registrar palpites.</AlertDescription></Alert> : null}
         {jogos.length || perguntasLivresVisiveis.length ? <NavigationPanel viewMode={viewMode} statusFilter={statusFilter} setViewMode={setViewMode} setStatusFilter={setStatusFilter} palpitesPreenchidos={palpitesPreenchidos} totalJogos={jogos.length} pendentes={pendentes} bloqueados={bloqueados} encerrados={encerrados} jogosHoje={jogosHoje} jogosSemPontuacao={jogosSemPontuacao} perguntasSemResposta={perguntasSemResposta} /> : null}
 
+        {jogos.length && viewMode === "knockout" ? <KnockoutBracket jogos={jogos} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
         {jogos.length && viewMode === "groups" ? <GroupedMatches jogos={jogos} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
         {jogos.length && viewMode === "list" ? <ListMatches jogos={jogosFiltrados} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
         {jogos.length && viewMode === "timeline" ? <TimelineMatches jogos={jogos} palpites={palpitesLocais} saveStatuses={saveStatuses} onUpdate={atualizarPalpite} onCompare={setSelectedComparisonMatchId} /> : null}
@@ -754,10 +790,149 @@ function PredictionEasterEggOverlay({ effect }: { effect: PredictionEasterEgg })
 
 function buildMatchBlocks(jogos: Jogo[]): MatchBlock[] {
   const groupMatches = groupBy(jogos.filter((jogo) => jogo.stage === "group"), (jogo) => jogo.groupName ?? "-");
-  const knockoutMatches = groupBy(jogos.filter((jogo) => jogo.stage !== "group"), (jogo) => jogo.stage ?? "outros");
+  const knockoutMatches = groupBy(jogos.filter((jogo) => jogo.stage !== "group"), (jogo) => normalizeKnockoutStage(jogo.stage) ?? jogo.stage ?? "outros");
   const groupBlocks = Object.keys(groupMatches).sort().map((groupName) => ({ id: `group-${groupName}`, title: `Grupo ${groupName}`, description: "Fase de grupos", jogos: groupMatches[groupName] ?? [] }));
-  const knockoutBlocks = Object.keys(knockoutMatches).sort((a, b) => stageOrder.indexOf(a) - stageOrder.indexOf(b)).map((stage) => ({ id: `stage-${stage}`, title: getStageLabel(stage), description: "Mata-mata", jogos: knockoutMatches[stage] ?? [] }));
+  const knockoutBlocks = Object.keys(knockoutMatches).sort((a, b) => getKnockoutStageOrder(a) - getKnockoutStageOrder(b)).map((stage) => ({ id: `stage-${stage}`, title: getStageLabel(stage), description: "Mata-mata", jogos: knockoutMatches[stage] ?? [] }));
   return [...groupBlocks, ...knockoutBlocks];
+}
+
+function KnockoutBracket({ jogos, palpites, saveStatuses, onUpdate, onCompare }: { jogos: Jogo[]; palpites: Record<string, Palpite>; saveStatuses: Record<string, PredictionSaveStatus>; onUpdate: (payload: PalpiteUpdate) => void; onCompare: (jogoId: string) => void }) {
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+  const knockoutMatches = jogos
+    .filter((jogo) => normalizeKnockoutStage(jogo.stage) && normalizeKnockoutStage(jogo.stage) !== "third")
+    .sort((a, b) => (a.matchday ?? 0) - (b.matchday ?? 0) || a.startsAt.getTime() - b.startsAt.getTime());
+  const byStage = groupBy(knockoutMatches, (jogo) => normalizeKnockoutStage(jogo.stage) ?? "final");
+  const thirdPlaceMatches = jogos
+    .filter((jogo) => normalizeKnockoutStage(jogo.stage) === "third")
+    .sort((a, b) => (a.matchday ?? 0) - (b.matchday ?? 0) || a.startsAt.getTime() - b.startsAt.getTime());
+  const selectedMatch = jogos.find((jogo) => jogo.id === selectedMatchId) ?? null;
+  const baseSlots = Math.max(
+    1,
+    ...knockoutStages.map((stage, stageIndex) => (byStage[stage]?.length ?? 0) * 2 ** stageIndex),
+  );
+  const bracketHeaderHeight = 38;
+  const bracketWidth = knockoutStages.length * bracketColumnWidth + (knockoutStages.length - 1) * bracketColumnGap;
+  const bracketHeight = Math.max(360, baseSlots * bracketRowHeight + bracketHeaderHeight);
+  const getCenterY = (stageIndex: number, matchIndex: number) => bracketHeaderHeight + (matchIndex * 2 ** stageIndex + 2 ** stageIndex / 2) * bracketRowHeight;
+  const getTop = (stageIndex: number, matchIndex: number) => getCenterY(stageIndex, matchIndex) - bracketCardHeight / 2;
+  const getColumnLeft = (stageIndex: number) => stageIndex * (bracketColumnWidth + bracketColumnGap);
+  const connectors = knockoutStages.slice(0, -1).flatMap((stage, stageIndex) => {
+    const currentMatches = byStage[stage] ?? [];
+    const nextStage = knockoutStages[stageIndex + 1];
+    if (!nextStage) return [];
+    const nextMatches = byStage[nextStage] ?? [];
+
+    return nextMatches.flatMap((_nextMatch, nextMatchIndex) => {
+      const firstSourceIndex = nextMatchIndex * 2;
+      const sourceIndexes = [firstSourceIndex, firstSourceIndex + 1].filter((sourceIndex) => currentMatches[sourceIndex]);
+      if (!sourceIndexes.length) return [];
+
+      const x1 = getColumnLeft(stageIndex) + bracketColumnWidth;
+      const x2 = getColumnLeft(stageIndex + 1);
+      const midX = x1 + (x2 - x1) / 2;
+      const targetY = getCenterY(stageIndex + 1, nextMatchIndex);
+
+      return sourceIndexes.flatMap((sourceIndex) => {
+        const sourceY = getCenterY(stageIndex, sourceIndex);
+        return [
+          <path key={`${stage}-${sourceIndex}-out`} d={`M ${x1} ${sourceY} H ${midX}`} className="stroke-primary/45" strokeWidth="2" fill="none" />,
+          <path key={`${stage}-${sourceIndex}-join`} d={`M ${midX} ${sourceY} V ${targetY} H ${x2}`} className="stroke-primary/45" strokeWidth="2" fill="none" />,
+        ];
+      });
+    });
+  });
+
+  if (!knockoutMatches.length && !thirdPlaceMatches.length) {
+    return <Card><CardContent className="pt-6 text-sm text-muted-foreground">Os jogos do mata-mata ainda não foram importados.</CardContent></Card>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="overflow-hidden border-primary/15 bg-card/80 backdrop-blur-sm">
+        <CardHeader>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <CardTitle>Chave do mata-mata</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">Confrontos organizados por fase. Clique em um jogo para ver detalhes e editar seu palpite.</p>
+            </div>
+            <Badge variant="outline">{knockoutMatches.length + thirdPlaceMatches.length} jogos</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto pb-4">
+            <div className="relative min-w-max rounded-2xl border bg-linear-to-r from-muted/50 via-background to-muted/50 p-4" style={{ width: bracketWidth + 32, height: bracketHeight + 32 }}>
+              <svg aria-hidden="true" className="pointer-events-none absolute inset-4 z-0" width={bracketWidth} height={bracketHeight} viewBox={`0 0 ${bracketWidth} ${bracketHeight}`}>
+                {connectors}
+              </svg>
+              {knockoutStages.map((stage, stageIndex) => {
+                const stageMatches = byStage[stage] ?? [];
+                return (
+                  <div key={stage} className="absolute top-4 z-10" style={{ left: getColumnLeft(stageIndex) + 16, width: bracketColumnWidth, height: bracketHeight }}>
+                    <div className="sticky top-0 z-20 mb-3 rounded-full border bg-background/95 px-3 py-1 text-center text-xs font-semibold shadow-sm">{stageLabels[stage]}</div>
+                    {stageMatches.map((jogo, matchIndex) => (
+                      <div key={jogo.id} className="absolute w-full" style={{ top: getTop(stageIndex, matchIndex) }}>
+                        <KnockoutMatchCard jogo={jogo} palpite={palpites[jogo.id]} saveStatus={saveStatuses[jogo.id] ?? "idle"} onSelect={() => setSelectedMatchId(jogo.id)} />
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {thirdPlaceMatches.length ? (
+        <Card className="border-primary/10 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="pb-3"><CardTitle className="text-base">Terceiro Lugar</CardTitle></CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {thirdPlaceMatches.map((jogo) => <KnockoutMatchCard key={jogo.id} jogo={jogo} palpite={palpites[jogo.id]} saveStatus={saveStatuses[jogo.id] ?? "idle"} onSelect={() => setSelectedMatchId(jogo.id)} />)}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {selectedMatch ? (
+        <MatchesModal title={`${selectedMatch.mandante} x ${selectedMatch.visitante}`} description={selectedMatch.rodada} onClose={() => setSelectedMatchId(null)}>
+          <PredictionMatchCard jogo={selectedMatch} palpite={palpites[selectedMatch.id] ?? { golsMandante: null, golsVisitante: null }} onUpdate={onUpdate} onCompare={onCompare} saveStatus={saveStatuses[selectedMatch.id] ?? "idle"} />
+        </MatchesModal>
+      ) : null}
+    </div>
+  );
+}
+
+function KnockoutMatchCard({ jogo, palpite, saveStatus, onSelect }: { jogo: Jogo; palpite?: Palpite; saveStatus: PredictionSaveStatus; onSelect: () => void }) {
+  const hasPrediction = hasCompletePrediction(palpite);
+  const statusVariant = saveStatus === "error" ? "destructive" : saveStatus === "saving" ? "secondary" : jogo.status === "missing" ? "warning" : jogo.status === "saved" ? "default" : "secondary";
+  const statusLabel = saveStatus === "saving" ? "Salvando..." : saveStatus === "error" ? "Erro" : hasPrediction ? jogo.statusLabel : "Sem palpite";
+  const predictionHome = hasPrediction ? palpite?.golsMandante : null;
+  const predictionAway = hasPrediction ? palpite?.golsVisitante : null;
+
+  return (
+    <button type="button" onClick={onSelect} className="group h-[88px] w-full rounded-xl border bg-card p-2 text-left shadow-md transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+      <div className="mb-1 flex items-center justify-between gap-2 text-[10px] leading-none text-muted-foreground">
+        <span className="truncate">Jogo {jogo.matchday ?? "-"}</span>
+        <span className="truncate">{jogo.startsAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</span>
+      </div>
+      <KnockoutTeamRow emoji={jogo.mandanteEmoji} name={jogo.mandante} goals={predictionHome} />
+      <KnockoutTeamRow emoji={jogo.visitanteEmoji} name={jogo.visitante} goals={predictionAway} />
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <Badge variant={statusVariant} className="max-w-full truncate px-1.5 py-0 text-[10px] leading-5">{statusLabel}</Badge>
+        {jogo.encerrado ? <span className="text-[11px] font-semibold text-muted-foreground">Final {jogo.golsMandanteResultado ?? "-"}x{jogo.golsVisitanteResultado ?? "-"}</span> : null}
+      </div>
+    </button>
+  );
+}
+
+function KnockoutTeamRow({ emoji, name, goals }: { emoji: string | null; name: string; goals: number | null | undefined }) {
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-2 border-t py-0.5 first:border-t-0">
+      <span className="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium">
+        <TeamFlag emoji={emoji} name={name} />
+        <span className="truncate">{name}</span>
+      </span>
+      <span className="rounded-md bg-muted px-2 py-0.5 text-center text-xs font-bold tabular-nums">{goals ?? "-"}</span>
+    </div>
+  );
 }
 
 function GroupedMatches({ jogos, palpites, saveStatuses, onUpdate, onCompare }: { jogos: Jogo[]; palpites: Record<string, Palpite>; saveStatuses: Record<string, PredictionSaveStatus>; onUpdate: (payload: PalpiteUpdate) => void; onCompare: (jogoId: string) => void }) {
