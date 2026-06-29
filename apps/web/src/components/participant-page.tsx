@@ -58,6 +58,24 @@ const bracketColumnWidth = 220;
 const bracketColumnGap = 72;
 const bracketRowHeight = 104;
 const bracketCardHeight = 88;
+const worldCup2026KnockoutSources: Record<number, number[]> = {
+  89: [74, 77],
+  90: [73, 75],
+  91: [76, 78],
+  92: [79, 80],
+  93: [83, 84],
+  94: [81, 82],
+  95: [86, 88],
+  96: [85, 87],
+  97: [89, 90],
+  98: [93, 94],
+  99: [91, 92],
+  100: [95, 96],
+  101: [97, 98],
+  102: [99, 100],
+  103: [101, 102],
+  104: [101, 102],
+};
 
 function getStageLabel(stage: string | null) {
   const normalizedStage = normalizeKnockoutStage(stage);
@@ -408,6 +426,7 @@ export function ParticipantPage() {
 
     return {
       id: item.match.id,
+      externalId: item.match.externalId,
       rodada,
       stage: item.match.stage,
       stageLabel,
@@ -800,43 +819,48 @@ function KnockoutBracket({ jogos, palpites, saveStatuses, onUpdate, onCompare }:
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const knockoutMatches = jogos
     .filter((jogo) => normalizeKnockoutStage(jogo.stage) && normalizeKnockoutStage(jogo.stage) !== "third")
-    .sort((a, b) => (a.matchday ?? 0) - (b.matchday ?? 0) || a.startsAt.getTime() - b.startsAt.getTime());
+    .sort((a, b) => getMatchNumber(a) - getMatchNumber(b) || a.startsAt.getTime() - b.startsAt.getTime());
   const byStage = groupBy(knockoutMatches, (jogo) => normalizeKnockoutStage(jogo.stage) ?? "final");
+  const stageLayouts = buildKnockoutStageLayouts(byStage);
   const thirdPlaceMatches = jogos
     .filter((jogo) => normalizeKnockoutStage(jogo.stage) === "third")
-    .sort((a, b) => (a.matchday ?? 0) - (b.matchday ?? 0) || a.startsAt.getTime() - b.startsAt.getTime());
+    .sort((a, b) => getMatchNumber(a) - getMatchNumber(b) || a.startsAt.getTime() - b.startsAt.getTime());
   const selectedMatch = jogos.find((jogo) => jogo.id === selectedMatchId) ?? null;
   const baseSlots = Math.max(
     1,
-    ...knockoutStages.map((stage, stageIndex) => (byStage[stage]?.length ?? 0) * 2 ** stageIndex),
+    ...knockoutStages.flatMap((stage) => (stageLayouts[stage]?.map((item) => item.slotIndex + 1) ?? [0])),
   );
   const bracketHeaderHeight = 38;
   const bracketWidth = knockoutStages.length * bracketColumnWidth + (knockoutStages.length - 1) * bracketColumnGap;
   const bracketHeight = Math.max(360, baseSlots * bracketRowHeight + bracketHeaderHeight);
-  const getCenterY = (stageIndex: number, matchIndex: number) => bracketHeaderHeight + (matchIndex * 2 ** stageIndex + 2 ** stageIndex / 2) * bracketRowHeight;
-  const getTop = (stageIndex: number, matchIndex: number) => getCenterY(stageIndex, matchIndex) - bracketCardHeight / 2;
+  const getCenterY = (slotIndex: number) => bracketHeaderHeight + (slotIndex + 0.5) * bracketRowHeight;
+  const getTop = (slotIndex: number) => getCenterY(slotIndex) - bracketCardHeight / 2;
   const getColumnLeft = (stageIndex: number) => stageIndex * (bracketColumnWidth + bracketColumnGap);
-  const connectors = knockoutStages.slice(0, -1).flatMap((stage, stageIndex) => {
-    const currentMatches = byStage[stage] ?? [];
+  const matchesByNumber = new Map(knockoutMatches.map((jogo) => [getMatchNumber(jogo), jogo]));
+  const layoutByMatchId = new Map(knockoutStages.flatMap((stage) => (stageLayouts[stage] ?? []).map((item) => [item.jogo.id, item])));
+  const connectors = knockoutStages.slice(0, -1).flatMap((_stage, stageIndex) => {
     const nextStage = knockoutStages[stageIndex + 1];
     if (!nextStage) return [];
-    const nextMatches = byStage[nextStage] ?? [];
+    const nextLayouts = stageLayouts[nextStage] ?? [];
 
-    return nextMatches.flatMap((_nextMatch, nextMatchIndex) => {
-      const firstSourceIndex = nextMatchIndex * 2;
-      const sourceIndexes = [firstSourceIndex, firstSourceIndex + 1].filter((sourceIndex) => currentMatches[sourceIndex]);
-      if (!sourceIndexes.length) return [];
+    return nextLayouts.flatMap((nextLayout) => {
+      const sourceLayouts = getSourceMatchNumbers(nextLayout.jogo)
+        .map((matchNumber) => matchesByNumber.get(matchNumber))
+        .map((sourceMatch) => (sourceMatch ? layoutByMatchId.get(sourceMatch.id) : null))
+        .filter((sourceLayout): sourceLayout is KnockoutMatchLayout => !!sourceLayout);
+
+      if (!sourceLayouts.length) return [];
 
       const x1 = getColumnLeft(stageIndex) + bracketColumnWidth;
       const x2 = getColumnLeft(stageIndex + 1);
       const midX = x1 + (x2 - x1) / 2;
-      const targetY = getCenterY(stageIndex + 1, nextMatchIndex);
+      const targetY = getCenterY(nextLayout.slotIndex);
 
-      return sourceIndexes.flatMap((sourceIndex) => {
-        const sourceY = getCenterY(stageIndex, sourceIndex);
+      return sourceLayouts.flatMap((sourceLayout) => {
+        const sourceY = getCenterY(sourceLayout.slotIndex);
         return [
-          <path key={`${stage}-${sourceIndex}-out`} d={`M ${x1} ${sourceY} H ${midX}`} className="stroke-primary/45" strokeWidth="2" fill="none" />,
-          <path key={`${stage}-${sourceIndex}-join`} d={`M ${midX} ${sourceY} V ${targetY} H ${x2}`} className="stroke-primary/45" strokeWidth="2" fill="none" />,
+          <path key={`${sourceLayout.jogo.id}-${nextLayout.jogo.id}-out`} d={`M ${x1} ${sourceY} H ${midX}`} className="stroke-primary/45" strokeWidth="2" fill="none" />,
+          <path key={`${sourceLayout.jogo.id}-${nextLayout.jogo.id}-join`} d={`M ${midX} ${sourceY} V ${targetY} H ${x2}`} className="stroke-primary/45" strokeWidth="2" fill="none" />,
         ];
       });
     });
@@ -865,12 +889,12 @@ function KnockoutBracket({ jogos, palpites, saveStatuses, onUpdate, onCompare }:
                 {connectors}
               </svg>
               {knockoutStages.map((stage, stageIndex) => {
-                const stageMatches = byStage[stage] ?? [];
+                const stageMatches = stageLayouts[stage] ?? [];
                 return (
                   <div key={stage} className="absolute top-4 z-10" style={{ left: getColumnLeft(stageIndex) + 16, width: bracketColumnWidth, height: bracketHeight }}>
                     <div className="sticky top-0 z-20 mb-3 rounded-full border bg-background/95 px-3 py-1 text-center text-xs font-semibold shadow-sm">{stageLabels[stage]}</div>
-                    {stageMatches.map((jogo, matchIndex) => (
-                      <div key={jogo.id} className="absolute w-full" style={{ top: getTop(stageIndex, matchIndex) }}>
+                    {stageMatches.map(({ jogo, slotIndex }) => (
+                      <div key={jogo.id} className="absolute w-full" style={{ top: getTop(slotIndex) }}>
                         <KnockoutMatchCard jogo={jogo} palpite={palpites[jogo.id]} saveStatus={saveStatuses[jogo.id] ?? "idle"} onSelect={() => setSelectedMatchId(jogo.id)} />
                       </div>
                     ))}
@@ -898,6 +922,72 @@ function KnockoutBracket({ jogos, palpites, saveStatuses, onUpdate, onCompare }:
       ) : null}
     </div>
   );
+}
+
+type KnockoutMatchLayout = {
+  jogo: Jogo;
+  slotIndex: number;
+};
+
+function getMatchNumber(jogo: Jogo) {
+  const externalId = Number(jogo.externalId);
+  return Number.isFinite(externalId) ? externalId : jogo.matchday ?? Number.MAX_SAFE_INTEGER;
+}
+
+function getSourceMatchNumbers(jogo: Jogo) {
+  const matchNumber = getMatchNumber(jogo);
+  const fixedSources = worldCup2026KnockoutSources[matchNumber];
+  if (fixedSources) return fixedSources;
+
+  const text = `${jogo.mandante} ${jogo.visitante}`;
+  return [...text.matchAll(/(?:Vencedor|Perdedor) do jogo (\d+)/g)].map((match) => Number(match[1])).filter(Number.isFinite);
+}
+
+function buildKnockoutStageLayouts(byStage: Record<string, Jogo[]>) {
+  const layouts: Partial<Record<KnockoutStage, KnockoutMatchLayout[]>> = {};
+  const matchesByNumber = new Map(knockoutStages.flatMap((stage) => (byStage[stage] ?? []).map((jogo) => [getMatchNumber(jogo), jogo] as const)));
+  const sourceNumbersByMatchNumber = new Map<number, number[]>([...matchesByNumber].map(([matchNumber, jogo]) => [matchNumber, getSourceMatchNumbers(jogo)]));
+  const firstStage: KnockoutStage = "r32";
+  const firstStageMatchNumbers = new Set((byStage[firstStage] ?? []).map(getMatchNumber));
+  const finalMatch = byStage.final?.[0];
+  const orderedFirstStageMatchNumbers = finalMatch ? collectSourceLeafMatchNumbers(getMatchNumber(finalMatch), sourceNumbersByMatchNumber, firstStageMatchNumbers) : [];
+  const remainingFirstStageMatchNumbers = (byStage[firstStage] ?? [])
+    .map(getMatchNumber)
+    .filter((matchNumber) => !orderedFirstStageMatchNumbers.includes(matchNumber));
+  const firstStageSlotByMatchNumber = new Map(
+    [...orderedFirstStageMatchNumbers, ...remainingFirstStageMatchNumbers].map((matchNumber, index) => [matchNumber, index]),
+  );
+  const slotByMatchNumber = new Map<number, number>();
+
+  for (const stage of knockoutStages) {
+    const matches = byStage[stage] ?? [];
+    const positioned = matches.map((jogo, fallbackIndex) => {
+      const sourceSlots = getSourceMatchNumbers(jogo)
+        .map((matchNumber) => slotByMatchNumber.get(matchNumber))
+        .filter((slotIndex): slotIndex is number => slotIndex !== undefined);
+      const slotIndex = sourceSlots.length
+        ? sourceSlots.reduce((sum, item) => sum + item, 0) / sourceSlots.length
+        : stage === firstStage
+          ? firstStageSlotByMatchNumber.get(getMatchNumber(jogo)) ?? fallbackIndex
+        : fallbackIndex;
+
+      return { jogo, slotIndex };
+    });
+
+    layouts[stage] = positioned;
+    for (const item of positioned) {
+      slotByMatchNumber.set(getMatchNumber(item.jogo), item.slotIndex);
+    }
+  }
+
+  return layouts;
+}
+
+function collectSourceLeafMatchNumbers(matchNumber: number, sourceNumbersByMatchNumber: Map<number, number[]>, leafMatchNumbers: Set<number>): number[] {
+  if (leafMatchNumbers.has(matchNumber)) return [matchNumber];
+
+  const sourceNumbers = sourceNumbersByMatchNumber.get(matchNumber) ?? [];
+  return sourceNumbers.flatMap((sourceNumber) => collectSourceLeafMatchNumbers(sourceNumber, sourceNumbersByMatchNumber, leafMatchNumbers));
 }
 
 function KnockoutMatchCard({ jogo, palpite, saveStatus, onSelect }: { jogo: Jogo; palpite?: Palpite; saveStatus: PredictionSaveStatus; onSelect: () => void }) {

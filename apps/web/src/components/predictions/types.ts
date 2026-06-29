@@ -1,5 +1,6 @@
 export type Jogo = {
   id: string;
+  externalId: string | null;
   rodada: string;
   stage: string | null;
   stageLabel: string;

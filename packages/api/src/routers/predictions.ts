@@ -148,6 +148,7 @@ export const predictionsRouter = {
           updatedAt: prediction.updatedAt,
           match: {
             id: match.id,
+            externalId: match.externalId,
             homeTeam: match.homeTeam,
             awayTeam: match.awayTeam,
             homeTeamLabel: match.homeTeamLabel,
@@ -259,6 +260,7 @@ export const predictionsRouter = {
         where: and(eq(match.id, input.matchId), eq(match.tournamentId, currentPool.tournamentId)),
         columns: {
           id: true,
+          externalId: true,
           homeTeam: true,
           awayTeam: true,
           homeTeamLabel: true,
