@@ -278,8 +278,8 @@ function PendingHomeAlert({
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
-          {hasPendingPredictions ? <Button size="sm" variant="outline" onClick={onOpenPredictions}>Ver palpites pendentes</Button> : null}
-          {hasUnansweredQuestions ? <Button size="sm" variant="outline" onClick={onOpenQuestions}>Ver perguntas pendentes</Button> : null}
+          {hasPendingPredictions ? <Button size="sm" variant="outline" className="border-red-950/30 bg-white text-red-950 hover:bg-red-50 hover:text-red-950" onClick={onOpenPredictions}>Ver palpites pendentes</Button> : null}
+          {hasUnansweredQuestions ? <Button size="sm" variant="outline" className="border-red-950/30 bg-white text-red-950 hover:bg-red-50 hover:text-red-950" onClick={onOpenQuestions}>Ver perguntas pendentes</Button> : null}
         </div>
       </AlertDescription>
     </Alert>
@@ -589,14 +589,14 @@ export function ParticipantPage() {
   const encerrados = jogos.filter((jogo) => jogo.status === "finished").length;
   const bloqueados = jogos.filter((jogo) => jogo.status === "locked").length;
   const perguntasLivresVisiveis = (questionsQuery.data ?? []).filter((question) => question.answer?.isCorrect === null || question.answer?.isCorrect === undefined);
-  const perguntasSemResposta = perguntasLivresVisiveis.filter((question) => !question.answer?.answer?.trim()).length;
   const now = new Date();
   const todayKey = getDateKey(now);
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
   const tomorrowKey = getDateKey(tomorrow);
-  const missingTodayPredictions = jogos.filter((jogo) => !jogo.encerrado && !hasCompletePrediction(palpitesLocais[jogo.id]) && getDateKey(jogo.startsAt) === todayKey).length;
-  const missingTomorrowPredictions = jogos.filter((jogo) => !jogo.encerrado && !hasCompletePrediction(palpitesLocais[jogo.id]) && getDateKey(jogo.startsAt) === tomorrowKey).length;
+  const perguntasSemResposta = perguntasLivresVisiveis.filter((question) => new Date(question.closesAt) > now && !question.answer?.answer?.trim()).length;
+  const missingTodayPredictions = jogos.filter((jogo) => jogo.startsAt > now && !hasCompletePrediction(palpitesLocais[jogo.id]) && getDateKey(jogo.startsAt) === todayKey).length;
+  const missingTomorrowPredictions = jogos.filter((jogo) => jogo.startsAt > now && !hasCompletePrediction(palpitesLocais[jogo.id]) && getDateKey(jogo.startsAt) === tomorrowKey).length;
   const jogosHoje = jogos.filter((jogo) => getDateKey(jogo.startsAt) === getDateKey(new Date())).length;
   const jogosSemPontuacao = jogos.filter((jogo) => !jogo.pontuacao).length;
   const currentUserId = sessionQuery.data?.user?.id;
@@ -916,9 +916,11 @@ function KnockoutBracket({ jogos, palpites, saveStatuses, onUpdate, onCompare }:
     .filter((jogo) => normalizeKnockoutStage(jogo.stage) === "third")
     .sort((a, b) => getMatchNumber(a) - getMatchNumber(b) || a.startsAt.getTime() - b.startsAt.getTime());
   const selectedMatch = jogos.find((jogo) => jogo.id === selectedMatchId) ?? null;
+  const thirdPlaceSlotIndex = Math.max(...(stageLayouts.final?.map((item) => item.slotIndex) ?? [0])) + 1;
   const baseSlots = Math.max(
     1,
     ...knockoutStages.flatMap((stage) => (stageLayouts[stage]?.map((item) => item.slotIndex + 1) ?? [0])),
+    thirdPlaceMatches.length ? thirdPlaceSlotIndex + thirdPlaceMatches.length : 0,
   );
   const bracketHeaderHeight = 38;
   const bracketWidth = knockoutStages.length * bracketColumnWidth + (knockoutStages.length - 1) * bracketColumnGap;
@@ -988,6 +990,12 @@ function KnockoutBracket({ jogos, palpites, saveStatuses, onUpdate, onCompare }:
                         <KnockoutMatchCard jogo={jogo} palpite={palpites[jogo.id]} saveStatus={saveStatuses[jogo.id] ?? "idle"} onSelect={() => setSelectedMatchId(jogo.id)} />
                       </div>
                     ))}
+                    {stage === "final" && thirdPlaceMatches.map((jogo, index) => (
+                      <div key={jogo.id} className="absolute w-full" style={{ top: getTop(thirdPlaceSlotIndex + index) }}>
+                        <div className="mb-1 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Terceiro lugar</div>
+                        <KnockoutMatchCard jogo={jogo} palpite={palpites[jogo.id]} saveStatus={saveStatuses[jogo.id] ?? "idle"} onSelect={() => setSelectedMatchId(jogo.id)} />
+                      </div>
+                    ))}
                   </div>
                 );
               })}
@@ -995,16 +1003,6 @@ function KnockoutBracket({ jogos, palpites, saveStatuses, onUpdate, onCompare }:
           </div>
         </CardContent>
       </Card>
-
-      {thirdPlaceMatches.length ? (
-        <Card className="border-primary/10 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="pb-3"><CardTitle className="text-base">Terceiro Lugar</CardTitle></CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {thirdPlaceMatches.map((jogo) => <KnockoutMatchCard key={jogo.id} jogo={jogo} palpite={palpites[jogo.id]} saveStatus={saveStatuses[jogo.id] ?? "idle"} onSelect={() => setSelectedMatchId(jogo.id)} />)}
-          </CardContent>
-        </Card>
-      ) : null}
-
       {selectedMatch ? (
         <MatchesModal title={`${selectedMatch.mandante} x ${selectedMatch.visitante}`} description={selectedMatch.rodada} onClose={() => setSelectedMatchId(null)}>
           <PredictionMatchCard jogo={selectedMatch} palpite={palpites[selectedMatch.id] ?? { golsMandante: null, golsVisitante: null }} onUpdate={onUpdate} onCompare={onCompare} saveStatus={saveStatuses[selectedMatch.id] ?? "idle"} />
@@ -1083,34 +1081,40 @@ function collectSourceLeafMatchNumbers(matchNumber: number, sourceNumbersByMatch
 function KnockoutMatchCard({ jogo, palpite, saveStatus, onSelect }: { jogo: Jogo; palpite?: Palpite; saveStatus: PredictionSaveStatus; onSelect: () => void }) {
   const hasPrediction = hasCompletePrediction(palpite);
   const statusVariant = saveStatus === "error" ? "destructive" : saveStatus === "saving" ? "secondary" : jogo.status === "missing" ? "warning" : jogo.status === "saved" ? "default" : "secondary";
-  const statusLabel = saveStatus === "saving" ? "Salvando..." : saveStatus === "error" ? "Erro" : hasPrediction ? jogo.statusLabel : "Sem palpite";
   const predictionHome = hasPrediction ? palpite?.golsMandante : null;
   const predictionAway = hasPrediction ? palpite?.golsVisitante : null;
+  const isToday = getDateKey(jogo.startsAt) === getDateKey(new Date());
+  const hasStarted = jogo.startsAt <= new Date();
+  const statusLabel = saveStatus === "saving" ? "Salvando..." : saveStatus === "error" ? "Erro" : hasPrediction ? jogo.statusLabel : hasStarted ? (jogo.encerrado ? "Encerrado" : "Bloqueado") : "Sem palpite";
+  const homeWon = jogo.encerrado && jogo.golsMandanteResultado !== null && jogo.golsVisitanteResultado !== null && jogo.golsMandanteResultado > jogo.golsVisitanteResultado;
+  const awayWon = jogo.encerrado && jogo.golsMandanteResultado !== null && jogo.golsVisitanteResultado !== null && jogo.golsVisitanteResultado > jogo.golsMandanteResultado;
 
   return (
-    <button type="button" onClick={onSelect} className="group h-[88px] w-full rounded-xl border bg-card p-2 text-left shadow-md transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+    <button type="button" onClick={onSelect} className={`group h-[88px] w-full rounded-xl border p-2 text-left shadow-md transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${isToday ? "border-primary/70 bg-primary/10 ring-2 ring-primary/20" : "bg-card"}`}>
       <div className="mb-1 flex items-center justify-between gap-2 text-[10px] leading-none text-muted-foreground">
-        <span className="truncate">Jogo {jogo.matchday ?? "-"}</span>
+        <span className={`truncate font-semibold ${isToday ? "text-primary" : ""}`}>{isToday ? "Hoje" : getStageLabel(jogo.stage)}</span>
         <span className="truncate">{jogo.startsAt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}</span>
       </div>
-      <KnockoutTeamRow emoji={jogo.mandanteEmoji} name={jogo.mandante} goals={predictionHome} />
-      <KnockoutTeamRow emoji={jogo.visitanteEmoji} name={jogo.visitante} goals={predictionAway} />
+      <KnockoutTeamRow emoji={jogo.mandanteEmoji} name={jogo.mandante} goals={predictionHome} resultGoals={jogo.encerrado ? jogo.golsMandanteResultado : null} winner={homeWon} />
+      <KnockoutTeamRow emoji={jogo.visitanteEmoji} name={jogo.visitante} goals={predictionAway} resultGoals={jogo.encerrado ? jogo.golsVisitanteResultado : null} winner={awayWon} />
       <div className="mt-1 flex items-center justify-between gap-2">
         <Badge variant={statusVariant} className="max-w-full truncate px-1.5 py-0 text-[10px] leading-5">{statusLabel}</Badge>
-        {jogo.encerrado ? <span className="text-[11px] font-semibold text-muted-foreground">Final {jogo.golsMandanteResultado ?? "-"}x{jogo.golsVisitanteResultado ?? "-"}</span> : null}
+        {jogo.encerrado ? <span className="text-[11px] font-semibold text-muted-foreground">Final</span> : null}
       </div>
     </button>
   );
 }
 
-function KnockoutTeamRow({ emoji, name, goals }: { emoji: string | null; name: string; goals: number | null | undefined }) {
+function KnockoutTeamRow({ emoji, name, goals, resultGoals, winner }: { emoji: string | null; name: string; goals: number | null | undefined; resultGoals: number | null; winner: boolean }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_2rem] items-center gap-2 border-t py-0.5 first:border-t-0">
-      <span className="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium">
+    <div className={`grid grid-cols-[minmax(0,1fr)_3.75rem] items-center gap-2 rounded-md border-t px-1 py-0.5 first:border-t-0 ${winner ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : ""}`}>
+      <span className={`inline-flex min-w-0 items-center gap-1.5 text-xs ${winner ? "font-bold" : "font-medium"}`}>
         <TeamFlag emoji={emoji} name={name} />
         <span className="truncate">{name}</span>
       </span>
-      <span className="rounded-md bg-muted px-2 py-0.5 text-center text-xs font-bold tabular-nums">{goals ?? "-"}</span>
+      <span className={`rounded-md px-1.5 py-0.5 text-center text-xs font-bold tabular-nums ${winner ? "bg-emerald-500/15" : "bg-muted"}`}>
+        {goals ?? "-"}<span className="text-muted-foreground">/{resultGoals ?? "-"}</span>
+      </span>
     </div>
   );
 }
