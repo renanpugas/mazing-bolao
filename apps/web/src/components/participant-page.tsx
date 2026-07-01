@@ -23,6 +23,7 @@ import { useSessionQuery } from "@/hooks/use-session-api";
 import { useSyncWorldCupMutation, useTournamentsListQuery } from "@/hooks/use-tournaments-api";
 import { getMatchTeamDisplayName } from "@/lib/match-team-display";
 import { formatTeamNamePtBr } from "@/lib/team-names";
+import { applyTheme, setThemeLock, themeStorageKey } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "timeline" | "knockout" | "groups" | "list" | "questions";
@@ -31,6 +32,7 @@ type MatchBlock = { id: string; title: string; description: string; jogos: Jogo[
 type KnockoutStage = "r32" | "r16" | "qf" | "sf" | "final" | "third";
 type FreeQuestion = { id: string; question: string; points: number; closesAt: Date | string; answer: { id: string; answer: string; isCorrect: boolean | null } | null };
 type PredictionEasterEgg = { key: number; variant: "canarinho" | "tsubasa" | "usa-loss" | "japan-loss" | "cr7" | "memphis" | "germany-audio" | "mexico-loss" | "south-korea-win" | "spain-win" | "france-win" | "colombia-win" } | null;
+type PendingFranceLossPrediction = { payload: PalpiteUpdate; imageSrc: string } | null;
 
 const stageLabels: Record<string, string> = {
   group: "Fase de grupos",
@@ -58,6 +60,7 @@ const bracketColumnWidth = 220;
 const bracketColumnGap = 72;
 const bracketRowHeight = 104;
 const bracketCardHeight = 88;
+const dictadorForgivenessImages: [string, ...string[]] = ["/dictador1.png", "/dictador2.png", "/dictador3.png", "/dictador4.png"];
 const worldCup2026KnockoutSources: Record<number, number[]> = {
   89: [74, 77],
   90: [73, 75],
@@ -105,6 +108,16 @@ function getKnockoutStageOrder(stage: string | null) {
 
 function hasCompletePrediction(palpite?: Palpite) {
   return palpite?.golsMandante !== null && palpite?.golsMandante !== undefined && palpite?.golsVisitante !== null && palpite?.golsVisitante !== undefined;
+}
+
+function isFranceMatch(jogo: Pick<Jogo, "mandante" | "visitante">) {
+  return jogo.mandante === "França" || jogo.visitante === "França";
+}
+
+function isFranceLosingPrediction(jogo: Pick<Jogo, "mandante" | "visitante">, palpite: Palpite) {
+  if (!isFranceMatch(jogo) || !hasCompletePrediction(palpite)) return false;
+  if (jogo.mandante === "França") return (palpite.golsMandante ?? 0) < (palpite.golsVisitante ?? 0);
+  return (palpite.golsVisitante ?? 0) < (palpite.golsMandante ?? 0);
 }
 
 function getStatus(jogo: Pick<Jogo, "bloqueado" | "encerrado">, palpite?: Palpite): Pick<Jogo, "status" | "statusLabel"> {
@@ -304,6 +317,43 @@ function TermsAcceptance() {
   );
 }
 
+function FranceLossConfirmationModal({ pendingPrediction, onCancel, onConfirm }: { pendingPrediction: PendingFranceLossPrediction; onCancel: () => void; onConfirm: () => void }) {
+  useEffect(() => {
+    if (!pendingPrediction) return;
+
+    const audio = new Audio("/kylian-mbappe-dictador-anthem.mp3");
+    audio.loop = true;
+    audio.currentTime = 0;
+    void audio.play().catch(() => undefined);
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, [pendingPrediction]);
+
+  if (!pendingPrediction) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="france-loss-title">
+      <Card className="w-full max-w-lg overflow-hidden border-primary/30 bg-card shadow-2xl">
+        <img src={pendingPrediction.imageSrc} alt="Dictador observando o palpite" className="max-h-[58vh] w-full object-cover object-top" />
+        <CardContent className="space-y-4 p-5 text-center">
+          <div className="space-y-2">
+            <h2 id="france-loss-title" className="text-2xl font-semibold tracking-tight">A França perdendo?</h2>
+            <p className="text-sm text-muted-foreground">"There's freedom of speech, but I cannot guarantee freedom after speech" - Kylian Mbappe</p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button type="button" variant="secondary" onClick={onCancel}>Perdão</Button>
+            <Button type="button" variant="destructive" onClick={onConfirm}>Tem certeza?</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>,
+    document.body,
+  );
+}
+
 function FreeQuestions({ perguntas, respostasLivres, mensagemResposta, answerQuestionPending, onAnswerChange, onSave, onCompare }: { perguntas: FreeQuestion[]; respostasLivres: Record<string, string>; mensagemResposta: string | null; answerQuestionPending: boolean; onAnswerChange: (questionId: string, answer: string) => void; onSave: (questionId: string) => void; onCompare: (questionId: string) => void }) {
   const sortedPerguntas = [...perguntas].sort((a, b) => {
     const aHasAnswer = !!a.answer?.answer?.trim();
@@ -391,6 +441,7 @@ export function ParticipantPage() {
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [predictionEasterEgg, setPredictionEasterEgg] = useState<PredictionEasterEgg>(null);
+  const [pendingFranceLossPrediction, setPendingFranceLossPrediction] = useState<PendingFranceLossPrediction>(null);
 
   useEffect(() => {
     if (!bolaoSelecionadoId && boloes[0]) setBolaoSelecionadoId(boloes[0].id);
@@ -471,6 +522,19 @@ export function ParticipantPage() {
     };
   });
 
+  const hasFranceMatchToday = jogos.some((jogo) => isFranceMatch(jogo) && getDateKey(jogo.startsAt) === getDateKey(new Date()));
+
+  useEffect(() => {
+    if (hasFranceMatchToday) {
+      setThemeLock("dictador");
+      applyTheme("dictador");
+      window.localStorage.setItem(themeStorageKey, "dictador");
+      return;
+    }
+
+    setThemeLock(null);
+  }, [hasFranceMatchToday]);
+
   useEffect(() => {
     if (!bolaoSelecionadoId || !palpitesAlterados.size) return;
 
@@ -547,7 +611,7 @@ export function ParticipantPage() {
     ? lastSyncedAt.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })
     : "Ainda não atualizado";
 
-  const atualizarPalpite = ({ jogoId, lado, gols }: PalpiteUpdate) => {
+  const aplicarAtualizacaoPalpite = ({ jogoId, lado, gols }: PalpiteUpdate) => {
     setPalpitesLocais((current) => {
       const atual = current[jogoId] ?? { id: null, golsMandante: null, golsVisitante: null };
       return { ...current, [jogoId]: { ...atual, golsMandante: lado === "mandante" ? gols : atual.golsMandante, golsVisitante: lado === "visitante" ? gols : atual.golsVisitante } };
@@ -555,6 +619,24 @@ export function ParticipantPage() {
     setPalpitesAlterados((current) => new Set(current).add(jogoId));
     setSaveStatuses((current) => ({ ...current, [jogoId]: "dirty" }));
     setRequestError(null);
+  };
+
+  const atualizarPalpite = (payload: PalpiteUpdate) => {
+    const jogo = jogos.find((item) => item.id === payload.jogoId);
+    const atual = palpitesLocais[payload.jogoId] ?? { id: null, golsMandante: null, golsVisitante: null };
+    const proximoPalpite = {
+      ...atual,
+      golsMandante: payload.lado === "mandante" ? payload.gols : atual.golsMandante,
+      golsVisitante: payload.lado === "visitante" ? payload.gols : atual.golsVisitante,
+    };
+
+    if (jogo && isFranceLosingPrediction(jogo, proximoPalpite)) {
+      const imageIndex = Math.floor(Math.random() * dictadorForgivenessImages.length);
+      setPendingFranceLossPrediction({ payload, imageSrc: dictadorForgivenessImages[imageIndex] ?? dictadorForgivenessImages[0] });
+      return;
+    }
+
+    aplicarAtualizacaoPalpite(payload);
   };
 
   const selecionarBolao = (bolaoId: string) => {
@@ -608,6 +690,14 @@ export function ParticipantPage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-transparent">
       <PredictionEasterEggOverlay effect={predictionEasterEgg} />
+      <FranceLossConfirmationModal
+        pendingPrediction={pendingFranceLossPrediction}
+        onCancel={() => setPendingFranceLossPrediction(null)}
+        onConfirm={() => {
+          if (pendingFranceLossPrediction) aplicarAtualizacaoPalpite(pendingFranceLossPrediction.payload);
+          setPendingFranceLossPrediction(null);
+        }}
+      />
       <PageShell wide className="space-y-6">
         <Card className="overflow-hidden border-primary/20 bg-primary text-primary-foreground shadow-lg">
           <CardContent className="grid gap-5 p-6 lg:grid-cols-[1fr_360px] lg:items-end">

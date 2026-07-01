@@ -17,6 +17,7 @@ import { usePoolsListQuery } from "@/hooks/use-pools-api";
 import { useSessionQuery } from "@/hooks/use-session-api";
 import { getMatchTeamDisplayName } from "@/lib/match-team-display";
 import { formatTeamNamePtBr } from "@/lib/team-names";
+import { getStoredTheme, isTheme, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 const stageLabels: Record<string, string> = {
@@ -88,12 +89,25 @@ const rankingAnnouncementImages = [
   { src: "/copa-nargas-04.png", alt: "Anúncio Copa Nargas 04" },
 ];
 
-function getRandomAnnouncementImage(currentImage: (typeof rankingAnnouncementImages)[number] | null) {
-  if (rankingAnnouncementImages.length <= 1) return rankingAnnouncementImages[0] ?? null;
+const dictadorAnnouncementImages = [
+  { src: "/dictador.png", alt: "Anúncio Dictador" },
+];
 
-  const availableImages = rankingAnnouncementImages.filter((image) => image.src !== currentImage?.src);
+type RankingAnnouncementImage = (typeof rankingAnnouncementImages)[number] | (typeof dictadorAnnouncementImages)[number];
+
+function getRandomAnnouncementImage(currentImage: RankingAnnouncementImage | null, theme: Theme) {
+  const images = theme === "dictador" ? dictadorAnnouncementImages : rankingAnnouncementImages;
+  if (images.length <= 1) return images[0] ?? null;
+
+  const availableImages = images.filter((image) => image.src !== currentImage?.src);
   const randomIndex = Math.floor(Math.random() * availableImages.length);
-  return availableImages[randomIndex] ?? rankingAnnouncementImages[0] ?? null;
+  return availableImages[randomIndex] ?? images[0] ?? null;
+}
+
+function playDictadorAnthem() {
+  const audio = new Audio("/kylian-mbappe-dictador-anthem.mp3");
+  audio.currentTime = 0;
+  void audio.play().catch(() => undefined);
 }
 
 function TeamNameWithFlag({ emoji, name }: { emoji: string | null | undefined; name: string }) {
@@ -290,7 +304,8 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
   const [selectedComparisonMatchId, setSelectedComparisonMatchId] = useState<string | null>(null);
   const [selectedComparisonQuestionId, setSelectedComparisonQuestionId] = useState<string | null>(null);
-  const [selectedAnnouncementImage, setSelectedAnnouncementImage] = useState<(typeof rankingAnnouncementImages)[number] | null>(null);
+  const [currentTheme, setCurrentTheme] = useState<Theme>(getStoredTheme);
+  const [selectedAnnouncementImage, setSelectedAnnouncementImage] = useState<RankingAnnouncementImage | null>(null);
   const [announcementClosed, setAnnouncementClosed] = useState(false);
   const rankingQuery = usePoolScoringRankingQuery(selectedPoolId);
   const rankingHistoryQuery = usePoolScoringRankingHistoryQuery(selectedPoolId);
@@ -312,8 +327,23 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
   });
 
   useEffect(() => {
-    setSelectedAnnouncementImage(getRandomAnnouncementImage(null));
+    setSelectedAnnouncementImage(getRandomAnnouncementImage(null, currentTheme));
     setAnnouncementClosed(false);
+  }, [currentTheme]);
+
+  useEffect(() => {
+    const updateTheme = (event: Event) => {
+      const nextTheme = event instanceof CustomEvent ? event.detail : getStoredTheme();
+      if (isTheme(nextTheme)) setCurrentTheme(nextTheme);
+    };
+
+    window.addEventListener("mazing-theme-change", updateTheme);
+    window.addEventListener("storage", updateTheme);
+
+    return () => {
+      window.removeEventListener("mazing-theme-change", updateTheme);
+      window.removeEventListener("storage", updateTheme);
+    };
   }, []);
 
   useEffect(() => {
@@ -395,7 +425,7 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
                 size="sm"
                 className="h-8 rounded-full px-3 shadow-sm"
                 onClick={() => {
-                  setSelectedAnnouncementImage((currentImage) => getRandomAnnouncementImage(currentImage));
+                  setSelectedAnnouncementImage((currentImage) => getRandomAnnouncementImage(currentImage, currentTheme));
                   setAnnouncementClosed(false);
                 }}
                 aria-label="Trocar anúncio"
@@ -413,11 +443,22 @@ export function PoolResultsPage({ initialPoolId = null }: { initialPoolId?: stri
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <img
-              src={selectedAnnouncementImage.src}
-              alt={selectedAnnouncementImage.alt}
-              className="block max-h-[420px] w-full object-contain bg-muted/30"
-            />
+            <button
+              type="button"
+              className="block w-full"
+              onClick={currentTheme === "dictador" ? playDictadorAnthem : undefined}
+              disabled={currentTheme !== "dictador"}
+              aria-label={currentTheme === "dictador" ? "Tocar música tema do Dictador" : undefined}
+            >
+              <img
+                src={selectedAnnouncementImage.src}
+                alt={selectedAnnouncementImage.alt}
+                className={cn(
+                  "block max-h-[420px] w-full bg-muted/30 object-contain",
+                  currentTheme === "dictador" && "cursor-pointer",
+                )}
+              />
+            </button>
           </CardContent>
         </Card>
       ) : null}

@@ -97,6 +97,29 @@
     --color-ring: hsl(50 100% 48%);
   }
 
+  .dictador {
+    color-scheme: dark;
+    --color-background: hsl(222 58% 10%);
+    --color-foreground: hsl(0 0% 96%);
+    --color-card: hsl(222 48% 16%);
+    --color-card-foreground: hsl(0 0% 96%);
+    --color-popover: hsl(222 48% 16%);
+    --color-popover-foreground: hsl(0 0% 96%);
+    --color-primary: hsl(218 78% 48%);
+    --color-primary-foreground: hsl(0 0% 100%);
+    --color-secondary: hsl(0 0% 96%);
+    --color-secondary-foreground: hsl(222 58% 13%);
+    --color-muted: hsl(220 30% 22%);
+    --color-muted-foreground: hsl(220 16% 76%);
+    --color-accent: hsl(351 83% 48%);
+    --color-accent-foreground: hsl(0 0% 100%);
+    --color-destructive: hsl(351 83% 48%);
+    --color-destructive-foreground: hsl(0 0% 100%);
+    --color-border: hsl(0 0% 96% / 0.22);
+    --color-input: hsl(0 0% 96% / 0.22);
+    --color-ring: hsl(351 83% 48%);
+  }
+
   * {
     border-color: var(--color-border);
   }
@@ -148,6 +171,38 @@
   }
 
   .canarinho .app-shell > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .dictador body {
+    background: var(--color-background);
+  }
+
+  .dictador .app-shell {
+    position: relative;
+    background:
+      radial-gradient(circle at 18% 14%, hsl(0 0% 100% / 0.16), transparent 26rem),
+      radial-gradient(circle at 84% 16%, hsl(351 83% 48% / 0.28), transparent 24rem),
+      linear-gradient(135deg, hsl(222 58% 10% / 0.96), hsl(218 78% 30% / 0.88)),
+      var(--color-background);
+  }
+
+  .dictador .app-shell::before {
+    position: fixed;
+    right: max(1rem, 4vw);
+    bottom: 0;
+    z-index: 0;
+    width: min(36vw, 24rem);
+    aspect-ratio: 1;
+    pointer-events: none;
+    background: url("/dictador.png") right bottom / contain no-repeat;
+    content: "";
+    opacity: 0.28;
+    filter: drop-shadow(0 2rem 3rem hsl(0 0% 0% / 0.6));
+  }
+
+  .dictador .app-shell > * {
     position: relative;
     z-index: 1;
   }
